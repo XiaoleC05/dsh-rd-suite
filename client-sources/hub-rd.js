@@ -1,12 +1,12 @@
 /**
- * 研发工作台 — 侧栏入口页（合并客户端的一个 surface）。
+ * 研发工作台 — 唯一侧栏入口与主区页（合并客户端的一个 surface）。
  *
- * 侧栏只有这一个研发入口；页面里说明研发模式怎么工作、与其他模式的区别、
- * 已装能力，并可以跳转到集成进来的旧页面（代码修正）。
+ * 页面内是标签页：概览（说明研发模式怎么工作、与其他模式的区别）+ 完全迁移进来的
+ * 成员页面（代码修正）。旧插件的独立侧栏图标与独立主区页已不再注册。
  */
 window.__ModuleLoader__.load({
   id: '@local/rd-hub',
-  factory(require) {
+  factory(require, pageSources) {
     const React = require('react')
     const h = React.createElement
     const NS = 'rdHub'
@@ -16,14 +16,14 @@ window.__ModuleLoader__.load({
       zh: {
         panelName: '研发工作台',
         subtitle: '一个模式覆盖完整研发流程：分级 → 侦察 → 实现 → 验证 → 独立验收 → 交付',
+        overviewTab: '概览',
         howTitle: '它是怎么工作的',
         tierTitle: '任务分级',
         flowTitle: '流水线 S1–S8',
         gateTitle: '两道关卡',
         diffTitle: '和其他模式的区别',
-        capTitle: '已装能力与入口',
+        capTitle: '已装能力',
         startTitle: '怎么开始',
-        openCode: '打开「代码修正」',
         tiers: [
           'L0 问答：不改文件，直接回答',
           'L1 微改：≤2 个文件，定位 → 修改 → 最小验证',
@@ -52,7 +52,7 @@ window.__ModuleLoader__.load({
           '差异关键：技能按需加载、上下文压缩更早（约 199k）、L3 强制独立验收、内置 GitHub Issue 流程。',
         ],
         caps: [
-          '代码修正：侧栏「代码修正」页（本页按钮可直达）。',
+          '代码修正：见「代码修正」标签页（已完全迁移到这里）。',
           'context7 文档检索：模型可直接查库的最新官方文档。',
           'GitHub Issue 流程：设置 → 通用 里开关；开启后按模块先建 Issue 再提交。',
           '技能：rd-code-standards、rd-testing、rd-web、rd-data、rd-ai、rd-ecosystem、rd-retro。',
@@ -66,14 +66,14 @@ window.__ModuleLoader__.load({
       en: {
         panelName: 'R&D workbench',
         subtitle: 'One mode for the whole delivery flow: tier → recon → implement → verify → independent review → report',
+        overviewTab: 'Overview',
         howTitle: 'How it works',
         tierTitle: 'Task tiers',
         flowTitle: 'Pipeline S1–S8',
         gateTitle: 'Two gates',
         diffTitle: 'Differences from other modes',
-        capTitle: 'Capabilities and entries',
+        capTitle: 'Capabilities',
         startTitle: 'Getting started',
-        openCode: 'Open "Code fixes"',
         tiers: [
           'L0 question: no file changes, answer directly',
           'L1 micro change: up to two files, locate → edit → minimal check',
@@ -102,7 +102,7 @@ window.__ModuleLoader__.load({
           'Key differences: skills load on demand, earlier compaction (about 199k), mandatory independent review for L3, built-in GitHub issue-first workflow.',
         ],
         caps: [
-          'Code fixes: the "Code fixes" page (this page links to it).',
+          'Code fixes: the "Code fixes" tab (fully migrated here).',
           'context7 documentation lookup: the model can read the latest official docs for a library.',
           'GitHub issue-first workflow: toggle in Settings → General; when on, issues come before edits.',
           'Skills: rd-code-standards, rd-testing, rd-web, rd-data, rd-ai, rd-ecosystem, rd-retro.',
@@ -115,7 +115,6 @@ window.__ModuleLoader__.load({
       },
     }
 
-    const mono = 'ui-monospace, SFMono-Regular, Consolas, monospace'
     const cardStyle = {
       border: '0.5px solid var(--dsw-alias-border-l2)',
       borderRadius: 10,
@@ -127,30 +126,20 @@ window.__ModuleLoader__.load({
     }
     const listStyle = { margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, lineHeight: '20px', color: 'var(--dsw-alias-label-secondary)' }
     const titleStyle = { margin: 0, fontSize: 14, lineHeight: '20px', color: 'var(--dsw-alias-label-primary)' }
+    const tabStyle = { padding: '6px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, border: '0.5px solid var(--dsw-alias-border-l2)', background: 'transparent', color: 'var(--dsw-alias-label-secondary)' }
+    const tabActiveStyle = { ...tabStyle, background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-primary)', fontWeight: 500 }
 
-    function Card({ title, children, style }) {
-      return h('section', { style: { ...cardStyle, ...style } },
-        h('h3', { style: titleStyle }, title), children)
+    function Card({ title, children }) {
+      return h('section', { style: cardStyle }, h('h3', { style: titleStyle }, title), children)
     }
-
     function List({ items }) {
       return h('ul', { style: listStyle }, items.map((text, index) => h('li', { key: index }, text)))
     }
 
-    function HubPage(props) {
-      const t = typeof props?.t === 'function' ? props.t : (key) => key
-      const [opening, setOpening] = React.useState(false)
-      const openPanel = () => {
-        if (opening) return
-        setOpening(true)
-        try { props?.selectPanel?.('code-pipeline') } finally { setOpening(false) }
-      }
-      return h('div', { style: { padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 16, overflow: 'auto', height: '100%', boxSizing: 'border-box' } },
-        h('header', { style: { display: 'flex', flexDirection: 'column', gap: 4 } },
-          h('h1', { style: { margin: 0, fontSize: 20, lineHeight: '28px', color: 'var(--dsw-alias-label-primary)' } }, t('panelName')),
-          h('p', { style: { margin: 0, fontSize: 13, lineHeight: '20px', color: 'var(--dsw-alias-label-secondary)' } }, t('subtitle'))),
-        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12 } },
-          h(Card, { title: t('diffTitle'), style: { gridColumn: '1 / -1' } }, h(List, { items: t('diffs') })),
+    function Overview({ t }) {
+      return h('div', { style: { display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 } },
+        h(Card, { title: t('diffTitle') }, h(List, { items: t('diffs') })),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 12 } },
           h(Card, { title: t('howTitle') },
             h('div', { style: { display: 'flex', flexDirection: 'column', gap: 10 } },
               h('div', { style: { display: 'flex', flexDirection: 'column', gap: 4 } },
@@ -160,20 +149,8 @@ window.__ModuleLoader__.load({
                 h('strong', { style: { fontSize: 13, color: 'var(--dsw-alias-label-primary)' } }, t('flowTitle')),
                 h(List, { items: t('flow') })))),
           h(Card, { title: t('gateTitle') }, h(List, { items: t('gates') })),
-          h(Card, { title: t('capTitle') },
-            h(List, { items: t('caps') }),
-            h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 } },
-              h('button', {
-                type: 'button',
-                onClick: openPanel,
-                style: {
-                  alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-                  border: '0.5px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-base)',
-                  color: 'var(--dsw-alias-label-primary)', fontSize: 13,
-                },
-              }, t('openCode')))),
-          h(Card, { title: t('startTitle') }, h(List, { items: t('starts') }))),
-        h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary, var(--dsw-alias-label-secondary))', fontFamily: mono } }, 'dsh-rd-suite'))
+          h(Card, { title: t('capTitle') }, h(List, { items: t('caps') })),
+          h(Card, { title: t('startTitle') }, h(List, { items: t('starts') }))))
     }
 
     function PanelIcon({ size = 16 }) {
@@ -183,22 +160,66 @@ window.__ModuleLoader__.load({
         h('path', { d: 'M5 5 3.5 3.5', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round' }))
     }
 
+    function HubPage(props) {
+      const t = typeof props?.t === 'function' ? props.t : (key) => key
+      const tabs = Array.isArray(props?.pageTabs) ? props.pageTabs : []
+      const [active, setActive] = React.useState(-1)
+      const current = active >= 0 ? tabs[active] : null
+      let body
+      if (current === null) {
+        body = h(Overview, { t })
+      } else {
+        let pageProps = {}
+        try { pageProps = current.getProps() } catch { pageProps = { t } }
+        body = h(current.component, pageProps)
+      }
+      return h('div', { style: { display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 } },
+        h('header', { style: { padding: '20px 28px 10px', display: 'flex', flexDirection: 'column', gap: 10, flex: 'none' } },
+          h('div', { style: { display: 'flex', flexDirection: 'column', gap: 2 } },
+            h('h1', { style: { margin: 0, fontSize: 20, lineHeight: '28px', color: 'var(--dsw-alias-label-primary)' } }, t('panelName')),
+            h('p', { style: { margin: 0, fontSize: 13, lineHeight: '20px', color: 'var(--dsw-alias-label-secondary)' } }, t('subtitle'))),
+          h('nav', { role: 'tablist', style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+            h('button', { type: 'button', role: 'tab', 'aria-selected': active === -1, style: active === -1 ? tabActiveStyle : tabStyle, onClick: () => setActive(-1) }, t('overviewTab')),
+            tabs.map((tab, index) => h('button', {
+              key: tab.id,
+              type: 'button',
+              role: 'tab',
+              'aria-selected': active === index,
+              style: active === index ? tabActiveStyle : tabStyle,
+              onClick: () => setActive(index),
+            }, tab.label())))),
+        h('div', { role: 'tabpanel', style: { flex: 1, minHeight: 0, overflow: 'auto', padding: '4px 28px 28px' } }, body))
+    }
+
     return {
       inject: ['slots', 'locale', 'layout'],
       apply(ctx) {
-        let selectPanel = () => {}
-        try {
-          const layout = ctx !== null && typeof ctx === 'object' ? ctx.layout : undefined
-          if (layout !== null && layout !== undefined && typeof layout.selectPanel === 'function') {
-            selectPanel = (id) => { layout.selectPanel(id) }
-          }
-        } catch {
-          // Presentation-only.
-        }
-        if (typeof ctx.locale?.register === 'function') {
-          ctx.locale.register(NS, STRINGS)
-        }
+        if (typeof ctx.locale?.register === 'function') ctx.locale.register(NS, STRINGS)
         const t = typeof ctx.locale?.bind === 'function' ? ctx.locale.bind(NS) : (key) => key
+        const pageTabs = []
+        const sources = Array.isArray(pageSources) ? pageSources : []
+        for (const pages of sources) {
+          if (!Array.isArray(pages)) continue
+          for (const page of pages) {
+            if (page === null || typeof page !== 'object' || page.component === undefined) continue
+            let pageT = t
+            try {
+              if (typeof ctx.locale?.bind === 'function' && typeof page.locale === 'string') pageT = ctx.locale.bind(page.locale)
+            } catch {
+              pageT = t
+            }
+            pageTabs.push({
+              id: String(page.id ?? page.labelKey ?? pageTabs.length),
+              label: () => { try { return String(pageT(page.labelKey)) } catch { return String(page.labelKey) } },
+              component: page.component,
+              getProps: () => {
+                let extra = {}
+                try { extra = typeof page.props === 'function' ? (page.props() ?? {}) : {} } catch { extra = {} }
+                return { ...extra, t: pageT }
+              },
+            })
+          }
+        }
         const slots = ctx.slots
         if (slots === null || slots === undefined || typeof slots.register !== 'function') return
         ctx.slots.inject('sidebar.panellist', () => ctx.slots.register(
@@ -207,7 +228,7 @@ window.__ModuleLoader__.load({
         ))
         ctx.slots.inject('main', function* () {
           yield ctx.slots.register(
-            { name: 'main', key: PANEL_ID, locale: NS, inject: () => ({ selectPanel }) },
+            { name: 'main', key: PANEL_ID, locale: NS, inject: () => ({ pageTabs }) },
             HubPage,
           )
         })

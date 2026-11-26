@@ -1052,8 +1052,12 @@ window.__ModuleLoader__.load({
 
     // ------------------------------------------------------------ apply
 
+    // Pages are rendered as tabs inside the integrated suite hub (no own panels).
+    const pages = []
+
     return {
       inject: ['slots', 'layout', 'locale'],
+      pages,
       apply(ctx) {
         const slots = ctx && ctx.slots
         if (!slots || typeof slots.inject !== 'function' || typeof slots.register !== 'function') return undefined
@@ -1063,47 +1067,8 @@ window.__ModuleLoader__.load({
         ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'code-pipeline: dictionaries')
         t = ctx.locale.bind(NS)
 
-        const disposers = []
-
-        if (!globalThis.__DSH_SUITE_INTEGRATED_UI) {
-          disposers.push(
-            slots.inject('sidebar.panellist', () =>
-              slots.register(
-                {
-                  name: 'sidebar.panellist',
-                  id: PANEL_ID,
-                  order: 40,
-                  locale: NS,
-                  label: () => t('panel.name'),
-                },
-                PanelIcon,
-              ),
-            ),
-          )
-        }
-
-        disposers.push(
-          slots.inject('main', function* () {
-            yield slots.register(
-              {
-                name: 'main',
-                key: PANEL_ID,
-                locale: NS,
-              },
-              PipelinePage,
-            )
-          }),
-        )
-
-        return () => {
-          for (const dispose of disposers) {
-            try {
-              if (typeof dispose === 'function') dispose()
-            } catch {
-              // Presentation-only cleanup.
-            }
-          }
-        }
+        // Tabs inside the hub: the page content, its locale and its label key.
+        pages.push({ id: PANEL_ID, labelKey: 'panel.name', locale: NS, component: PipelinePage })
       },
     }
   },
