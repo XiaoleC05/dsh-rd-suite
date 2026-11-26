@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "lineEnding": "lf",
+  "finalNewline": true,
+  "maxBlankLines": 1,
+  "id": "css",
+  "label": "CSS",
+  "language": "css",
+  "engine": "biome",
+  "depth": "format",
+  "indentStyle": "space",
+  "indentWidth": 2,
+  "columnLimit": 100,
+  "quoteStyle": "double",
+  "biomeConfig": {
+    "formatter": {
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineWidth": 100
+    },
+    "css": {
+      "formatter": {
+        "indentStyle": "space",
+        "indentWidth": 2,
+        "lineWidth": 100,
+        "quoteStyle": "double"
+      }
+    }
+  },
+  "rules": [
+    {
+      "id": "css/F/format",
+      "name": "格式绑定 Biome（空格 2 / 100 列 / 双引号）",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://biomejs.dev/formatter/",
+      "fix": "auto"
+    },
+    {
+      "id": "css/F/one-decl-per-line",
+      "name": "每个声明独立一行",
+      "category": "F",
+      "tier": "T3",
+      "source": "https://google.github.io/styleguide/htmlcssguide.html",
+      "fix": "auto"
+    },
+    {
+      "id": "css/F/zero-unit",
+      "name": "0 值省略单位（0 而非 0px）",
+      "category": "F",
+      "tier": "T3",
+      "source": "https://google.github.io/styleguide/htmlcssguide.html",
+      "fix": "report"
+    },
+    {
+      "id": "css/F/trailing-newline",
+      "name": "LF 行尾、文件末尾单个换行",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://biomejs.dev/formatter/",
+      "fix": "auto"
+    },
+    {
+      "id": "css/X/no-official-style",
+      "name": "CSS 无官方风格规范，排版以工具默认为准",
+      "category": "X",
+      "tier": "T1",
+      "source": "https://www.w3.org/TR/css-syntax-3/",
+      "fix": "none"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+# github-issue-first-workflow — bundle patch.
+#
+# One Host row serves both halves:
+#   - Host: the githubIssueFirstWorkflow setting, the workflow prompt section,
+#     and the github_workflow tool that runs git/gh on the Host.
+#   - Client: the Settings > General toggle row.
+#
+# The default is off: enabling it makes the agent create GitHub issues and
+# requires an installed, authenticated GitHub CLI (gh). Override the whole
+# config in the profile's cordis.patch.yml to change it durably:
+#
+#   - id: github-issue-first-workflow
+#     name: '@local/github-issue-first-workflow'
+#     config:
+#       githubIssueFirstWorkflow: true
+- insert:
+    - id: github-issue-first-workflow
+      name: '@local/github-issue-first-workflow'
+      config:
+        githubIssueFirstWorkflow: false

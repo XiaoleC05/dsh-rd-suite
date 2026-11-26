@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "GitHub issue-first workflow",
+    "description": "Requires one GitHub Issue per module before any code fix in a project whose Git remote points to GitHub, then one atomic Conventional Commit per module and issue closure after verification. Turn it on in Settings > General; the default is off. Requires the GitHub CLI (gh) installed and authenticated. Without gh, without repository access, or with Issues disabled, the agent reports the blocker and the commands to fix it instead of skipping the workflow; projects without a GitHub remote use the normal fix flow. Enabling it sends issue titles and bodies to GitHub and runs gh on the Host with the Host's own credentials, outside the session file sandbox."
+  }
+}

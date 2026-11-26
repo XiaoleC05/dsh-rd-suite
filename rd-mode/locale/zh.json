@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "研发模式",
+    "description": "面向软件研发的 Agent 预设：任务分级流水线、验收关卡、按需领域技能、独立验收子代理与周度复盘进化。",
+    "detail": "docs/DETAIL.zh.md"
+  }
+}

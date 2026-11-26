@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "lineEnding": "lf",
+  "finalNewline": true,
+  "maxBlankLines": 1,
+  "id": "typescript",
+  "label": "TypeScript",
+  "language": "typescript",
+  "engine": "biome",
+  "depth": "full",
+  "indentStyle": "space",
+  "indentWidth": 2,
+  "columnLimit": 100,
+  "quoteStyle": "single",
+  "semicolons": "asNeeded",
+  "biomeConfig": {
+    "formatter": {
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineWidth": 100
+    },
+    "javascript": {
+      "formatter": {
+        "quoteStyle": "single",
+        "semicolons": "asNeeded"
+      }
+    }
+  },
+  "rules": [
+    {
+      "id": "ts/F/format",
+      "name": "格式绑定 Biome 2.6（空格 2 / 单引号 / 无分号 / 100 列）",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://biomejs.dev/formatter/",
+      "fix": "auto"
+    },
+    {
+      "id": "ts/F/import-sort",
+      "name": "import 分组与排序（Biome organizeImports）",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://biomejs.dev/assist/javascript/actions/",
+      "fix": "auto"
+    },
+    {
+      "id": "ts/F/trailing-newline",
+      "name": "LF 行尾、文件末尾单个换行",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://biomejs.dev/formatter/",
+      "fix": "auto"
+    },
+    {
+      "id": "ts/S/no-explicit-any",
+      "name": "禁止显式 any",
+      "category": "S",
+      "tier": "T2",
+      "source": "https://biomejs.dev/linter/rules/no-explicit-any/javascript/",
+      "fix": "report"
+    },
+    {
+      "id": "ts/S/consistent-type-imports",
+      "name": "类型导入统一使用 import type",
+      "category": "S",
+      "tier": "T2",
+      "source": "https://typescript-eslint.io/rules/consistent-type-imports/",
+      "fix": "report"
+    },
+    {
+      "id": "ts/S/use-const",
+      "name": "能 const 就 const",
+      "category": "S",
+      "tier": "T2",
+      "source": "https://biomejs.dev/linter/rules/use-const/javascript/",
+      "fix": "auto"
+    },
+    {
+      "id": "ts/S/naming-convention",
+      "name": "类型 PascalCase、变量与函数 camelCase",
+      "category": "S",
+      "tier": "T2",
+      "source": "https://typescript-eslint.io/rules/naming-convention/",
+      "fix": "report"
+    },
+    {
+      "id": "ts/S/strict-mode",
+      "name": "tsconfig 开启 strict 与 noUncheckedIndexedAccess",
+      "category": "S",
+      "tier": "T1",
+      "source": "https://www.typescriptlang.org/tsconfig#strict",
+      "fix": "report"
+    },
+    {
+      "id": "ts/X/no-official-style",
+      "name": "TypeScript 无官方风格指南，排版以工具默认为准",
+      "category": "X",
+      "tier": "T1",
+      "source": "https://github.com/microsoft/TypeScript/issues/878",
+      "fix": "none"
+    }
+  ]
+}

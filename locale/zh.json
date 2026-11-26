@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "研发套件",
+    "description": "研发模式（rd / rd-scout / rd-review 预设）、模式卡片增强、context7 文档检索、代码格式化与 GitHub Issue 优先流程的合并安装项。",
+    "detail": "docs/DETAIL.md"
+  }
+}

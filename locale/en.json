@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "R&D suite",
+    "description": "One installation entry for the R&D presets, preset-card guide, context7 documentation lookup, code formatting, and the GitHub issue-first workflow.",
+    "detail": "docs/DETAIL.md"
+  }
+}

@@ -1,0 +1,3 @@
+- insert:
+    - id: code-pipeline
+      name: 'dsh-code-pipeline'

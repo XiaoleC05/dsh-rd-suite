@@ -1,0 +1,3 @@
+node_modules/
+evolution/kpi/*.json
+.validate-tmp/

@@ -1,0 +1,66 @@
+{
+  "name": "dsh-rd-suite",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "研发套件：研发模式（rd/rd-scout/rd-review 预设）、模式卡片增强、context7 文档检索、代码格式化与 GitHub Issue 优先流程。一个仓库、一个安装项。",
+  "icon": "icon.svg",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./code-pipeline": "./code-pipeline/index.js",
+    "./github": "./github/index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "code-pipeline",
+    "github",
+    "skills",
+    "locale/*.json",
+    "docs",
+    "icon.svg",
+    "README.md"
+  ],
+  "dependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.5",
+    "@deepseek-ai/schemastery": "~3.19.0",
+    "@biomejs/js-api": "^6.1.0",
+    "@biomejs/wasm-nodejs": "^2.6.8",
+    "@wasm-fmt/clang-format": "^23.1.1",
+    "@wasm-fmt/gofmt": "^0.7.3",
+    "@wasm-fmt/ruff_fmt": "^0.15.20",
+    "@wasm-fmt/shfmt": "^0.2.7"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-session",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-workspace",
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-settings-general"
+      ],
+      "external": [
+        "@deepseek-ai/dsh-client-ui-primitives",
+        "@deepseek-ai/dsh-client-store"
+      ]
+    }
+  }
+}

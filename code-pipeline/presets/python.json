@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "lineEnding": "lf",
+  "finalNewline": true,
+  "maxBlankLines": 1,
+  "id": "python",
+  "label": "Python",
+  "language": "python",
+  "engine": "ruff-fmt",
+  "depth": "format",
+  "indentStyle": "space",
+  "indentWidth": 4,
+  "columnLimit": 88,
+  "quoteStyle": "double",
+  "rules": [
+    {
+      "id": "py/F/ruff-format",
+      "name": "格式以 ruff format 输出为准（88 列、双引号）",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://docs.astral.sh/ruff/formatter/",
+      "fix": "auto"
+    },
+    {
+      "id": "py/F/indent",
+      "name": "每级 4 空格缩进，禁止 Tab 混用",
+      "category": "F",
+      "tier": "T1",
+      "source": "https://peps.python.org/pep-0008/#indentation",
+      "fix": "auto"
+    },
+    {
+      "id": "py/F/line-length",
+      "name": "行宽 88（PEP 8 允许团队放宽到 99）",
+      "category": "F",
+      "tier": "T1",
+      "source": "https://peps.python.org/pep-0008/#maximum-line-length",
+      "fix": "auto"
+    },
+    {
+      "id": "py/F/import-group",
+      "name": "import 分三组并置顶",
+      "category": "F",
+      "tier": "T1",
+      "source": "https://peps.python.org/pep-0008/#imports",
+      "fix": "auto"
+    },
+    {
+      "id": "py/F/blank-lines",
+      "name": "顶层定义间 2 空行，方法间 1 空行",
+      "category": "F",
+      "tier": "T1",
+      "source": "https://peps.python.org/pep-0008/#blank-lines",
+      "fix": "auto"
+    },
+    {
+      "id": "py/S/naming",
+      "name": "函数与变量 snake_case，类 CapWords",
+      "category": "S",
+      "tier": "T1",
+      "source": "https://peps.python.org/pep-0008/#naming-conventions",
+      "fix": "report"
+    },
+    {
+      "id": "py/S/compare-none",
+      "name": "与 None 比较用 is / is not",
+      "category": "S",
+      "tier": "T1",
+      "source": "https://peps.python.org/pep-0008/#programming-recommendations",
+      "fix": "auto"
+    },
+    {
+      "id": "py/S/bare-except",
+      "name": "避免裸 except，捕获具体异常",
+      "category": "S",
+      "tier": "T1",
+      "source": "https://peps.python.org/pep-0008/#programming-recommendations",
+      "fix": "report"
+    },
+    {
+      "id": "py/S/docstring",
+      "name": "公共模块、函数、类需有 docstring",
+      "category": "S",
+      "tier": "T1",
+      "source": "https://peps.python.org/pep-0257/",
+      "fix": "report"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "name": "dsh-code-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Code standardization pipeline for DeepSeek Harness: a sidebar file tree, single/multi/select-all picking, and per-language style presets applied to the selected code files.",
+  "author": "XiaoleC05",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XiaoleC05/code-pipeline.git"
+  },
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "lib/*.js",
+    "lib/engines/*.js",
+    "presets/*.json",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs",
+    "icon.svg"
+  ],
+  "engines": {
+    "node": ">=22.19.0",
+    "dsh": ">=0.2.2-rc.1"
+  },
+  "scripts": {
+    "test": "node --test test/pipeline.test.mjs test/policy.test.mjs test/routes.test.mjs test/client-sim.test.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "gen:presets": "node scripts/gen-presets.mjs",
+    "security:probe": "node scripts/security-probe.mjs"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "code-style",
+    "formatter",
+    "standardization"
+  ],
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
+  "dependencies": {
+    "@biomejs/js-api": "^6.1.0",
+    "@biomejs/wasm-nodejs": "^2.6.8",
+    "@wasm-fmt/clang-format": "^23.1.1",
+    "@wasm-fmt/gofmt": "^0.7.3",
+    "@wasm-fmt/ruff_fmt": "^0.15.20",
+    "@wasm-fmt/shfmt": "^0.2.7"
+  }
+}

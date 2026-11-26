@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Code pipeline">
+  <rect x="6" y="6" width="52" height="52" rx="12" fill="#1f6feb" />
+  <path d="M20 22h13l9 9v11a2 2 0 0 1-2 2H20a2 2 0 0 1-2-2V24a2 2 0 0 1 2-2Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" />
+  <path d="M32 22v10h10" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" />
+  <path d="M24 36h10M24 41h7" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+</svg>

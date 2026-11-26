@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "R&D mode",
+    "description": "Agent presets for software R&D: tiered pipeline, acceptance gates, on-demand domain skills, an independent reviewer, and weekly self-improvement.",
+    "detail": "docs/DETAIL.md"
+  }
+}

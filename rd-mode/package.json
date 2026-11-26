@@ -1,0 +1,34 @@
+{
+  "name": "dsh-rd-mode",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "研发模式：任务分级流水线、验收关卡、按需加载的领域技能、独立验收子代理与周度复盘进化。",
+  "icon": "icon.svg",
+  "exports": {
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "preset.patch.yml",
+    "skills",
+    "locale/*.json",
+    "docs",
+    "icon.svg"
+  ],
+  "engines": {
+    "dsh": ">=0.2.2-rc.5"
+  },
+  "scripts": {
+    "validate": "node scripts/validate-bundle.mjs",
+    "kpi": "node scripts/rd-kpi.mjs --days 7",
+    "test": "node --test scripts/test/rd-kpi.test.mjs"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./preset.patch.yml"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "lineEnding": "lf",
+  "finalNewline": true,
+  "maxBlankLines": 1,
+  "id": "shell",
+  "label": "Shell",
+  "language": "shell",
+  "engine": "shfmt",
+  "depth": "format",
+  "indentStyle": "space",
+  "indentWidth": 2,
+  "columnLimit": 0,
+  "rules": [
+    {
+      "id": "sh/F/shfmt",
+      "name": "格式以 shfmt 输出为准（2 空格缩进）",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://github.com/mvdan/sh",
+      "fix": "auto"
+    },
+    {
+      "id": "sh/F/line-ending",
+      "name": "LF 行尾、文件末尾单个换行",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://github.com/mvdan/sh",
+      "fix": "auto"
+    },
+    {
+      "id": "sh/S/quote-vars",
+      "name": "变量展开加引号防分词",
+      "category": "S",
+      "tier": "T3",
+      "source": "https://www.shellcheck.net/wiki/SC2086",
+      "fix": "report"
+    },
+    {
+      "id": "sh/S/shebang",
+      "name": "脚本首行声明可执行 shell",
+      "category": "S",
+      "tier": "T3",
+      "source": "https://www.gnu.org/software/bash/manual/",
+      "fix": "report"
+    },
+    {
+      "id": "sh/X/no-official-style",
+      "name": "POSIX 不规定脚本排版风格",
+      "category": "X",
+      "tier": "T1",
+      "source": "https://pubs.opengroup.org/onlinepubs/9699919799/",
+      "fix": "none"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "lineEnding": "lf",
+  "finalNewline": true,
+  "maxBlankLines": 1,
+  "id": "makefile",
+  "label": "Makefile",
+  "language": "makefile",
+  "engine": "text",
+  "depth": "text",
+  "indentStyle": "tab",
+  "indentWidth": 4,
+  "columnLimit": 0,
+  "rules": [
+    {
+      "id": "mk/F/recipe-tab",
+      "name": "recipe 行必须以 Tab 开头",
+      "category": "F",
+      "tier": "T1",
+      "source": "https://www.gnu.org/software/make/manual/html_node/Recipe-Syntax.html",
+      "fix": "auto"
+    },
+    {
+      "id": "mk/F/line-ending",
+      "name": "LF 行尾",
+      "category": "F",
+      "tier": "T1",
+      "source": "https://www.gnu.org/software/make/manual/",
+      "fix": "auto"
+    },
+    {
+      "id": "mk/F/final-newline",
+      "name": "文件末尾单个换行",
+      "category": "F",
+      "tier": "T0",
+      "source": "",
+      "fix": "auto"
+    },
+    {
+      "id": "mk/F/trailing-ws",
+      "name": "去掉行尾空白（续行 \\ 除外）",
+      "category": "F",
+      "tier": "T0",
+      "source": "",
+      "fix": "auto"
+    },
+    {
+      "id": "mk/F/blank-lines",
+      "name": "连续空行最多 1",
+      "category": "F",
+      "tier": "T0",
+      "source": "",
+      "fix": "auto"
+    },
+    {
+      "id": "mk/X/no-formatter",
+      "name": "Makefile 无官方格式化器，仅做确定性空白规范化",
+      "category": "X",
+      "tier": "T1",
+      "source": "https://www.gnu.org/software/make/manual/",
+      "fix": "none"
+    }
+  ]
+}

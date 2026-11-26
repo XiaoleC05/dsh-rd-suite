@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "GitHub 规范化修复工作流",
+    "description": "在 Git 远程仓库指向 GitHub 的项目中修复代码前，要求按模块先创建 GitHub Issue；每个模块只做一次原子提交，验证后关闭对应 Issue。前往“设置 > 通用设置”开启，默认关闭。需要已安装并登录 GitHub CLI（gh）。若 gh 未安装、未认证、无仓库权限或 Issues 被禁用，智能体必须报告阻塞原因并给出处理命令，不得跳过规范流程；没有 GitHub 远程仓库的项目仍按常规修复流程处理。开启后会把 Issue 标题和正文发送到 GitHub，并在 Host 上使用 Host 自身的 gh 凭据执行 gh（不受会话文件沙箱限制）。"
+  }
+}

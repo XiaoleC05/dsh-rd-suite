@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Code pipeline",
+    "description": "A sidebar panel with the workspace code file tree, single, multi and select-all picking, and ten built-in language presets that apply a consistent style to the selected files.",
+    "detail": "docs/DETAIL.md"
+  }
+}

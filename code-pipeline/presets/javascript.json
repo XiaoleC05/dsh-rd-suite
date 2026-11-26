@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "lineEnding": "lf",
+  "finalNewline": true,
+  "maxBlankLines": 1,
+  "id": "javascript",
+  "label": "JavaScript",
+  "language": "javascript",
+  "engine": "biome",
+  "depth": "full",
+  "indentStyle": "space",
+  "indentWidth": 2,
+  "columnLimit": 100,
+  "quoteStyle": "single",
+  "semicolons": "asNeeded",
+  "biomeConfig": {
+    "formatter": {
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineWidth": 100
+    },
+    "javascript": {
+      "formatter": {
+        "quoteStyle": "single",
+        "semicolons": "asNeeded"
+      }
+    }
+  },
+  "rules": [
+    {
+      "id": "js/F/format",
+      "name": "格式绑定 Biome 2.6（空格 2 / 单引号 / 无分号 / 100 列）",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://biomejs.dev/formatter/",
+      "fix": "auto"
+    },
+    {
+      "id": "js/F/import-sort",
+      "name": "import 分组与排序（Biome organizeImports）",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://biomejs.dev/assist/javascript/actions/",
+      "fix": "auto"
+    },
+    {
+      "id": "js/F/trailing-newline",
+      "name": "LF 行尾、文件末尾单个换行",
+      "category": "F",
+      "tier": "T2",
+      "source": "https://biomejs.dev/formatter/",
+      "fix": "auto"
+    },
+    {
+      "id": "js/S/eqeqeq",
+      "name": "相等比较使用 === / !==",
+      "category": "S",
+      "tier": "T2",
+      "source": "https://biomejs.dev/linter/rules/no-double-equals/javascript/",
+      "fix": "auto"
+    },
+    {
+      "id": "js/S/use-const",
+      "name": "能 const 就 const，禁用 var 倾向",
+      "category": "S",
+      "tier": "T2",
+      "source": "https://biomejs.dev/linter/rules/use-const/javascript/",
+      "fix": "auto"
+    },
+    {
+      "id": "js/S/no-unused-vars",
+      "name": "无未使用变量（Biome 不安全修复为加 _ 前缀）",
+      "category": "S",
+      "tier": "T2",
+      "source": "https://biomejs.dev/linter/rules/no-unused-variables/javascript/",
+      "fix": "report"
+    },
+    {
+      "id": "js/S/naming-camelcase",
+      "name": "变量与函数 camelCase、类 PascalCase",
+      "category": "S",
+      "tier": "T3",
+      "source": "https://github.com/airbnb/javascript",
+      "fix": "report"
+    },
+    {
+      "id": "js/X/no-official-style",
+      "name": "ECMA-262 不规定代码风格，排版由工具决定",
+      "category": "X",
+      "tier": "T1",
+      "source": "https://tc39.es/ecma262/",
+      "fix": "none"
+    }
+  ]
+}

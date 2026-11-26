@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "lineEnding": "lf",
+  "finalNewline": true,
+  "maxBlankLines": 1,
+  "id": "powershell",
+  "label": "PowerShell",
+  "language": "powershell",
+  "engine": "text",
+  "depth": "text",
+  "indentStyle": "space",
+  "indentWidth": 4,
+  "columnLimit": 0,
+  "rules": [
+    {
+      "id": "ps/F/indent",
+      "name": "每级 4 空格缩进，Tab 转为空格",
+      "category": "F",
+      "tier": "T3",
+      "source": "https://learn.microsoft.com/en-us/powershell/scripting/community/contributing/code-style",
+      "fix": "auto"
+    },
+    {
+      "id": "ps/F/line-ending",
+      "name": "LF 行尾",
+      "category": "F",
+      "tier": "T0",
+      "source": "",
+      "fix": "auto"
+    },
+    {
+      "id": "ps/F/final-newline",
+      "name": "文件末尾单个换行",
+      "category": "F",
+      "tier": "T0",
+      "source": "",
+      "fix": "auto"
+    },
+    {
+      "id": "ps/F/trailing-ws",
+      "name": "去掉行尾空白",
+      "category": "F",
+      "tier": "T0",
+      "source": "",
+      "fix": "auto"
+    },
+    {
+      "id": "ps/F/blank-lines",
+      "name": "连续空行最多 1",
+      "category": "F",
+      "tier": "T0",
+      "source": "",
+      "fix": "auto"
+    },
+    {
+      "id": "ps/S/naming",
+      "name": "函数使用 Verb-Noun 且通过已批准动词表",
+      "category": "S",
+      "tier": "T3",
+      "source": "https://learn.microsoft.com/en-us/powershell/scripting/developer/cmdlet/approved-verbs-for-windows-powershell-commands",
+      "fix": "report"
+    },
+    {
+      "id": "ps/X/no-formatter",
+      "name": "PowerShell 无 WASM 格式化器，仅做确定性空白规范化",
+      "category": "X",
+      "tier": "T1",
+      "source": "https://learn.microsoft.com/en-us/powershell/",
+      "fix": "none"
+    }
+  ]
+}
