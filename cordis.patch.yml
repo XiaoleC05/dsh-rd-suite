@@ -1,6 +1,9 @@
-# dsh-rd-suite — generated aggregation patch.
-# Do not edit by hand: run node scripts/build.mjs after changing a member patch.
-# Members: dsh-rd-mode, @local/dsh-rd-mode-cards, @local/context7-mcp, dsh-code-pipeline, @local/github-issue-first-workflow
+# dsh-rd-suite — 一个 bundle 的完整 loader 行。
+#
+# 行结构：3 个研发模式预设行 + 1 个融合根行 + 1 行 context7 MCP。
+# 融合根行（id: github-issue-first-workflow，name: dsh-rd-suite）由根 index.js 组合：
+# 代码标准化工具 + GitHub Issue 优先流程 + 合并后的浏览器模块。
+# 成员实现位于本仓库 code-pipeline/、github/、client-sources/、skills/ 与 rd-mode/。
 
 # ---- dsh-rd-mode ----
 # dsh-rd-mode 0.1.0 — 研发模式预设包
@@ -422,12 +425,16 @@
 # 从已安装的 @deepseek-ai/dsh-client-ui-agent-preset 生成）复用内置 Agent 预设
 # 设置页，并为 rd / rd-scout / rd-review 三张卡片补上「模式说明 / 如何使用」。
 #
-# 停用：plugin_manager set_bundle target=@local/dsh-rd-mode-cards enabled=false
-# 移除：plugin_manager remove_bundle target=@local/dsh-rd-mode-cards
-# 重建：node scripts/vendor-preset-cards.mjs（DSH 升级后运行）
+# 融合行：一个插件主体同时承载
+#   - 代码标准化工具（code_list_files / code_standardize 与只读工作区路由）
+#   - GitHub Issue 优先流程（github_workflow 工具与提示词）
+#   - 合并后的浏览器模块（模式卡片、代码面板、GitHub 设置行）
+# 沿用旧行 id github-issue-first-workflow，让 profile 里已有的该行配置覆盖继续生效。
 - insert:
-    - id: rd-mode-cards
+    - id: github-issue-first-workflow
       name: 'dsh-rd-suite'
+      config:
+        githubIssueFirstWorkflow: false
 
 # ---- @local/context7-mcp ----
 # context7 文档检索 MCP — 配置型 bundle（config-only，无宿主/客户端入口文件）。
@@ -455,29 +462,4 @@
           - '@upstash/context7-mcp@4.7.3'
         failOnStartupError: true
 
-# ---- dsh-code-pipeline ----
-- insert:
-    - id: code-pipeline
-      name: 'dsh-rd-suite/code-pipeline'
-
-# ---- @local/github-issue-first-workflow ----
-# github-issue-first-workflow — bundle patch.
-#
-# One Host row serves both halves:
-#   - Host: the githubIssueFirstWorkflow setting, the workflow prompt section,
-#     and the github_workflow tool that runs git/gh on the Host.
-#   - Client: the Settings > General toggle row.
-#
-# The default is off: enabling it makes the agent create GitHub issues and
-# requires an installed, authenticated GitHub CLI (gh). Override the whole
-# config in the profile's cordis.patch.yml to change it durably:
-#
-#   - id: github-issue-first-workflow
-#     name: 'dsh-rd-suite/github'
-#     config:
-#       githubIssueFirstWorkflow: true
-- insert:
-    - id: github-issue-first-workflow
-      name: 'dsh-rd-suite/github'
-      config:
-        githubIssueFirstWorkflow: false
+# 代码工具与 GitHub 流程已融合进上面的融合行，不再单独插入。
