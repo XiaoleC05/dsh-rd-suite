@@ -1065,20 +1065,22 @@ window.__ModuleLoader__.load({
 
         const disposers = []
 
-        disposers.push(
-          slots.inject('sidebar.panellist', () =>
-            slots.register(
-              {
-                name: 'sidebar.panellist',
-                id: PANEL_ID,
-                order: 40,
-                locale: NS,
-                label: () => t('panel.name'),
-              },
-              PanelIcon,
+        if (!globalThis.__DSH_SUITE_INTEGRATED_UI) {
+          disposers.push(
+            slots.inject('sidebar.panellist', () =>
+              slots.register(
+                {
+                  name: 'sidebar.panellist',
+                  id: PANEL_ID,
+                  order: 40,
+                  locale: NS,
+                  label: () => t('panel.name'),
+                },
+                PanelIcon,
+              ),
             ),
-          ),
-        )
+          )
+        }
 
         disposers.push(
           slots.inject('main', function* () {

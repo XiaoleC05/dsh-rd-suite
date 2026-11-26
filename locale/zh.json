@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "研发套件",
-    "description": "研发模式（单一模式）、模式卡片增强、context7 文档检索、代码格式化与 GitHub Issue 优先流程的合并安装项。",
+    "title": "研发工作台",
+    "description": "研发工作台：一个模式覆盖完整研发流程（分级 → 侦察 → 实现 → 验证 → 独立验收 → 交付），并集成模式说明页、代码修正、context7 文档检索与 GitHub Issue 流程。",
     "detail": "docs/DETAIL.md"
   }
 }
