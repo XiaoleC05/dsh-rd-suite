@@ -8,6 +8,7 @@
   "main": "./index.js",
   "exports": {
     ".": "./index.js",
+    "./client": "./client.js",
     "./code-pipeline": "./code-pipeline/index.js",
     "./github": "./github/index.js",
     "./package.json": "./package.json",
