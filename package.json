@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "研发套件：研发模式（rd/rd-scout/rd-review 预设）、模式卡片增强、context7 文档检索、代码格式化与 GitHub Issue 优先流程。一个仓库、一个安装项。",
+  "description": "研发套件：研发模式（单一模式）、模式卡片增强、context7 文档检索、代码格式化与 GitHub Issue 优先流程。一个仓库、一个安装项。",
   "icon": "icon.svg",
   "main": "./index.js",
   "exports": {
