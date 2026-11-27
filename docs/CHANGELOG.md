@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.53.0 — 2026-11-27
+
+- 新增 .github/workflows/checks.yml：push 与 PR 上跑构建、测试与 preflight 七项，Node 22 + pnpm。
+- 新增 test/ci-workflow.test.mjs：断言 workflow 的测试命令与 package.json 的 test 脚本逐字一致、
+  Node 版本与 engines.node 对齐、安装排在测试之前。
+- package.json 补 engines.node >= 22。用例 359。
 ## 0.52.1 — 2026-11-27
 
 - 新增 test/audit-idempotent.test.mjs：fix 跑两次第二次零改动 / report 与 fix 结论一致 /

@@ -1,6 +1,6 @@
 {
   "name": "dsh-rd-suite",
-  "version": "0.52.1",
+  "version": "0.53.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -72,6 +72,7 @@
     }
   },
   "engines": {
-    "dsh": ">=0.2.2-rc.5"
+    "dsh": ">=0.2.2-rc.5",
+    "node": ">=22"
   }
 }

@@ -1,0 +1,36 @@
+name: checks
+
+# 与本地同一套门禁：构建产物、测试、preflight 七项。
+# 命令不在这里另写一份——test/ci-workflow.test.mjs 会断言两边一致。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build client
+        run: node scripts/build-client.mjs
+
+      - name: Tests
+        run: node --test "test/**/*.test.mjs" "code-pipeline/test/*.test.mjs" "github/test/*.test.mjs"
+
+      - name: Preflight
+        run: node scripts/preflight.mjs
