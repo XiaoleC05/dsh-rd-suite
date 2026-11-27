@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.63.3 — 2026-11-27
+
+- 新增 scripts/skill-usage.mjs：按可观测引用量（账本 / 变更日志 / README / 宪章 / 其它技能 / 记忆样例）
+  给出合并与瘦身建议；口径写明是代理指标而非真实调用次数。
+- 实测十个技能引用 2–12 次，没有零引用技能；rd-retro / rd-ecosystem / rd-copy 建议优先拆 references。
+- 用例 468。
 ## 0.63.2 — 2026-11-27
 
 - 新增 scripts/skill-cost.mjs：十个技能分别计量正文（加载成本）与 references（按需读取），
