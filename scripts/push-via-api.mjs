@@ -62,15 +62,48 @@ function repoSlug(remote) {
 }
 
 /**
- * 远端分支当前 sha。
- * @param {string} remote - 远端名
+ * 远端分支当前 sha。走 gh api 而不是 git ls-remote：链路掐断时前者仍可用。
+ * @param {string} slug - owner/repo
  * @param {string} branch - 分支
  * @returns {string} sha，空字符串表示远端还没有该分支
  */
-function remoteHead(remote, branch) {
-  const output = run('git', ['ls-remote', remote, `refs/heads/${branch}`]).trim()
-  if (output === '') return ''
-  return output.split(/\s+/u)[0]
+function remoteHead(slug, branch) {
+  try {
+    const ref = gh([`repos/${slug}/git/refs/heads/${branch}`])
+    return typeof ref?.object?.sha === 'string' ? ref.object.sha : ''
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * 判断远端 sha 是否是本地提交的祖先：对象在本地时用 git 判断，
+ * 不在本地时只接受「远端正好是本地提交的父提交」这一种快进。
+ * @param {string} remoteSha - 远端 sha
+ * @param {string} localSha - 本地 sha
+ * @returns {boolean} 是否可快进
+ */
+function isAncestor(remoteSha, localSha, slug) {
+  if (remoteSha === '') return true
+  const parents = run('git', ['rev-list', '--parents', '-n', '1', localSha]).trim().split(/\s+/u).slice(1)
+  try {
+    run('git', ['cat-file', '-e', remoteSha])
+    run('git', ['merge-base', '--is-ancestor', remoteSha, localSha])
+    return true
+  } catch {
+    if (parents.includes(remoteSha)) return true
+    // 远端对象不在本地（拿不到 fetch）时：若远端提交的树与本地父提交的树一致，
+    // 说明差异只是提交身份，按可快进处理。
+    const parent = parents[0]
+    if (parent === undefined) return false
+    try {
+      const remoteCommit = gh([`repos/${slug}/git/commits/${remoteSha}`])
+      const parentTree = run('git', ['rev-parse', `${parent}^{tree}`]).trim()
+      return typeof remoteCommit?.tree?.sha === 'string' && remoteCommit.tree.sha === parentTree
+    } catch {
+      return false
+    }
+  }
 }
 
 /**
@@ -87,10 +120,13 @@ export function main(argv) {
       ? argv[branchIndex + 1]
       : run('git', ['rev-parse', '--abbrev-ref', 'HEAD']).trim()
   const remote = argv.includes('--remote') ? argv[argv.indexOf('--remote') + 1] : 'origin'
+  // --parent：显式指定新提交的父提交（远端已含上一提交、本地又 amend 过时使用）。
+  const parentIndex = argv.indexOf('--parent')
+  const explicitParent = parentIndex >= 0 ? argv[parentIndex + 1] : ''
 
   const localSha = run('git', ['rev-parse', branch]).trim()
-  const remoteSha = remoteHead(remote, branch)
   const slug = repoSlug(remote)
+  const remoteSha = explicitParent !== '' ? explicitParent : remoteHead(slug, branch)
   const report = {
     branch,
     remote: slug,
@@ -111,15 +147,7 @@ export function main(argv) {
     return 0
   }
 
-  let isAncestor = true
-  if (remoteSha !== '') {
-    try {
-      run('git', ['merge-base', '--is-ancestor', remoteSha, localSha])
-    } catch {
-      isAncestor = false
-    }
-  }
-  assertFastForward({ remoteSha, localSha, isAncestor })
+  if (explicitParent === '') assertFastForward({ remoteSha, localSha, isAncestor: isAncestor(remoteSha, localSha, slug) })
 
   const changes = parseNameStatus(
     run('git', [
