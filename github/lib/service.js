@@ -12,6 +12,7 @@ import { readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 
 import { checkBranchPlan, parseBranchName } from './branch-name.js'
+import { checkGhVersion, parseGhVersion } from './gh-version.js'
 import { checkReleaseConsistency, readReleaseFacts } from './release-check.js'
 import {
   buildIssueBody,
@@ -781,6 +782,12 @@ export async function precheck(run, options = {}) {
         ? statusResult.stdout.split(/\r?\n/u).filter((line) => line.trim() !== '').length
         : 0
     const warnings = []
+
+    // 版本探测：只加提示，不阻断。低版本缺字段时用户至少知道原因。
+    const versionProbe = await runGh(run, ['--version'], repositoryRoot, options.signal)
+    const ghVersion = versionProbe.exitCode === 0 ? parseGhVersion(versionProbe.stdout) : null
+    const versionCheck = checkGhVersion(ghVersion)
+    if (versionCheck.ok === false && versionCheck.warning !== undefined) warnings.push(versionCheck.warning)
     if (statusResult.exitCode !== 0) {
       warnings.push(
         `git status failed: ${firstDiagnosticLine(statusResult.stderr) || 'unknown error'}; uncommitted-change detection is unavailable.`,

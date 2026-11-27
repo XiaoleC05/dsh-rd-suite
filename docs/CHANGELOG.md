@@ -1,5 +1,10 @@
 # 变更日志
 
+## 0.50.1 — 2026-11-27
+
+- 新增 github/lib/gh-version.js：解析 `gh version x.y.z`，与建议的最低版本 2.30.0 比对；
+  precheck 探测版本，过低或读不到只加 warning（说明 autoMergeRequest / statusCheckRollup 可能缺失），不阻断。
+- 测试 +6，全量 332 条。
 ## 0.50.0 — 2026-11-27
 
 - `open_pr` 在创建 PR 后，对每个关联 Issue 发一条评论回链 PR 链接（`PR #N：<url>`），

@@ -58,6 +58,7 @@ function makeRun(overrides = {}) {
     log: () => ok('a1b2c3d fix(toolbar): 修复窄屏溢出 (#12)\n9f8e7d6 feat(memory): 记忆骨架 (#17)\n'),
     revList: () => ok('0\t0\n'),
     authStatus: () => ok('Logged in to github.com account octocat (keyring)\n'),
+    ghVersion: () => ok('gh version 2.106.0 (2026-11-25)\n'),
     repoView: () =>
       ok(
         JSON.stringify({
@@ -122,6 +123,7 @@ function makeRun(overrides = {}) {
     if (/status --porcelain/.test(command)) return handlers.status(argv, options)
     if (/ log -5 --pretty=/.test(command)) return handlers.log(argv, options)
     if (/rev-list --left-right --count/.test(command)) return handlers.revList(argv, options)
+    if (/^gh --version/.test(command)) return handlers.ghVersion(argv, options)
     if (/gh auth status/.test(command)) return handlers.authStatus(argv, options)
     if (/gh repo view/.test(command)) return handlers.repoView(argv, options)
     if (/gh api repos\/[^ ]+\/rulesets/.test(command)) return handlers.rulesets(argv, options)
@@ -902,4 +904,19 @@ test('回链失败不影响 PR 已创建的事实', async () => {
   assert.equal(result.prCreated, true)
   assert.equal(result.commentsPosted, undefined)
   assert.match(String(result.warnings?.[0]), /回链 #9 失败/u)
+})
+
+test('precheck 在 gh 版本过低时只给提示，不阻断', async () => {
+  const low = makeRun({ ghVersion: () => ok('gh version 2.20.0 (2023-01-01)\n') })
+  const result = await precheck(low.run, { path: targetFile })
+  assert.equal(result.ok, true, '版本低不阻断主流程')
+  assert.ok(
+    (result.warnings ?? []).some((warning) => /低于建议的 2\.30\.0/u.test(warning)),
+    '要说明缺哪些字段',
+  )
+
+  const missing = makeRun({ ghVersion: () => failed('gh: unknown flag') })
+  const unknown = await precheck(missing.run, { path: targetFile })
+  assert.equal(unknown.ok, true)
+  assert.ok((unknown.warnings ?? []).some((warning) => /读不到 gh 版本/u.test(warning)))
 })
