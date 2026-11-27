@@ -57,7 +57,13 @@ export function auditClaims(text) {
     const claim = CLAIMS.find((word) => trimmed.includes(word))
     if (claim === undefined) continue
     // 证据可以在同句、上一行或后三行：报告里常见「结论在上、证据隔一行再列」。
-    const window = [lines[index - 1] ?? '', line, lines[index + 1] ?? '', lines[index + 2] ?? '', lines[index + 3] ?? '']
+    const window = [
+      lines[index - 1] ?? '',
+      line,
+      lines[index + 1] ?? '',
+      lines[index + 2] ?? '',
+      lines[index + 3] ?? '',
+    ]
     if (window.some((candidate) => hasEvidence(candidate))) continue
     findings.push({ line: index + 1, text: trimmed, claim })
   }
