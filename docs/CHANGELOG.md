@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.62.0 — 2026-11-27
+
+- 入口页新增命令面板：Ctrl/Cmd+K 或点标题旁按钮打开，合并搜索页签与已装能力，
+  上下键选择、回车执行、Esc 关闭；空结果给可读提示而不是空白面板。
+- 面板用 dialog / listbox / option 角色并标 aria-selected，输入框带 aria-label。
+- 用例 441。
 ## 0.61.5 — 2026-11-27
 
 - 新增 test/focus-order.test.mjs：禁止正数 tabIndex（roving tabindex 放行）、容器 -1 / 条目 0 分工、

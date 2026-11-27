@@ -99,6 +99,12 @@ window.__ModuleLoader__.load({
         liveAudit: '最近审计',
 
         emptyTabs: '成员页面未加载：代码修正面板不可用，检查 bundle 是否完整启用。',
+        paletteOpen: '搜索与跳转（Ctrl+K）',
+        paletteTitle: '搜索与跳转',
+        palettePlaceholder: '输入页签或能力名称',
+        paletteEmpty: '没有匹配项：换个关键词',
+        paletteTabGroup: '页签',
+        paletteCapGroup: '能力',
         tabListLabel: '研发工作台的页面',
       },
       en: {
@@ -188,6 +194,12 @@ window.__ModuleLoader__.load({
 
         emptyTabs:
           'Member pages did not load: the code-fixes panel is unavailable. Check that the bundle is fully enabled.',
+        paletteOpen: 'Search and jump (Ctrl+K)',
+        paletteTitle: 'Search and jump',
+        palettePlaceholder: 'Type a tab or capability name',
+        paletteEmpty: 'Nothing matches: try another keyword',
+        paletteTabGroup: 'Tabs',
+        paletteCapGroup: 'Capabilities',
         tabListLabel: 'R&D workbench pages',
       },
     }
@@ -649,6 +661,8 @@ window.__ModuleLoader__.load({
       // 概览的实时数据：成功就显示版本与账本进度，失败或字段缺失时退回静态文案。
       // 允许外部直接传一份状态（宿主注入或测试用），没传就自己请求。
       const [status, setStatus] = React.useState(props?.status ?? null)
+      // 命令面板：一个键盘入口覆盖页签与能力两类跳转。
+      const [palette, setPalette] = React.useState({ open: false, query: '', cursor: 0 })
 
       React.useEffect(() => {
         let cancelled = false
@@ -672,6 +686,63 @@ window.__ModuleLoader__.load({
         setActive(index)
         setMounted((previous) => (previous.has(index) ? previous : new Set(previous).add(index)))
       }, [])
+
+      // 条目与匹配都是纯计算：不需要 useMemo，少一个宿主必须提供的 hook。
+      const paletteEntries = [
+        { id: 'tab-overview', group: t('paletteTabGroup'), label: t('overviewTab'), run: () => select(OVERVIEW) },
+        ...tabs.map((tab, index) => ({
+          id: 'tab-' + index,
+          group: t('paletteTabGroup'),
+          label: tab.label(),
+          run: () => select(index),
+        })),
+        ...asList(t('caps')).map((item) => {
+          const [name, desc] = pair(item)
+          return { id: 'cap-' + name, group: t('paletteCapGroup'), label: name, hint: desc, run: () => select(OVERVIEW) }
+        }),
+      ]
+
+      const paletteQuery = palette.query.trim().toLowerCase()
+      const paletteMatches =
+        paletteQuery === ''
+          ? paletteEntries
+          : paletteEntries.filter((entry) => (entry.label + ' ' + (entry.hint ?? '')).toLowerCase().includes(paletteQuery))
+
+      const runPaletteEntry = (index) => {
+        const entry = paletteMatches[index]
+        if (entry === undefined) return
+        entry.run()
+        setPalette({ open: false, query: '', cursor: 0 })
+      }
+
+      const onPaletteKey = (event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault()
+          setPalette({ open: false, query: '', cursor: 0 })
+          return
+        }
+        if (event.key === 'ArrowDown') {
+          event.preventDefault()
+          setPalette((previous) => ({ ...previous, cursor: Math.min(paletteMatches.length - 1, previous.cursor + 1) }))
+          return
+        }
+        if (event.key === 'ArrowUp') {
+          event.preventDefault()
+          setPalette((previous) => ({ ...previous, cursor: Math.max(0, previous.cursor - 1) }))
+          return
+        }
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          runPaletteEntry(palette.cursor)
+        }
+      }
+
+      const onPageKey = (event) => {
+        if ((event.ctrlKey || event.metaKey) && (event.key === 'k' || event.key === 'K')) {
+          event.preventDefault()
+          setPalette((previous) => ({ open: !previous.open, query: '', cursor: 0 }))
+        }
+      }
 
       const onTabKey = React.useCallback(
         (event, index) => {
@@ -766,6 +837,16 @@ window.__ModuleLoader__.load({
             { style: ui.titleRow },
             h('h1', { style: ui.h1 }, t('panelName')),
             h('p', { style: ui.subtitle }, t('subtitle')),
+            h(
+              'button',
+              {
+                type: 'button',
+                style: ui.paletteTrigger,
+                'aria-keyshortcuts': 'Control+K',
+                onClick: () => setPalette({ open: true, query: '', cursor: 0 }),
+              },
+              t('paletteOpen'),
+            ),
           ),
           h(
             'div',
@@ -779,7 +860,53 @@ window.__ModuleLoader__.load({
             tabs.map((tab, index) => tabButton(index, tab.label())),
           ),
         ),
-        h('div', { style: ui.panel }, bodies),
+        h('div', { style: ui.panel, onKeyDown: onPageKey }, bodies),
+        palette.open
+          ? h(
+              'div',
+              { style: ui.paletteBackdrop, role: 'presentation' },
+              h(
+                'div',
+                {
+                  role: 'dialog',
+                  'aria-modal': 'true',
+                  'aria-label': t('paletteTitle'),
+                  style: ui.palette,
+                  onKeyDown: onPaletteKey,
+                },
+                h('h3', { style: ui.h3 }, t('paletteTitle')),
+                h('input', {
+                  type: 'search',
+                  autoFocus: true,
+                  'aria-label': t('palettePlaceholder'),
+                  placeholder: t('palettePlaceholder'),
+                  style: ui.paletteInput,
+                  value: palette.query,
+                  onChange: (event) => setPalette({ open: true, query: event.target.value, cursor: 0 }),
+                }),
+                paletteMatches.length === 0
+                  ? h('p', { style: ui.hint, role: 'status' }, t('paletteEmpty'))
+                  : h(
+                      'ul',
+                      { role: 'listbox', 'aria-label': t('paletteTitle'), style: ui.paletteList },
+                      paletteMatches.map((entry, index) =>
+                        h(
+                          'li',
+                          {
+                            key: entry.id,
+                            role: 'option',
+                            'aria-selected': index === palette.cursor,
+                            style: index === palette.cursor ? { ...ui.paletteItem, ...ui.paletteItemActive } : ui.paletteItem,
+                            onClick: () => runPaletteEntry(index),
+                          },
+                          h('span', { style: ui.meta }, entry.group),
+                          h('span', { style: ui.itemTitle }, entry.label),
+                        ),
+                      ),
+                    ),
+              ),
+            )
+          : null,
       )
     }
 
