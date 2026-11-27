@@ -160,4 +160,4 @@
 | 第 1 轮 | #16 | iteration-protocol | 九阶段协议 + 100 条账本；5 例测试断言协议与账本结构 |
 | 第 2 轮 | #17 | memory-core | 记忆库 v1（原子写、同标题合并）+ memory_save / memory_list；10 例测试 |
 | 第 3 轮 | #18 | push-fallback | 快进校验 + Git Data API 推送回退（--dry-run/--json）；4 例纯逻辑测试 |
-| 第 4 轮 | #19 | memory-search | 中文分词（整串 + 二元组）、四段加权、片段截取、命中累加与同分排序；memory_search / memory_read；8 例测试 |
+| 第 4 轮 | #19 | memory-search（补记：漏建单） | 中文分词（整串 + 二元组）、四段加权、片段截取、命中累加与同分排序；memory_search / memory_read；8 例测试 |
