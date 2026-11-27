@@ -753,6 +753,28 @@ export async function precheck(run, options = {}) {
             .slice(0, 5)
         : []
     const branch = branchResult.exitCode === 0 ? branchResult.stdout.trim() : ''
+
+    // 与远端同一分支比较：分叉时给出 rebase 步骤，别等 push 失败才发现。
+    let ahead
+    let behind
+    let diverged
+    if (branch !== '') {
+      const counts = await runGit(
+        run,
+        ['-C', repositoryRoot, 'rev-list', '--left-right', '--count', `HEAD...origin/${branch}`],
+        repositoryRoot,
+        options.signal,
+      )
+      if (counts.exitCode === 0) {
+        const [left, right] = counts.stdout.trim().split(/\s+/u).map((value) => Number(value))
+        if (Number.isFinite(left) && Number.isFinite(right)) {
+          ahead = left
+          behind = right
+          diverged = left > 0 && right > 0
+        }
+      }
+    }
+
     const changedFileCount =
       statusResult.exitCode === 0
         ? statusResult.stdout.split(/\r?\n/u).filter((line) => line.trim() !== '').length
@@ -939,6 +961,9 @@ export async function precheck(run, options = {}) {
         : { requiredReviews: guarded.requiredReviews }),
       ...(guarded.requiredChecks === undefined ? {} : { requiredChecks: guarded.requiredChecks }),
       ...(recentCommits.length === 0 ? {} : { recentCommits }),
+      ...(ahead === undefined ? {} : { ahead }),
+      ...(behind === undefined ? {} : { behind }),
+      ...(diverged === undefined ? {} : { diverged }),
       workingTreeClean: statusResult.exitCode === 0 ? changedFileCount === 0 : false,
       changedFileCount,
       ghInstalled: true,
@@ -950,10 +975,13 @@ export async function precheck(run, options = {}) {
         : {}),
       ...(warnings.length === 0 ? {} : { warnings }),
       message: `GitHub repository ${remote.slug} is ready; strategy: ${strategy}.`,
-      guidance:
-        strategy === 'pr'
-          ? `The default branch ${String(defaultBranch)} is protected, so every module travels through a pull request: create_issue, prepare_branch (\`<type>/<issue>-<slug>\`), implement, commit, open_pr, merge_pr.`
-          : 'Split the work into modules and create one GitHub issue per module before editing, then make one atomic commit per module. For a shared repository, prefer prepare_branch and open_pr over committing on the default branch.',
+      guidance: `${diverged === true
+        ? `Local and origin/${branch} have diverged (ahead ${String(ahead)}, behind ${String(behind)}). Reconcile first: git fetch origin, git rebase origin/${branch}, resolve conflicts one by one, git rebase --continue, and stop if the rebase cannot be completed. `
+        : behind !== undefined && behind > 0
+          ? `Local is ${String(behind)} commit(s) behind origin/${branch}: pull or rebase before starting so the module builds on the current head. `
+          : ''}${strategy === 'pr'
+        ? `The default branch ${String(defaultBranch)} is protected, so every module travels through a pull request: create_issue, prepare_branch, implement, commit, open_pr, merge_pr.`
+        : 'Split the work into modules and create one GitHub issue per module before editing, then make one atomic commit per module. For a shared repository, prefer prepare_branch and open_pr over committing on the default branch.'}`,
     })
   } catch (error) {
     return executionFailure(action, error)

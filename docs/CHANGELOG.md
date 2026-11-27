@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.19.1 — 2026-11-27
+
+- `precheck` 用 `git rev-list --left-right --count HEAD...origin/<branch>` 给出 `ahead` / `behind` / `diverged`；
+  分叉时 guidance 直接给 rebase 步骤（fetch → rebase → 逐个解决冲突 → `git rebase --continue`），
+  落后时提示先 pull，读不到远端分支时字段缺省且不影响预检通过。
+- result-schema 声明三个字段；新增 1 例测试覆盖领先/落后/分叉/读不到四种情形；全量 194/194。
 ## 0.19.0 — 2026-11-27
 
 - 新增 `github/lib/release-check.js`：tag 规范化（去 v 前缀与构建后缀）、与 package.json 版本比对、

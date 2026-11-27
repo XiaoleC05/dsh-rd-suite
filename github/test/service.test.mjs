@@ -56,6 +56,7 @@ function makeRun(overrides = {}) {
     branch: () => ok('fix/login-retry\n'),
     status: () => ok(''),
     log: () => ok('a1b2c3d fix(toolbar): 修复窄屏溢出 (#12)\n9f8e7d6 feat(memory): 记忆骨架 (#17)\n'),
+    revList: () => ok('0\t0\n'),
     authStatus: () => ok('Logged in to github.com account octocat (keyring)\n'),
     repoView: () =>
       ok(
@@ -120,6 +121,7 @@ function makeRun(overrides = {}) {
     if (/branch --show-current/.test(command)) return handlers.branch(argv, options)
     if (/status --porcelain/.test(command)) return handlers.status(argv, options)
     if (/ log -5 --pretty=/.test(command)) return handlers.log(argv, options)
+    if (/rev-list --left-right --count/.test(command)) return handlers.revList(argv, options)
     if (/gh auth status/.test(command)) return handlers.authStatus(argv, options)
     if (/gh repo view/.test(command)) return handlers.repoView(argv, options)
     if (/gh api repos\/[^ ]+\/rulesets/.test(command)) return handlers.rulesets(argv, options)
@@ -835,4 +837,29 @@ test('release：版本号或 CHANGELOG 对不上时拒绝发版', async () => {
   assert.equal(forced.ok, true, 'verify: false 时跳过校验')
 
   rmSync(repo, { recursive: true, force: true })
+})
+
+test('precheck 给出与远端的领先/落后/分叉', async () => {
+  const aheadRun = makeRun({ revList: () => ok('3\t0\n') })
+  const ahead = await precheck(aheadRun.run, { path: targetFile })
+  assert.equal(ahead.ahead, 3)
+  assert.equal(ahead.behind, 0)
+  assert.equal(ahead.diverged, false)
+
+  const behindRun = makeRun({ revList: () => ok('0\t2\n') })
+  const behind = await precheck(behindRun.run, { path: targetFile })
+  assert.equal(behind.behind, 2)
+  assert.match(behind.guidance, /behind origin\/fix\/login-retry/u)
+
+  const divergedRun = makeRun({ revList: () => ok('2\t1\n') })
+  const diverged = await precheck(divergedRun.run, { path: targetFile })
+  assert.equal(diverged.diverged, true)
+  assert.match(diverged.guidance, /rebase origin\/fix\/login-retry/u)
+  assert.match(diverged.guidance, /git rebase --continue/u)
+
+  const brokenRun = makeRun({ revList: () => failed('origin/fix/login-retry not found') })
+  const unknown = await precheck(brokenRun.run, { path: targetFile })
+  assert.equal(unknown.ahead, undefined, '读不到远端分支时不给数字')
+  assert.equal(unknown.diverged, undefined)
+  assert.equal(unknown.ok, true, '读不到远端分支不影响预检通过')
 })
