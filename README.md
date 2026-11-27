@@ -57,6 +57,17 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## 审计模式
+
+插件配置 `auditMode` 决定模块关闭时的审计会不会改文件：
+
+| 值 | 行为 |
+|---|---|
+| `fix`（默认） | 发现格式偏差就改写，并在结果里给出检查数 / 待修 / 已修 |
+| `report` | 只查不改，结果标 `reportOnly`，文件内容与 mtime 都不动 |
+
+非法值回落到 `fix` 并记一条警告。测试会验证 `report` 模式下文件**内容与 mtime 都不变**，而不是只看返回值。
+
 ## git 凭据与网络
 
 如果每次 git 操作都弹窗要求选 GitHub 账户，或者 push 卡住，先跑：
@@ -87,13 +98,13 @@ node scripts/git-net-check.mjs --network
 ## 迭代进度
 
 <!-- rd-board:start -->
-进度：70/100 轮 · 用例 412 · 版本 0.60.0 · 门禁 六项全过
+进度：72/100 轮 · 用例 421 · 版本 0.61.0 · 门禁 六项全过
 
 | 最近三轮 | 做了什么 |
 |---|---|
-| 第 68 轮 | 工具调用耗时统计（包装 register，失败也记）+ status 暴露前 5；6 例测试 |
-| 第 69 轮 | classifyFailure 三选一 + withRetry，mergePr 改用它；9 例测试 |
 | 第 70 轮 | 第七次体检：用例 412、最大技能 rd-ecosystem 2597、升 0.60.0 |
+| 第 71 轮 | 消除 GCM 账户弹窗 + 代理与 TLS 后端修复，脚本自检四项；6 例测试 |
+| 第 72 轮 | auditMode 配置（fix/report）+ 归一化与 warning；3 例测试 |
 <!-- rd-board:end -->
 
 ## 安装

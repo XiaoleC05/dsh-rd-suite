@@ -36,9 +36,22 @@ export const inject = ['tools', 'webServer', 'systemPrompt', 'subprocess', 'work
 export const Config = z.object({
   githubIssueFirstWorkflow: z.boolean().default(false),
   autoCodeFix: z.boolean().default(true),
+  // 模块关闭时的审计模式：fix 会改文件，report 只查不改。
+  auditMode: z.union([z.const('fix'), z.const('report')]).default('fix'),
   codePipeline: z.any(),
   memory: z.any(),
 })
+
+/**
+ * 归一化审计模式：只接受 fix / report，其它值回落到 fix 并说明。
+ * @param {unknown} value - 配置值
+ * @returns {{ mode: 'fix' | 'report'; warning?: string }} 模式与可选警告
+ */
+export function normalizeAuditMode(value) {
+  if (value === 'report') return { mode: 'report' }
+  if (value === 'fix' || value === undefined || value === null) return { mode: 'fix' }
+  return { mode: 'fix', warning: `auditMode 只接受 fix 或 report，收到 ${String(value)}，已按 fix 处理` }
+}
 
 /** Tools that produce or rewrite a file, by model-visible name. */
 const WRITE_TOOL_NAMES = new Set([
@@ -92,6 +105,10 @@ async function autoFixFile(absolute) {
  * @param config - 融合配置
  */
 export function apply(ctx, config) {
+  const auditSetting = normalizeAuditMode(config?.auditMode)
+  const auditMode = auditSetting.mode
+  if (auditSetting.warning !== undefined) ctx?.logger?.warn?.('[rd-suite] ' + auditSetting.warning)
+
   // 工具注册处包一层计时：耗时统计对调用方完全透明。
   if (ctx?.tools !== null && typeof ctx?.tools === 'object' && typeof ctx.tools.register === 'function') {
     const original = ctx.tools.register.bind(ctx.tools)
@@ -122,7 +139,7 @@ export function apply(ctx, config) {
     const key = sessionKey(exec)
     const files = [...(touched.get(key) ?? [])]
     if (files.length === 0) return null
-    const audit = await auditFiles(files, { mode: 'fix' })
+    const audit = await auditFiles(files, { mode: auditMode })
     touched.delete(key)
     // 留一行历史：面板与交付报告都能回看「上次审了多少、花了多久」。
     appendAuditRecord(auditHistoryFile(homedir()), {

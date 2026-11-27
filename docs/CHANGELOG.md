@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.61.0 — 2026-11-27
+
+- 新增插件配置 `auditMode`（fix | report）：report 时模块关闭只查不改，结果标 reportOnly。
+- 新增 normalizeAuditMode：非法值回落到 fix 并记警告，不静默接受。
+- 测试验证 report 模式下文件内容与 mtime 都不变（同一文件在 fix 模式下确实会被改写）。
+- 用例 421。
 ## 0.60.1 — 2026-11-27
 
 - 新增 scripts/git-net-check.mjs：检查 github 凭据助手 / credential.interactive / 代理 / TLS 后端四项，
