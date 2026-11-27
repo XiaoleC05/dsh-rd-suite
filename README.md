@@ -24,8 +24,9 @@
 | `client-sources/hub-rd.js` | 研发工作台入口页（唯一侧栏图标 + 概览） |
 | `client-sources/code-pipeline.js` · `github.js` · `cards.js` | 代码修正面板、GitHub 设置行、模式卡片增强（`cards.js` 由 `scripts/vendor-cards.mjs` 生成） |
 | `client.js` | 合并后的浏览器模块（`node scripts/build-client.mjs` 生成，勿手改） |
-| `skills/` | 预设按包名解析到的 rd-* 技能目录 |
-| `test/` | 入口页的无浏览器校验（`node --test`） |
+| `skills/` | 预设按包名解析到的 rd-* 技能目录（含 rd-copy：文案去 AI 味、AIGC 自检、降重） |
+| `test/` | 入口页、代码审计、技能规范与 AIGC 检查脚本的校验（`node --test`） |
+| `scripts/aigc-check.mjs` | 文案 AIGC 自检：套话、连接词、模板开头、重复片段与句长分布，0–100 分 |
 | `cordis.patch.yml` | 上面 3 行的完整声明，头部有相对官方 `ptc` 预设的差异表 |
 | `docs/` | `DESIGN.md`（设计与成本模型）、`DETAIL.md`（插件详情页）、`CHANGELOG.md` |
 

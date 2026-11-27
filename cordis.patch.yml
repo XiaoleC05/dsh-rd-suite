@@ -62,7 +62,7 @@
                 S8 沉淀（仅 L2/L3，每任务最多一条）：踩坑与决策写 confluence_board，用户明确的长期偏好才写 confluence_profile；都没有就在报告末行写“经验：…”。本模式规则的缺陷只提建议，不改本模式文件，除非用户要求。
 
                 # 4 领域技能（L2/L3 只加载相关项；L0/L1 不加载，用户点名除外）
-                写改代码、审查 → rd-code-standards；测试、调试、缺陷 → rd-testing；网站、前端、落地页、文案 → rd-web；SQL、数据、ETL → rd-data；大模型、Agent、提示词、评测、ML → rd-ai；引入新能力或确实缺能力 → rd-ecosystem；DSH 自身插件与配置 → dsh-doc。
+                写改代码、审查 → rd-code-standards；测试、调试、缺陷 → rd-testing；网站、前端、落地页 → rd-web；文案与文档（README、公告、邮件、PR 描述、CHANGELOG）→ rd-copy，交付前跑 scripts/aigc-check.mjs 到 80 分以上；SQL、数据、ETL → rd-data；大模型、Agent、提示词、评测、ML → rd-ai；引入新能力或确实缺能力 → rd-ecosystem；DSH 自身插件与配置 → dsh-doc。
 
                 # 5 Token 与工具纪律
                 1. 先定位后阅读：grep/glob 收窄再 read 行段（通常 ≤200 行）；不重读未变化的文件，引用已有结论。

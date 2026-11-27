@@ -32,7 +32,7 @@ dsh-rd-suite bundle
                    压缩：约 199k 触发，保留 40k 原文，工具结果超 6 KB 先剪头尾
                    委派：subagent / subagent_fork / review_agent（同一 rd 预设）
   skills/          rd-code-standards · rd-testing · rd-web · rd-data · rd-ai
-                   rd-ecosystem · rd-retro · rd-selftest（按需加载）
+                   rd-ecosystem · rd-retro · rd-selftest · rd-copy（按需加载）
   client-sources/  入口页 · 代码修正面板 · GitHub 设置行 · 模式卡片
 ```
 
@@ -50,6 +50,7 @@ dsh-rd-suite bundle
 
 关卡：**S5 验证**（每条 AC 要有本会话真实运行过的证据，跑不起来写「未验证：原因」）与 **S6 独立验收**（`review_agent` 不带作者上下文、亲自重跑、首行 VERDICT；L3 必做）。
 
+写作类交付（README、文档、公告、邮件、PR 描述、CHANGELOG）先加载 rd-copy：按它的禁用词表与句长规则写，交付前跑 `node scripts/aigc-check.mjs <文件> --min-score 80`，把分数与命中项写进报告。脚本只看表面特征（套话、连接词、模板开头、重复片段、句长变异系数），不判断内容对错；人工复核三项：有没有换个说法也成立的空话、每个结论有没有依据、第一段能不能看出作者视角。
 ## 4 执行方式：为什么用 PTC
 
 `tool-executor-ptc` 让模型只直接调用 `run_code`，其余工具成为程序内的 SDK 绑定。对研发模式的收益与代价：
