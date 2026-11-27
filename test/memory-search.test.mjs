@@ -109,12 +109,25 @@ test('memory_search 与 memory_read 注册且能串起检索与命中累加', as
   const { apply } = await import('../memory/index.js')
   const registered = []
   const dir = mkdtempSync(join(tmpdir(), 'rd-memory-search-'))
-  apply({ tools: { register: (definition) => registered.push(definition) } }, { directory: dir, maxEntries: 50 })
+  apply(
+    { tools: { register: (definition) => registered.push(definition) } },
+    { directory: dir, maxEntries: 50 },
+  )
   const byName = (name) => registered.find((tool) => tool.name === name)
 
   const save = byName('memory_save')
-  await save.execute({ type: 'pitfall', title: 'Windows 沙箱白名单要用反斜杠', body: '现象：写入被拒。根因：正斜杠。做法：path.resolve 后再比较。', tags: ['windows'] })
-  await save.execute({ type: 'template', title: '新增工具的注册骨架', body: 'defineTool 定义 schema，register 挂到 ctx.tools。', tags: ['dsh'] })
+  await save.execute({
+    type: 'pitfall',
+    title: 'Windows 沙箱白名单要用反斜杠',
+    body: '现象：写入被拒。根因：正斜杠。做法：path.resolve 后再比较。',
+    tags: ['windows'],
+  })
+  await save.execute({
+    type: 'template',
+    title: '新增工具的注册骨架',
+    body: 'defineTool 定义 schema，register 挂到 ctx.tools。',
+    tags: ['dsh'],
+  })
 
   const found = await byName('memory_search').execute({ query: '沙箱' })
   assert.equal(found.total, 1)
