@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.48.1 — 2026-11-27
+
+- 新增 scripts/release.mjs：按「每 10 轮 minor、其余 patch」算下一版，patch 到 9 自动进位；
+  `--write` 同时改 package.json 并在 CHANGELOG 顶部插入版本标题骨架，重复版本拒绝写入。
+- 本轮版本由脚本自己推进：0.48.0 → 0.48.1。
+- 测试 +8。
+
 ## 0.48.0 — 2026-11-27
 
 - 新增 scripts/rollback-drill.mjs：临时仓库造两次提交，执行 `git revert` 后断言树回到上一状态、

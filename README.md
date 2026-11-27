@@ -35,6 +35,7 @@
 | `scripts/audit-changed.mjs` | 只审 git 改动过的代码文件（交付前最后一道便宜检查） |
 | `scripts/flow-drill.mjs` | 全流程演练：假 git/gh 跑通建单→分支→PR→合并→关闭七步 |
 | `scripts/memory-recall.mjs` | 记忆召回基准：top1 准确率与 MRR，低于阈值即失败 |
+| `scripts/release.mjs` | 版本推进：每 10 轮 minor，其余 patch，同时改清单与 CHANGELOG 骨架 |
 | `scripts/rollback-drill.mjs` | 回滚演练：临时仓库里真跑 revert，验证树还原且历史保留 |
 | `scripts/round-report.mjs` | 单轮评估报告：证据四段（做了什么 / 验证数据 / 判据 / 结论） |
 | `scripts/ledger.mjs` | 账本维护：`--list` 查状态、`--mark` 改状态、`--append-round` 追加轮次 |
