@@ -139,7 +139,9 @@ export async function smokeInstall() {
     try {
       JSON.parse(readFileSync(join(staging, 'package.json'), 'utf8'))
     } catch (error) {
-      problems.push(`副本缺少可解析的 package.json：${error instanceof Error ? error.message : String(error)}`)
+      problems.push(
+        `副本缺少可解析的 package.json：${error instanceof Error ? error.message : String(error)}`,
+      )
     }
 
     const patch = readFileSync(join(staging, 'cordis.patch.yml'), 'utf8')
