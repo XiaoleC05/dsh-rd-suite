@@ -26,20 +26,28 @@ const here = dirname(fileURLToPath(import.meta.url))
 const root = dirname(here)
 const packageName = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).name
 
+// The GitHub flow has no settings row: it is part of the mode, so its rules live
+// in the Host prompt section and in the hub overview instead of a client surface.
 const SOURCES = [
   'client-sources/cards.js',
   'client-sources/code-pipeline.js',
-  'client-sources/github.js',
   'client-sources/hub-rd.js',
 ]
 
 /** Capture the factory function text from a module-loader client file. */
 function factoryText(file) {
   const captured = []
-  const window = { __ModuleLoader__: { load(definition) { captured.push(definition) } } }
+  const window = {
+    __ModuleLoader__: {
+      load(definition) {
+        captured.push(definition)
+      },
+    },
+  }
   // The files only touch `window` at top level; factories run later.
   new Function('window', readFileSync(join(root, file), 'utf8'))(window)
-  if (captured.length !== 1) throw new Error(`expected exactly one module registration in ${file}, got ${captured.length}`)
+  if (captured.length !== 1)
+    throw new Error(`expected exactly one module registration in ${file}, got ${captured.length}`)
   const { id, factory } = captured[0]
   if (typeof factory !== 'function') throw new Error(`no factory in ${file} (id ${id})`)
   const text = factory.toString()

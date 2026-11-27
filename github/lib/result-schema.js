@@ -7,7 +7,16 @@
  */
 
 /** Action names accepted by the tool and returned in every result. */
-export const RESULT_ACTIONS = Object.freeze(['precheck', 'create_issue', 'close_issue']);
+export const RESULT_ACTIONS = Object.freeze([
+  'precheck',
+  'create_issue',
+  'prepare_branch',
+  'open_pr',
+  'pr_status',
+  'merge_pr',
+  'close_issue',
+  'release',
+])
 
 /**
  * Author-facing output schema properties. The root object is closed
@@ -36,12 +45,35 @@ export const RESULT_FIELDS = Object.freeze({
   hasIssuesEnabled: { type: 'boolean' },
   viewerPermission: { type: 'string' },
   branch: { type: 'string' },
+  baseBranch: { type: 'string' },
+  defaultBranch: { type: 'string' },
+  strategy: { type: 'string', enum: ['pr', 'direct'] },
+  protection: { type: 'string', enum: ['required', 'none', 'unknown'] },
+  rulesets: { type: 'array', items: { type: 'string' } },
   workingTreeClean: { type: 'boolean' },
   changedFileCount: { type: 'integer' },
   warnings: { type: 'array', items: { type: 'string' } },
   issueNumber: { type: 'integer' },
   issueUrl: { type: 'string' },
+  branchCreated: { type: 'boolean' },
+  branchReused: { type: 'boolean' },
+  prNumber: { type: 'integer' },
+  prUrl: { type: 'string' },
+  prState: { type: 'string' },
+  prDraft: { type: 'boolean' },
+  prCreated: { type: 'boolean' },
+  pushed: { type: 'boolean' },
+  mergeable: { type: 'string' },
+  reviewDecision: { type: 'string' },
+  checksPassed: { type: 'integer' },
+  checksFailed: { type: 'integer' },
+  checksPending: { type: 'integer' },
+  merged: { type: 'boolean' },
+  mergeMethod: { type: 'string', enum: ['squash', 'merge', 'rebase'] },
+  branchDeleted: { type: 'boolean' },
   closed: { type: 'boolean' },
   alreadyClosed: { type: 'boolean' },
   commented: { type: 'boolean' },
-});
+  tag: { type: 'string' },
+  releaseUrl: { type: 'string' },
+})

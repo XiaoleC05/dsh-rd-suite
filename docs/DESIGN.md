@@ -59,7 +59,24 @@ dsh-rd-suite bundle
 - **回滚**：把 `cordis.patch.yml` 里 `tool-executor-ptc` 那行改成 `disabled: true`，重载 bundle，即回到原生工具调用。
 - **额度**：`maxSubCallsPerMinute: 512`（默认超时 2 分钟即 1024 次调用额度）；`maxParallelSubCalls: 8` 限制并行安全的子调用并发。额度用尽会终止整个程序，用来兜住写错的死循环。
 
-## 5 Token 与成本杠杆
+## 5 GitHub 固定流程
+
+不是设置项，也不随项目偏好关闭。依据 GitHub 官方文档的三处约定：[GitHub flow](https://docs.github.com/en/get-started/using-github/github-flow)（分支 → 提交 → PR → 评审 → 合并 → 删分支）、[关闭关键词](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)（close/fix/resolve 系列；同仓库 `KEYWORD #N`，跨仓库 `KEYWORD OWNER/REPO#N`）、[受保护分支与 rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository)（决定是否强制走 PR）。
+
+| 步骤 | 工具动作 | 产物 |
+|---|---|---|
+| G0 预检 | `precheck` | `strategy`（pr / direct）、`defaultBranch`、`protection`、未提交改动警告 |
+| G1 模块建档 | `create_issue` | 一个模块一个 Issue：现象、影响、复现、范围、AC、计划 |
+| G2 分支 | `prepare_branch` | `<type>/<issue>-<slug>`，从默认分支切出 |
+| G3 提交 | git | 一个模块一次原子提交，`<type>(<module>): <summary> (#N)` + `Closes #N` |
+| G4 代码审计 | `code_standardize` | 改动文件格式检查与修正（见 §7） |
+| G5 PR 与合并 | `open_pr` → `pr_status` → `merge_pr` | draft PR 带 `Closes #N`；检查绿、评审落定后 squash 合并并删分支 |
+| G6 关闭 | `close_issue` | direct 策略下由它关闭；PR 已关闭时补验证评论 |
+| G7 发版 | `release` | SemVer tag + 生成的发布说明，只在验证过的默认分支上发 |
+
+`strategy` 的决定方式：默认分支有生效的 ruleset 或经典分支保护 → `pr`；读取不到保护状态 → `direct` 但提示共享仓库优先走分支与 PR；不是 GitHub 远程仓库 → 流程不适用，按普通工程流程走并在报告里说明。工具结果只报它真正确认的状态：合并、关闭、发布都以 `gh` 的复查为准，失败按 `classifyGitHubDiagnostic` 给出可执行的下一步。
+
+## 6 Token 与成本杠杆
 
 | 杠杆 | 取值 | 依据 |
 |---|---|---|
@@ -73,7 +90,7 @@ dsh-rd-suite bundle
 | 时间上下文 | 刷新间隔 1 小时 | 小项，零风险 |
 | PTC 批量 | 见 §4 | 减少往返次数 |
 
-## 6 相对官方 `ptc` 预设的差异
+## 7 相对官方 `ptc` 预设的差异
 
 | 差异 | rd 的取值 | 原因 |
 |---|---|---|
@@ -84,7 +101,7 @@ dsh-rd-suite bundle
 | 委派 | 同一 rd 预设承担 `subagent` / `subagent_fork` / `review_agent` | 侦察与验收是角色，不是模式 |
 | 不挂 | `workflow` | 官方文案限定只在用户明确要求时使用；用 todo + 子代理覆盖同类需求 |
 
-## 7 KPI 与目标
+## 8 KPI 与目标
 
 指标定义见 `skills/rd-retro/references/kpi.md`。目标值：
 
@@ -103,7 +120,7 @@ dsh-rd-suite bundle
 | K11 L3 经 review_agent 占比 | ≥90% |
 | K12 返工信号占比 | ≤6% |
 
-## 8 风险与未验证
+## 9 风险与未验证
 
 - **PTC 前缀大小未在本机实测**：官方文档明确「不承诺普遍减少成本」，取决于可见工具定义。用新会话首轮请求的用量数字核对，超过 22k 就从工具集或宪章里减。
 - **插件与 MCP 工具在 PTC 下的可达性**：`code_*`、`github_workflow`、`confluence_*`、context7 的 SDK 绑定由同一套投影生成，`ToolDefinition.output` 是必填项，因此不会因为缺输出声明导致提示词组装失败；但实际调用要由 `/rd-selftest` 第 2、3 项核对。
@@ -112,7 +129,7 @@ dsh-rd-suite bundle
 - **K9–K12 是启发式指标**：依赖回答中的固定标记与关键词，只看趋势。
 - **同一浏览器模块**：任一界面报错会影响整块界面加载；改完必须 `node scripts/build-client.mjs` 并刷新页面。
 
-## 9 变更流程
+## 10 变更流程
 
 | 等级 | 范围 | 审批 | 生效 |
 |---|---|---|---|

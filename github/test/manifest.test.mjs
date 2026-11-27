@@ -43,7 +43,7 @@ test('the bundle patch inserts the Host row with the setting off by default', ()
   assert.match(patch, /- insert:/)
 })
 
-test('the Host plugin owns the live setting, the prompt section and the tool', () => {
+test('the Host plugin owns the prompt section and the tool', () => {
   const source = readText('index.js')
   assert.match(source, /export const name = 'github-issue-first-workflow'/)
   assert.match(
@@ -55,42 +55,37 @@ test('the Host plugin owns the live setting, the prompt section and the tool', (
   assert.match(source, /const WORKFLOW_SECTION_ORDER = 700/)
   assert.match(source, /order: WORKFLOW_SECTION_ORDER/)
   assert.match(source, /interpolate: false/)
-  assert.match(source, /enabled\(\) \? WORKFLOW_PROMPT : ''/)
+  assert.match(source, /text: \(\) => WORKFLOW_PROMPT/)
   assert.match(source, /name: 'github_workflow'/)
-  assert.match(source, /\{ when: \(\) => enabled\(\) \}/)
   assert.match(source, /properties: RESULT_FIELDS/)
-  assert.deepEqual([...RESULT_ACTIONS], ['precheck', 'create_issue', 'close_issue'])
+  assert.deepEqual(
+    [...RESULT_ACTIONS],
+    [
+      'precheck',
+      'create_issue',
+      'prepare_branch',
+      'open_pr',
+      'pr_status',
+      'merge_pr',
+      'close_issue',
+      'release',
+    ],
+  )
   assert.equal(RESULT_FIELDS.github.type, 'boolean')
+  // 流程是模式的一部分：不再有按设置隐藏工具或提示词的门控。
+  assert.equal(/when: \(\) => enabled\(\)/.test(source), false)
+  assert.equal(source.includes('readEnabled'), false)
 })
 
-test('the Client half registers one General settings row for the same entry and field', () => {
-  // 浏览器半已并入 bundle：读仓库根的 client.js（由 client-sources/ 合并生成）。
+test('no settings row ships: the flow belongs to the mode, not to a switch', () => {
+  // 浏览器半已并入 bundle；成员不再有 client.js，bundle 也不再注册 GitHub 设置行。
   const source = readFileSync(path.join(packageRoot, '..', 'client.js'), 'utf8')
-  const patch = readText('cordis.patch.yml')
   const host = readText('index.js')
 
-  // 客户端配置行 id 必须与本成员 cordis.patch.yml 里的 loader 行 id 一致。
-  const entryId = /- id:\s*([A-Za-z0-9-]+)/.exec(patch)?.[1]
-  assert.ok(entryId, 'cordis.patch.yml 必须声明 loader 行 id')
-  assert.match(
-    source,
-    new RegExp(`ENTRY_ID = '${entryId}'`),
-    '客户端配置行 id 与 loader 行 id 不一致',
-  )
-  assert.match(source, /name: 'settings\.general\.item'/)
-  assert.match(source, /ctx\.configForms\.whileServed\(\[ENTRY_ID\]/)
-  assert.match(source, /ctx\.slots\.register\(\{/)
-  assert.match(source, /ctx\.locale\.register\(LOCALE_NS, STRINGS\)/)
-  assert.match(source, /role: 'switch'/)
-  assert.match(source, /'aria-checked': checked/)
-  assert.match(source, /--dsw-alias-brand-primary/)
-
-  const field = /const FIELD = '([A-Za-z0-9_]+)'/.exec(source)?.[1]
-  assert.equal(field, 'githubIssueFirstWorkflow')
-  assert.ok(
-    host.includes(`${field}: z.boolean()`),
-    'the client field matches the Host Config field',
-  )
+  assert.equal(existsSync(path.join(packageRoot, 'client.js')), false)
+  assert.equal(source.includes("name: 'settings.general.item'"), false)
+  assert.equal(source.includes('githubIssueFirstWorkflow'), false)
+  assert.ok(host.includes('githubIssueFirstWorkflow: z.boolean()'), 'legacy field stays accepted')
 })
 
 test('both locales carry localized plugin metadata', () => {

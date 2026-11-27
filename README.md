@@ -5,7 +5,7 @@
 | 行 | 内容 |
 |---|---|
 | `preset-rd` | 研发模式：官方 `ptc` 预设的超集（含 `run_code` 程序化调用、定时任务、`subagent_fork`），外加分级流水线、验收关卡、独立验收与领域技能 |
-| `github-issue-first-workflow`（融合主体） | 一个插件主体：代码标准化工具、GitHub Issue 流程与全部界面 |
+| `github-issue-first-workflow`（融合主体） | 一个插件主体：代码标准化工具、**GitHub 固定流程**（G0 预检 → 每模块一个 Issue → 分支 → 原子提交 → 代码审计 → PR/合并 → 关闭 → 发版）与全部界面 |
 | `context7-mcp` | context7 文档检索 MCP |
 
 ## 界面
@@ -35,9 +35,9 @@
 - 装好后重载：`plugin_manager set_bundle target=dsh-rd-suite enabled=false`，再 `enabled=true`；浏览器半需刷新页面。
 - 改宿主代码：直接改 `code-pipeline/`、`github/`，重载 bundle。
 - 改界面：改 `client-sources/<name>.js`，运行 `node scripts/build-client.mjs`，刷新页面。
-- 跑校验：`npm test`（入口页 + code-pipeline + github 共 78 个用例）与 `node --check client.js`。
-- 只停用 GitHub 流程：设置 → 通用 里关掉开关（`githubIssueFirstWorkflow`）。
+- 跑校验：`npm test`（入口页 + code-pipeline + github 共 88 个用例）与 `node --check client.js`。
 - 回到原生工具调用（不含 PTC）：把 `cordis.patch.yml` 里 `tool-executor-ptc` 那行改成 `disabled: true`，重载 bundle。
+- 只停用 GitHub 流程：做不到，它属于模式本身。没有 GitHub 远程仓库的项目自动走普通工程流程，其余项目一律按固定流程办。
 - 整体停用：`set_bundle` target=`dsh-rd-suite`，enabled=`false`。
 
 ## 注意

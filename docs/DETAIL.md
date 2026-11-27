@@ -11,14 +11,16 @@
 - **流水线 S1–S8**：规格卡 → 侦察 → 计划 → 实现 → 验证 → 独立验收 → 交付报告 → 沉淀；S5、S6 标为「关卡」。
 - **两道关卡**：S5 每条 AC 要有本会话真实运行过的证据；S6 由 `review_agent` 独立复核并先给 VERDICT。
 - **已装能力**：PTC 执行、代码修正、context7、GitHub 流程、定时任务、领域技能。
-- **和其他模式的区别**：默认收起，点开才展开。研发模式已包含 PTC 模式的能力，并在其上加了分级、关卡、独立验收与领域技能。
+- **GitHub 固定流程**：有 GitHub 远程仓库时，每个模块都要先建 Issue，再按 `strategy` 决定是否走分支与 Pull Request；提交用 Conventional Commits 并在正文写 `Closes #N`，合并用 squash 并删分支，发版走 SemVer。默认收起，点开才展开；它不是设置项，不能关。
+- **和其他模式的区别**：研发模式已包含 PTC 模式的能力，并在其上加了分级、关卡、独立验收、领域技能与固定的 GitHub 流程。
 
 「代码修正」是页内标签，不跳转：写入/修改代码后自动按项目规范格式化（`autoCodeFix` 可关），面板里可以勾选文件按需复查。
 
 ## 包含
 
 - **研发模式**：唯一模式；侦察与验收是流程内的子代理角色（`subagent` / `review_agent` 复用同一个 rd 预设）。
-- **融合插件主体**：`code_list_files`、`code_standardize`、代码标准化面板、`github_workflow` 与 Issue 优先提示词。
+- **入口页**：状态带、三步开始、S1–S8 流水线、GitHub 固定流程 G0–G7、分级与关卡、已装能力、可折叠的模式差异。
+- **融合插件主体**：`code_list_files`、`code_standardize`、代码标准化面板、`github_workflow`（8 个动作）与固定流程提示词。
 - **context7 MCP**：文档检索工具。
 
 ## 维护

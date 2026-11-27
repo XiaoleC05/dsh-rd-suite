@@ -169,11 +169,16 @@ test('概览按「状态带 → 三步开始 → 流水线 → 分级与关卡 �
     .map((node) => render(node).join(''))
   assert.equal(headings[0], dict.panelName, 'h1 必须是工作台标题且只有一个')
   assert.deepEqual(
-    headings.slice(1, 5),
-    [dict.startTitle, dict.flowTitle, dict.tierTitle, dict.gateTitle],
-    '分区标题顺序：三步开始 → 流水线 → 分级 → 关卡',
+    headings.slice(1, 4),
+    [dict.startTitle, dict.flowTitle, dict.ghTitle],
+    '分区标题顺序：三步开始 → 流水线 → GitHub 固定流程',
   )
-  assert.equal(headings[5], dict.capTitle, '能力区接在关卡之后')
+  assert.deepEqual(
+    headings.slice(4, 6),
+    [dict.tierTitle, dict.gateTitle],
+    '分级与关卡两张卡片接在流程之后',
+  )
+  assert.equal(headings[6], dict.capTitle, '能力区接在关卡之后')
   assert.equal(headings.at(-1), dict.diffTitle, '差异对比放在最后')
 
   assert.equal(tree.filter((item) => item === dict.gateBadge).length, 2, 'S5 与 S6 两步要标出关卡')

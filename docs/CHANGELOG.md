@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.4.0 — 2026-11-27
+
+- GitHub 流程改为模式固定流程，不再是设置开关：删掉设置 → 通用里的开关行与成员包的 client 半，提示词与工具常驻（#9）。
+- `github_workflow` 从 3 个动作扩到 8 个：precheck（新增 strategy / defaultBranch / protection / ruleset 判定）、create_issue、prepare_branch、open_pr、pr_status、merge_pr、close_issue、release；范式按 GitHub 官方文档的 flow、关闭关键词与受保护分支约定编写（#9）。
+- 入口页新增「GitHub 固定流程」G0–G7 区块；docs/DESIGN.md 新增该流程的说明与出处（#9）。
+
 ## 0.3.0 — 2026-11-27
 
 - 研发模式成为官方 `ptc` 预设的超集：挂 `tool-executor-ptc`（`run_code` 程序化调用，`maxSubCallsPerMinute 512` / `maxParallelSubCalls 8`），补 `tool-schedule` 与 `tool-subagent-fork`（#6）。

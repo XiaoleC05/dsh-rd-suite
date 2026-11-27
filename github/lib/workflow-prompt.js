@@ -1,33 +1,32 @@
 /**
- * Model-facing workflow rules, registered as a system-prompt section only
- * while the githubIssueFirstWorkflow setting is on.
+ * Model-facing GitHub flow rules, registered as a system-prompt section by the
+ * GitHub workflow plugin for every session in this mode.
+ *
+ * The flow state machine here mirrors the tool actions one to one, so the model
+ * never has to guess which action comes next: G0 precheck, G1 issue,
+ * G2 branch, G3 commit, G4 code audit, G5 pull request, G6 closure, G7 report.
  */
 
 /**
- * The mandatory workflow text. It tells the agent when to preflight, how to
- * split an investigation into issue-sized modules, how each module's fix is
- * committed, and how a blocked preflight must be reported instead of skipped.
+ * The fixed flow. References: GitHub flow
+ * (https://docs.github.com/en/get-started/using-github/github-flow), closing
+ * keywords
+ * (https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue),
+ * and protected branches / rulesets
+ * (https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository).
  */
-export const WORKFLOW_PROMPT = `The GitHub issue-first fix workflow is enabled for this deployment. Apply it to every task that fixes code, tests, or configuration in a project whose Git remote points to a GitHub repository.
+export const WORKFLOW_PROMPT = `GitHub is the system of record for every change in this mode. The flow has no switch: when the project's Git remote points to GitHub, every task that changes code, tests, configuration, or documentation follows these steps in order.
 
-Before modifying any file for a fix:
-1. Preflight. Call \`github_workflow\` with action "precheck" and the path of the file you intend to fix (or its project directory). Read the result before editing anything.
-   - \`isGitRepository: false\` or \`github: false\`: this project is not backed by a GitHub remote. Use the normal fix flow; do not create a GitHub issue.
-   - \`ok: false\`: the workflow is blocked (Git or gh missing, not authenticated, no repository access, Issues disabled, or a Git/network failure). Stop immediately. Do not modify any file, do not create the issue another way, and never continue silently. Report the returned \`message\` and \`guidance\` to the user, including the exact commands, and ask how to proceed.
-   - \`ok: true\` with \`workflowRequired: true\`: continue with the workflow below. If \`warnings\` mention uncommitted changes, resolve them first (commit or stash) so unrelated changes cannot enter this module's commit.
-2. Decompose and file the issues first. Split the diagnosed problem into modules or independent problem domains. Create exactly one GitHub issue per module before any code edit: call \`github_workflow\` action "create_issue" once for each module, passing module, title, symptom, the affected file paths, and the expected fix plan. Every module must have its issue before the first edit; never create the issue after starting the fix.
-3. One module, one issue, one atomic commit. Handle one module at a time: change only that module's files, verify the change (targeted tests, build, or lint), then stage only those files and make exactly one commit. Complete and verify that module before starting the next one. Never mix unrelated modules in one commit, never accumulate several modules and commit them together, and never reuse one issue for unrelated modules.
-4. Commit format. Use Conventional Commits: \`fix(<module>): <concise summary> (#<issue>)\`, choosing \`feat\`, \`refactor\`, \`test\`, \`docs\`, or \`chore\` instead of \`fix\` when that is accurate. Add \`Closes #<issue>\` (or \`Fixes #<issue>\`) in the commit body so GitHub links the commit to the issue.
-5. Close the loop. After the commit and successful verification, call \`github_workflow\` action "close_issue" with the issue number and a short comment naming the commit, the verification performed, and the result. Leave an issue open only when the user explicitly wants a pull request to close it later; in that case comment with the PR or commit reference and say why it stays open.
-6. Report. Finish with the issue numbers and URLs, commit hashes and subjects, the verification evidence, and any issue left open with the reason.
+G0 Preflight once per task. Call \`github_workflow\` with action "precheck" on the file or project directory, and read \`strategy\` (pr or direct), \`defaultBranch\`, \`protection\`, and \`warnings\`.
+- \`isGitRepository: false\` or \`github: false\`: the project has no GitHub system of record. Use the normal engineering flow and say so in the report; do not invent issues.
+- \`ok: false\`: stop and change nothing. Report its \`message\` and \`guidance\` verbatim, then ask how to proceed. Never work around a blocked preflight.
+- A warning about uncommitted changes means resolve them first, so unrelated work cannot enter this module's commit.
+G1 One issue per module, before the first edit. Call "create_issue" once per module with module, title, symptom, files, fix_plan, and existing labels only. The issue is the spec: symptom, impact, reproduction, scope, acceptance criteria, plan. Never file it after editing has started and never reuse it for another module.
+G2 Branch when \`strategy\` is pr. Call "prepare_branch" with \`<type>/<issue>-<slug>\` (type: feat, fix, refactor, test, docs, chore), cut from the default branch. Never implement on a protected default branch. When \`strategy\` is direct, stay on the current branch and say why in the report; still prefer a branch for anything shared.
+G3 One atomic commit per module, Conventional Commits: \`<type>(<module>): <summary> (#<issue>)\`, with \`Closes #<issue>\` in the body. GitHub links and closes through that keyword (close/closes/closed, fix/fixes/fixed, resolve/resolves/resolved; write \`OWNER/REPO#N\` for another repository). Stage only this module's files.
+G4 Code audit before committing. Files written through the editing tools were already formatted on write; before the commit, confirm the module carries no formatting problems left (\`code_standardize\` mode=report over the changed files when that tool exists, then mode=fix when it reports anything).
+G5 Pull request when \`strategy\` is pr. Publish the branch through "open_pr" (draft by default; the body carries \`Closes #<issue>\`, what changed, and the verification evidence). Then "pr_status": merge only when checks are green, review is settled, and \`mergeable\` is MERGEABLE. "merge_pr" defaults to squash with branch deletion, which keeps the default branch linear with one commit per pull request.
+G6 Close the loop. A merged pull request closes the issue through the keyword; still call "close_issue" while the issue is open so the verification evidence lands in its thread, and \`close_issue\` is what closes the issue under \`strategy\` direct. A failed close means the issue is not closed: report the state the tool returned.
+G7 Report and release. The delivery report names issues with URLs, commits, pull requests, and verification evidence. Publish versions only through "release" (SemVer tag, generated notes), and only from a verified default branch.
 
-Never skip preflight, file the issue after editing, batch multiple modules into one commit or one issue, cite an issue that does not exist, or work around a failed preflight or issue tool. A blocked preflight always means stop and report, not fall back to the normal fix flow.`;
-
-/**
- * Resolve the section text for one prompt assembly.
- * @param {boolean} enabled - current githubIssueFirstWorkflow setting.
- * @returns {string} the workflow rules, or an empty section while disabled.
- */
-export function workflowPromptText(enabled) {
-  return enabled ? WORKFLOW_PROMPT : '';
-}
+Never skip preflight, never edit before the issue exists, never batch modules into one commit or one pull request, never force-push or rewrite shared history, never publish a release whose checks have not passed, and never report a merge, closure, or release that the tool result does not confirm.`

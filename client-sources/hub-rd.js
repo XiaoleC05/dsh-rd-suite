@@ -34,6 +34,18 @@ window.__ModuleLoader__.load({
         flowTitle: '流水线 S1–S8',
         flowHint:
           '标「关卡」的两步不接受口头通过：S5 要有本会话真实运行过的输出，S6 由 review_agent 亲自重跑。',
+        ghTitle: 'GitHub 固定流程',
+        ghHint: '有 GitHub 远程仓库时照这条走，没有开关；预检不通过就停下报告，不绕路。',
+        ghSteps: [
+          'G0 预检 strategy',
+          'G1 每模块一个 Issue',
+          'G2 分支 type/issue-slug',
+          'G3 原子提交 Closes #N',
+          'G4 代码审计',
+          'G5 PR 与 squash 合并',
+          'G6 关闭 Issue',
+          'G7 发版',
+        ],
         flow: [
           'S1 规格卡',
           'S2 侦察',
@@ -98,6 +110,19 @@ window.__ModuleLoader__.load({
         flowTitle: 'Pipeline S1–S8',
         flowHint:
           'Steps marked "gate" never pass on words alone: S5 needs output actually produced in this session, S6 reruns the checks through review_agent.',
+        ghTitle: 'Fixed GitHub flow',
+        ghHint:
+          'Used whenever the remote is GitHub; there is no switch, and a failed preflight stops the task.',
+        ghSteps: [
+          'G0 preflight strategy',
+          'G1 one issue per module',
+          'G2 branch type/issue-slug',
+          'G3 atomic commit Closes #N',
+          'G4 code audit',
+          'G5 pull request, squash merge',
+          'G6 close the issue',
+          'G7 release',
+        ],
         flow: [
           'S1 spec card',
           'S2 recon',
@@ -378,14 +403,14 @@ window.__ModuleLoader__.load({
       )
     }
 
-    function Stepper({ flow, badge }) {
+    function Stepper({ flow, badge, gates = GATE_STEPS }) {
       const steps = asList(flow)
       return h(
         'ol',
         { style: ui.stepper },
         steps.map((text, index) => {
           const { code, name } = splitStep(text)
-          const gate = GATE_STEPS.includes(index + 1)
+          const gate = gates.includes(index + 1)
           return h(
             'li',
             { key: index, style: gate ? { ...ui.stepChip, ...ui.stepChipGate } : ui.stepChip },
@@ -443,6 +468,11 @@ window.__ModuleLoader__.load({
           Section,
           { title: t('flowTitle'), hint: t('flowHint') },
           h(Stepper, { flow: t('flow'), badge: t('gateBadge') }),
+        ),
+        h(
+          Section,
+          { title: t('ghTitle'), hint: t('ghHint') },
+          h(Stepper, { flow: t('ghSteps'), badge: t('gateBadge'), gates: [] }),
         ),
         h(
           'div',

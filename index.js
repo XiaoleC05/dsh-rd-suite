@@ -33,7 +33,13 @@ export const Config = z.object({
 })
 
 /** Tools that produce or rewrite a file, by model-visible name. */
-const WRITE_TOOL_NAMES = new Set(['write', 'edit', 'apply_patch', 'create_file', 'str_replace_editor'])
+const WRITE_TOOL_NAMES = new Set([
+  'write',
+  'edit',
+  'apply_patch',
+  'create_file',
+  'str_replace_editor',
+])
 
 /** Absolute file paths touched by one successful write-like tool call. */
 function touchedPaths(exec) {
@@ -56,11 +62,14 @@ async function autoFixFile(absolute) {
       paths: [basename(absolute)],
       mode: 'fix',
     })
-    const changed = Array.isArray(result?.files) ? result.files.filter((file) => file.status === 'changed') : []
+    const changed = Array.isArray(result?.files)
+      ? result.files.filter((file) => file.status === 'changed')
+      : []
     if (changed.length === 0) return null
     const file = changed[0]
     const lines = Number.isFinite(file.deltaLines) ? Math.abs(file.deltaLines) : 0
-    const preset = typeof file.preset === 'string' && file.preset.length > 0 ? `（${file.preset}）` : ''
+    const preset =
+      typeof file.preset === 'string' && file.preset.length > 0 ? `（${file.preset}）` : ''
     return `自动审查：已按项目规范修正 ${basename(absolute)}${preset}${lines > 0 ? `，±${lines} 行` : ''}`
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause)
@@ -77,19 +86,27 @@ async function autoFixFile(absolute) {
 export function apply(ctx, config) {
   const codeConfig = config?.codePipeline
   codePipeline.apply(ctx, codeConfig !== null && typeof codeConfig === 'object' ? codeConfig : {})
+  // The GitHub flow is part of the mode: the member always registers its prompt
+  // section and tool, and only keeps accepting the legacy setting for older
+  // profile patches.
   github.apply(ctx, { githubIssueFirstWorkflow: config?.githubIssueFirstWorkflow === true })
 
   if (config?.autoCodeFix !== false) {
     // Every successful write/edit is followed by a format pass, so the manual
     // "run standardization" step is no longer needed for normal editing.
-    ctx.on('tools/post-execute', async (exec, result, next) => {
-      const decision = await next()
-      if (result === null || typeof result !== 'object' || result.isError === true) return decision
-      const paths = touchedPaths(exec)
-      if (paths.length === 0) return decision
-      if (exec.signal !== undefined && exec.signal.aborted === true) return decision
-      for (const absolute of paths) await autoFixFile(absolute)
-      return decision
-    }, 'rd-suite: auto code review')
+    ctx.on(
+      'tools/post-execute',
+      async (exec, result, next) => {
+        const decision = await next()
+        if (result === null || typeof result !== 'object' || result.isError === true)
+          return decision
+        const paths = touchedPaths(exec)
+        if (paths.length === 0) return decision
+        if (exec.signal !== undefined && exec.signal.aborted === true) return decision
+        for (const absolute of paths) await autoFixFile(absolute)
+        return decision
+      },
+      'rd-suite: auto code review',
+    )
   }
 }
