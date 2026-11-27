@@ -69,7 +69,7 @@
 | 045 | 审计耗时统计 | 待做 | |
 | 046 | 未变化文件跳过（缓存） | 完成 | #35 |
 | 047 | 面板展示审计历史 | 待做 | |
-| 048 | 审计结果进交付报告模板 | 待做 | |
+| 048 | 审计结果进交付报告模板 | 完成 | #36 |
 | 049 | 有 CI 时对齐 CI 命令 | 待做 | |
 | 050 | 审计幂等与并发回归测试 | 待做 | |
 
@@ -177,3 +177,4 @@
 | 第 18 轮 | #33 | audit-grouping | auditFiles 返回 byLanguage 与一行摘要，close_issue 带 codeAuditByLanguage；3 例测试 |
 | 第 19 轮 | #34 | audit-changed | parseGitStatus / changedPaths / auditChanged + scripts/audit-changed.mjs；5 例测试 |
 | 第 20 轮 | #35 | audit-cache | 按 mtime+size 的进程内缓存，只缓存干净判定；5 例测试 |
+| 第 21 轮 | #36 | charter-audit-line | 报告模板加审计行 + test/charter.test.mjs 六项结构守卫 |
