@@ -230,3 +230,4 @@
 | 第 71 轮 | #86 | git-net-check | 消除 GCM 账户弹窗 + 代理与 TLS 后端修复，脚本自检四项；6 例测试 |
 | 第 72 轮 | #87 | audit-mode | auditMode 配置（fix/report）+ 归一化与 warning；3 例测试 |
 | 第 73 轮 | #88 | ci-parity | CI run 命令抽取 + 三项覆盖判定，接入 preflight 第八道门禁；5 例测试 |
+| 第 74 轮 | #89 | overview-nav-consistency | 概览补记忆库能力、修掉「流程是开关」旧表述；断言 1 例 |

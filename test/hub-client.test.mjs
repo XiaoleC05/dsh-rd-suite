@@ -247,3 +247,23 @@ test('概览在拿到状态数据时显示真实数字，拿不到时保持静�
   assert.doesNotMatch(withoutStatus, /当前状态/u, '没有数据时不显示空壳区块')
   assert.match(withoutStatus, /研发工作台/u)
 })
+
+test('概览能力列表与侧栏一致：有记忆库，且不再把流程说成开关', () => {
+  const { dictionaries } = boot(fakePages)
+  const dict = dictionaries.find((item) => item.namespace === 'rdHub').dicts
+  const zhCaps = dict.zh.caps.join(' ')
+  const enCaps = dict.en.caps.join(' ')
+
+  assert.match(zhCaps, /记忆库/u, '能力列表必须提到记忆库页签')
+  assert.match(zhCaps, /memory_save/u, '要写清模型用哪个工具写入')
+  assert.match(zhCaps, /memory_search/u, '要写清开工前先查')
+  assert.match(enCaps, /Memory/u)
+
+  const githubCap = dict.zh.caps.find((item) => item.startsWith('GitHub 流程|'))
+  assert.ok(githubCap !== undefined)
+  assert.equal(githubCap.includes('开关'), false, '流程已经固定，不能再写成开关')
+
+  const zhKeys = Object.keys(dict.zh).sort()
+  assert.deepEqual(Object.keys(dict.en).sort(), zhKeys, '中英键集仍要一致')
+})
+

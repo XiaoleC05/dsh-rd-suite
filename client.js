@@ -1992,8 +1992,9 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         caps: [
           'PTC 执行|run_code 把多次工具调用合并成一个程序：往返更少，上下文更短。',
           '代码修正|写入即按项目规范格式化，模块关闭时再整体审计一次；面板只用来复查。',
+          '记忆库|侧栏「记忆库」页签查看与删除；模型用 memory_save 写入四类记忆，用 memory_search 开工前先查。',
           'context7|直接检索库的最新官方文档，版本敏感的参数不靠记忆。',
-          'GitHub 流程|设置 → 通用 里开关；开启后先建 Issue，再改代码，最后提交。',
+          'GitHub 流程|仓库有 GitHub 远程时按固定流程走：先建 Issue，再改代码，最后一个模块一次提交。',
           '定时任务|把巡检、回归、报表排成周期任务，不占当前会话。',
           '领域技能|rd-code-standards、rd-testing、rd-web、rd-data、rd-ai、rd-ecosystem、rd-retro、rd-selftest，按需加载。',
           '文案质检|写文档与文案前加载 rd-copy：去 AI 味、AIGC 自检、降重，交付前跑 aigc-check 到 80 分以上。',
@@ -2079,8 +2080,9 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         caps: [
           'PTC execution|run_code folds several tool calls into one program: fewer round trips, shorter context.',
           'Code fixes|Files are formatted on write and audited once when a module closes; the panel is for reviewing, not for running fixes.',
+          'Memory|Read or delete entries in the sidebar Memory tab; the model writes with memory_save and checks with memory_search before starting.',
           'context7|Reads the latest official documentation for a library instead of relying on memory.',
-          'GitHub workflow|Toggle in Settings → General; when on, the issue comes before the edit and the commit.',
+          'GitHub workflow|With a GitHub remote the flow is fixed: issue first, then the edit, then one commit per module.',
           'Scheduled tasks|Run recurring checks, regressions, or reports without occupying this session.',
           'Domain skills|rd-code-standards, rd-testing, rd-web, rd-data, rd-ai, rd-ecosystem, rd-retro, rd-selftest, loaded on demand.',
           'Copy checks|Load rd-copy before writing docs or copy: de-AI phrasing, AIGC self-check, and paraphrase checks, with aigc-check at 80 or above before delivery.',
