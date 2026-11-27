@@ -57,6 +57,10 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## 超限行为
+
+五项体积上限与超限后的行为（截断 / 拒绝 / 分页）逐项写在 [docs/OVERFLOW.md](docs/OVERFLOW.md)，与 `lib/limits.js` 的 `OVERFLOW_POLICY` 由测试校验一致。
+
 ## 错误码
 
 四个成员返回的 code 集中登记在 `lib/error-codes.js`：每条给出中文说明 / 是否可重试 / 遇到该做什么。`test/error-codes.test.mjs` 会扫源码，出现未登记的码直接失败——新加码必须同时写下它的含义。
@@ -66,13 +70,13 @@
 ## 迭代进度
 
 <!-- rd-board:start -->
-进度：65/100 轮 · 用例 386 · 版本 0.57.1 · 门禁 六项全过
+进度：66/100 轮 · 用例 392 · 版本 0.57.2 · 门禁 六项全过
 
 | 最近三轮 | 做了什么 |
 |---|---|
-| 第 63 轮 | 中英字典键集 / 嵌套表 / 数组长度 / 占位符四项对齐校验；5 例测试 |
 | 第 64 轮 | run_code 示例库（四个正例 + 一个反例）+ 语法与工具名校验；5 例测试 |
 | 第 65 轮 | 体积上限集中到 lib/limits.js + truncateText；6 例测试 |
+| 第 66 轮 | 超限策略表 + OVERFLOW.md + 行为抽查；6 例测试 |
 <!-- rd-board:end -->
 
 ## 安装
