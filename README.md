@@ -57,6 +57,10 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## 技能加载成本
+
+`node scripts/skill-cost.mjs` 列出每个技能的正文体积（加载时进上下文）与 references 体积（按需读取），按正文排序并检查 3000 字符预算；`--json` 供脚本消费。
+
 ## 工具清单对账
 
 `node scripts/tool-inventory.mjs --strict` 从源码抽出实际注册的工具（两种注册写法都认），与 README 工具表和宪章 §7 逐一比对；漏写会点名并给出补法。
