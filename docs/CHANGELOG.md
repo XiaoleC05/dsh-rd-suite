@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.28.0 — 2026-11-27
+
+- 新增 `/dsh-code-pipeline/api/status`：读工作区的 package.json 版本、docs/ITERATIONS.md 的
+  账本轮次与行数、CHANGELOG 最新版本；文件缺失时字段缺省并记 warning。
+- 侧栏概览新增「当前状态」四格：插件版本 / 已迭代轮次 / 账本行数 / 最新变更；
+  拿不到数据时整块不显示，避免空壳。
+- 新增 test/status.test.mjs（5 例）与概览渲染断言（1 例）；全量 230/230。
 ## 0.27.0 — 2026-11-27
 
 - 新增 scripts/dup-check.mjs：按空行切段（跳过标题、列表、引用、代码块），归一化后跨文件比对，

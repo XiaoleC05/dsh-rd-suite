@@ -223,3 +223,27 @@ test('替身环境（无 React.Component）下仍能渲染概览', () => {
   ).join(' ')
   assert.match(text, /研发工作台/u)
 })
+
+test('概览在拿到状态数据时显示真实数字，拿不到时保持静态文案', () => {
+  const { registrations, dictionaries } = boot(fakePages)
+  const dict = dictionaries.find((item) => item.namespace === 'rdHub').dicts.zh
+  const main = registrations.find((item) => item.config.name === 'main')
+
+  const withStatus = render(
+    React.createElement(main.component, {
+      pageTabs: main.config.inject().pageTabs,
+      t: (key) => dict[key],
+      status: { version: '0.27.0', rounds: { rows: 25, lastRound: 25 }, changelogVersion: '0.27.0' },
+    }),
+  ).join(' ')
+  assert.match(withStatus, /当前状态/u)
+  assert.match(withStatus, /0\.27\.0/u)
+  assert.match(withStatus, /25/u)
+  assert.match(withStatus, /账本行数/u)
+
+  const withoutStatus = render(
+    React.createElement(main.component, { pageTabs: main.config.inject().pageTabs, t: (key) => dict[key] }),
+  ).join(' ')
+  assert.doesNotMatch(withoutStatus, /当前状态/u, '没有数据时不显示空壳区块')
+  assert.match(withoutStatus, /研发工作台/u)
+})

@@ -89,6 +89,13 @@ window.__ModuleLoader__.load({
           '创造模式：改 DSH 自身；研发模式改项目代码。',
         ],
         retry: '重新渲染',
+        liveTitle: '当前状态',
+        liveHint: '数字来自工作区的 package.json 与 docs/ITERATIONS.md；读不到就不显示。',
+        liveVersion: '插件版本',
+        liveRounds: '已迭代轮次',
+        liveLedger: '账本行数',
+        liveChangelog: '最新变更',
+
         emptyTabs: '成员页面未加载：代码修正面板不可用，检查 bundle 是否完整启用。',
         tabListLabel: '研发工作台的页面',
       },
@@ -168,6 +175,13 @@ window.__ModuleLoader__.load({
           'Creator mode changes DSH itself; R&D mode changes project code.',
         ],
         retry: 'Render again',
+        liveTitle: 'Current state',
+        liveHint: 'Read from the workspace package.json and docs/ITERATIONS.md; hidden when unavailable.',
+        liveVersion: 'Plugin version',
+        liveRounds: 'Iterations done',
+        liveLedger: 'Ledger rows',
+        liveChangelog: 'Latest change',
+
         emptyTabs:
           'Member pages did not load: the code-fixes panel is unavailable. Check that the bundle is fully enabled.',
         tabListLabel: 'R&D workbench pages',
@@ -471,7 +485,9 @@ window.__ModuleLoader__.load({
       return cut < 0 ? [value, ''] : [value.slice(0, cut), value.slice(cut + 1)]
     }
 
-    function Overview({ t, hasTabs }) {
+    function Overview({ t, hasTabs, status }) {
+      // 概览的数据来自 /dsh-code-pipeline/api/status；拿不到就退回静态文案，不显示错误。
+      const live = status ?? null
       const [showDiff, setShowDiff] = React.useState(false)
       return h(
         'div',
@@ -516,6 +532,26 @@ window.__ModuleLoader__.load({
           { title: t('ghTitle'), hint: t('ghHint') },
           h(Stepper, { flow: t('ghSteps'), badge: t('gateBadge'), gates: [] }),
         ),
+        live === null
+          ? null
+          : h(
+              Section,
+              { title: t('liveTitle'), hint: t('liveHint') },
+              h(
+                'div',
+                { style: ui.metrics },
+                h(Metric, { label: t('liveVersion'), value: String(live.version ?? '—') }),
+                h(Metric, {
+                  label: t('liveRounds'),
+                  value: live.rounds === undefined ? '—' : String(live.rounds.lastRound),
+                }),
+                h(Metric, {
+                  label: t('liveLedger'),
+                  value: live.rounds === undefined ? '—' : String(live.rounds.rows),
+                }),
+                h(Metric, { label: t('liveChangelog'), value: String(live.changelogVersion ?? '—') }),
+              ),
+            ),
         h(
           'div',
           { style: ui.grid },
@@ -578,6 +614,20 @@ window.__ModuleLoader__.load({
       )
     }
 
+    /**
+     * 单个指标：一个大数字加一行标签。
+     * @param {{ label: string; value: string }} props - 文案与值
+     * @returns {object} React 元素
+     */
+    function Metric({ label, value }) {
+      return h(
+        'div',
+        { style: ui.metric },
+        h('span', { style: ui.metricValue }, value),
+        h('span', { style: ui.hint }, label),
+      )
+    }
+
     function HubPage(props) {
       const t = typeof props?.t === 'function' ? props.t : (key) => key
       const tabs = Array.isArray(props?.pageTabs) ? props.pageTabs : []
@@ -585,6 +635,27 @@ window.__ModuleLoader__.load({
       // 首次打开才挂载成员页面；切换标签不再卸载，勾选与结果因此得以保留。
       const [mounted, setMounted] = React.useState(() => new Set([OVERVIEW]))
       const tabNodes = React.useRef({})
+      // 概览的实时数据：成功就显示版本与账本进度，失败或字段缺失时退回静态文案。
+      // 允许外部直接传一份状态（宿主注入或测试用），没传就自己请求。
+      const [status, setStatus] = React.useState(props?.status ?? null)
+
+      React.useEffect(() => {
+        let cancelled = false
+        const load = async () => {
+          try {
+            const response = await fetch('/dsh-code-pipeline/api/status', { headers: { accept: 'application/json' } })
+            if (!response.ok) return
+            const payload = await response.json()
+            if (!cancelled && payload && payload.ok !== false) setStatus(payload)
+          } catch {
+            // 路由不可用时保持静态文案，不打扰用户。
+          }
+        }
+        void load()
+        return () => {
+          cancelled = true
+        }
+      }, [])
 
       const select = React.useCallback((index) => {
         setActive(index)
@@ -653,7 +724,7 @@ window.__ModuleLoader__.load({
           h(
             PanelBoundary,
             { label: t('panelName'), retryLabel: t('retry') },
-            h(Overview, { t, hasTabs: tabs.length > 0 }),
+            h(Overview, { t, hasTabs: tabs.length > 0, status }),
           ),
         ),
       ]

@@ -182,3 +182,4 @@
 | 第 23 轮 | #38 | panel-error-boundary | 每个 pane 包一层 PanelBoundary（getDerivedStateFromError + 重试），无 Component 时退化；2 例测试 |
 | 第 24 轮 | #39 | copy-english-rules | 六条英文 AI 腔规则（含破折号密度）+ rd-copy 英文小节；2 例测试 |
 | 第 25 轮 | #40 | dup-check | splitParagraphs / normalizeParagraph / findDuplicates + 命令行；6 例测试 |
+| 第 26 轮 | #41 | overview-status | /api/status 读版本与账本轮次，概览显示四个真实指标；6 例测试 |

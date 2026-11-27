@@ -21,6 +21,8 @@ import { collectRoots, pickHttpRoot, pickAgentRoot } from './lib/roots.js'
 import { createRequestGuard, rejectionPayload, REJECTION_HEADERS } from './lib/trust.js'
 import { buildStatePayload, buildStandardizePayload, summarizeForTool, errorPayload } from './lib/payload.js'
 
+import { collectStatus } from './lib/status.js'
+
 const API_PREFIX = '/dsh-code-pipeline/api'
 const BODY_LIMIT = 2 * 1024 * 1024
 const MAX_PATH_LENGTH = 4096
@@ -143,6 +145,25 @@ export function apply(ctx, config = {}) {
           return preset ? jsonResponse(preset) : jsonResponse(errorPayload('unknown-preset'), 404)
         } catch (cause) {
           logger?.warn?.('code-pipeline: preset handler failed: ' + (cause instanceof Error ? cause.message : String(cause)))
+          return jsonResponse(errorPayload('internal'), 500)
+        }
+      },
+    }),
+  )
+
+  ctx.effect(() =>
+    ctx.webServer.register({
+      kind: 'exact',
+      path: `${API_PREFIX}/status`,
+      resource: async (request) => {
+        const rejection = guard(request)
+        if (rejection) return new Response(JSON.stringify(rejectionPayload(rejection.code)), { status: rejection.status, headers: REJECTION_HEADERS })
+        try {
+          const picked = pickHttpRoot(collectRoots(ctx), new URL(request.url).searchParams.get('root'))
+          if (picked.root === null) return jsonResponse({ ok: true, warnings: [picked.error ?? 'no-workspace'] })
+          return jsonResponse({ ok: true, root: picked.root, ...collectStatus({ root: picked.root }) })
+        } catch (cause) {
+          logger?.warn?.('code-pipeline: status handler failed: ' + (cause instanceof Error ? cause.message : String(cause)))
           return jsonResponse(errorPayload('internal'), 500)
         }
       },
