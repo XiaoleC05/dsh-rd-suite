@@ -11,6 +11,7 @@ import { join } from 'node:path'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import z from '@deepseek-ai/schemastery'
 
+import { registerMemoryRoutes } from './lib/routes.js'
 import { findEntry, recordHits, searchEntries } from './lib/search.js'
 import {
   MEMORY_TYPES,
@@ -25,8 +26,8 @@ import {
 /** Cordis 插件名。 */
 export const name = 'rd-memory'
 
-/** 只依赖工具注册表：存储走本地文件，不引入宿主服务。 */
-export const inject = ['tools']
+/** 工具注册表 + webserver：前者给模型用，后者给侧栏面板读只读数据。 */
+export const inject = ['tools', 'webServer']
 
 /** 可选配置：存储目录与容量上限。 */
 export const Config = z.object({
@@ -77,6 +78,9 @@ export function apply(ctx, config) {
       : join(homedir(), '.dsh', 'rd-suite')
   const file = memoryFile(directory)
   const maxEntries = Number.isFinite(config?.maxEntries) ? config.maxEntries : 2000
+
+  // 面板与外部脚本读同一份文件：四个只读路由，写入仍只走工具。
+  registerMemoryRoutes(ctx, { file, maxEntries })
 
   ctx.tools.register(
     defineTool({

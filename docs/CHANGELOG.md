@@ -1,5 +1,13 @@
 # 变更日志
 
+## 0.12.0 — 2026-11-27
+
+- 新增记忆库只读 HTTP 路由：`/dsh-rd-memory/api/list`（支持 q/type/tag/分页）、
+  `/entry`（读全文并累加命中）、`/stats`（按类型计数与最近更新时间）、
+  `/export`（整库导出）。
+- 信任判定复用 code-pipeline 的 `createRequestGuard`：没有 Connection 服务的部署
+  返回 503，未通过闸门返回 401，面板不会拿到数据。
+- 新增 `test/memory-routes.test.mjs`（5 例）；全量 156/156。
 ## 0.11.0 — 2026-11-27
 
 - 新增 `memory_search`：中文按整串 + 二元组分词，标题 6 / 标签 4 / 正文 2 / 范围 1 加权，

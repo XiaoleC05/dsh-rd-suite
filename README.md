@@ -21,7 +21,7 @@
 | `index.js` | **融合插件**：组合 `code-pipeline/` 与 `github/` 两个成员，并在写文件后自动格式化 |
 | `code-pipeline/` | 代码标准化工具与只读工作区路由 |
 | `github/` | `github_workflow` 工具与 Issue 优先提示词 |
-| `memory/` | 长期记忆：技术模板、踩坑、bug 修复方案、策略模式，存 `~/.dsh/rd-suite/memory.json`；工具 `memory_save` / `memory_list` / `memory_search` / `memory_read` |
+| `memory/` | 长期记忆：技术模板、踩坑、bug 修复方案、策略模式，存 `~/.dsh/rd-suite/memory.json`；工具 `memory_save` / `memory_list` / `memory_search` / `memory_read`；只读路由 `/dsh-rd-memory/api/{list,entry,stats,export}` 供侧栏面板使用 |
 | `client-sources/hub-rd.js` | 研发工作台入口页（唯一侧栏图标 + 概览） |
 | `client-sources/code-pipeline.js` · `github.js` · `cards.js` | 代码修正面板、GitHub 设置行、模式卡片增强（`cards.js` 由 `scripts/vendor-cards.mjs` 生成） |
 | `client.js` | 合并后的浏览器模块（`node scripts/build-client.mjs` 生成，勿手改） |

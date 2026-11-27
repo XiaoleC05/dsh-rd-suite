@@ -135,7 +135,7 @@ test('memoryFile 在给目录时把文件放进目录', () => {
 test('工具注册：memory_save 与 memory_list 都挂上了，参数契约完整', async () => {
   const { apply, inject, name } = await import('../memory/index.js')
   assert.equal(name, 'rd-memory')
-  assert.deepEqual(inject, ['tools'])
+  assert.deepEqual(inject, ['tools', 'webServer'])
   const registered = []
   const ctx = { tools: { register: (definition) => registered.push(definition) } }
   const toolsDir = mkdtempSync(join(tmpdir(), 'rd-memory-tools-'))
