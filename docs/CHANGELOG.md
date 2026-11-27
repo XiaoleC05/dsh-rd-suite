@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.59.0 — 2026-11-27
+
+- 新增 lib/retry.js：classifyFailure 依据错误码表判定 retry / degrade / stop 并给出建议，
+  附 DEGRADE_PATHS（推送改走 API、建单未确认先查列表等）与 withRetry。
+- mergePr 的重试改为调用 withRetry，重试逻辑只此一处，行为不变。
+- 用例 412。
 ## 0.58.1 — 2026-11-27
 
 - 新增 lib/tool-timing.js：记录每次工具调用的耗时与成败（环形保留 200 条样本），

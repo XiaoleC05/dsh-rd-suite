@@ -11,6 +11,7 @@
 import { readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 
+import { withRetry } from '../../lib/retry.js'
 import { checkBranchPlan, parseBranchName } from './branch-name.js'
 import { checkGhVersion, parseGhVersion } from './gh-version.js'
 import { checkReleaseConsistency, readReleaseFacts } from './release-check.js'
@@ -1812,13 +1813,13 @@ export async function mergePr(run, options = {}) {
     const argv = ['pr', 'merge', target, '--repo', check.slug, `--${method}`]
     if (deleteBranch) argv.push('--delete-branch')
     if (options.auto === true) argv.push('--auto')
-    // 瞬时失败重试一次：不 sleep，直接重发；永久失败（不可合并、缺权限）不重试。
-    let merged = await runGh(run, argv, check.repositoryRoot, options.signal)
-    let retried = false
-    if (merged.exitCode !== 0 && isTransientGhFailure(merged.stderr || merged.stdout)) {
-      retried = true
-      merged = await runGh(run, argv, check.repositoryRoot, options.signal)
-    }
+    // 瞬时失败重试一次：判定交给 lib/retry.js，重试逻辑只此一处。
+    const attempt = await withRetry(() => runGh(run, argv, check.repositoryRoot, options.signal), {
+      attempts: 2,
+      shouldRetry: (result) => result.exitCode !== 0 && isTransientGhFailure(result.stderr || result.stdout),
+    })
+    const merged = attempt.value
+    const retried = attempt.retried
     if (merged.exitCode !== 0) {
       const classified = classifyGitHubDiagnostic(merged.stderr || merged.stdout, check.host)
       return failure(
