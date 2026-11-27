@@ -1,5 +1,14 @@
 # 变更日志
 
+## 0.16.0 — 2026-11-27
+
+- 新增 `scripts/health.mjs`：宪章字符数、技能数量与最大体积、测试文件与用例数、
+  文档 AIGC 分数、打包缺口、术语漂移六项指标；`--json` 与 `--fail-on-drift` 可当门禁。
+- 新增 `docs/CHECKLIST.md`：脚本覆盖的六项 + 需要人看的四项（术语一致、文档与代码一致、
+  测试耗时、宪章趋势），并留十轮台账。
+- 首跑修掉 5 处术语漂移：README 行 id 说明、rd-code-standards 里「开启 issue-first 设置」
+  等过时表述；术语表同时去掉与界面标签「代码修正」冲突的条目。
+- 新增 `test/health.test.mjs`（4 例）；全量 178/178。
 ## 0.15.1 — 2026-11-27
 
 - `pr_status` 除计数外给出 `failingChecks` 与 `pendingChecks` 名单（各最多 10 条），

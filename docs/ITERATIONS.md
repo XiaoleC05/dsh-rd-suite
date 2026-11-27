@@ -32,7 +32,7 @@
 
 | 编号 | 目标 | 状态 | 提交 |
 |---|---|---|---|
-| 021 | 每 10 轮横向检查清单 | 待做 | |
+| 021 | 每 10 轮横向检查清单 | 完成 | #26 |
 | 022 | 账本更新脚本（--mark 编号 状态） | 待做 | |
 | 023 | 单轮评估报告模板（证据四段） | 待做 | |
 | 024 | Issue 内容模板（症状/范围/AC/计划） | 待做 | |
@@ -167,3 +167,4 @@
 | 第 8 轮 | #23 | memory-evict | 保留分 = hits×10 + 30 天内加成 + revisions；超限按分数淘汰、同分先丢更早的；6 例测试 |
 | 第 9 轮 | #24 | memory-workflow | 宪章 S8/§7/§4 与 rd-retro、rd-spec 接上 memory_*；新增 1 例接线测试 |
 | 第 10 轮 | #25 | pr-checks | pr_status 给出 failingChecks / pendingChecks 名单并在 guidance 点名；2 例测试 |
+| 第 11 轮 | #26 | health-check | scripts/health.mjs 六项指标 + docs/CHECKLIST.md 四项人工项；首跑修掉 5 处术语漂移；4 例测试 |

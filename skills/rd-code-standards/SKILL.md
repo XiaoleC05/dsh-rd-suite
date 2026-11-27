@@ -40,4 +40,4 @@ description: 编码规范与代码审查标准：规范优先级、格式化与�
 命名是否贴合含义；函数与模块是否单一职责；注释与实现是否一致；业务逻辑是否符合规格卡；分层与依赖方向是否合理；测试是否真正验证行为；错误路径与边界条件；明显的性能问题（循环内 I/O、N+1 查询、无界内存）；向后兼容性与迁移。
 
 ## 7 提交（仅在用户要求提交时）
-Conventional Commits：`type(scope): 简述`（feat / fix / refactor / test / docs / chore / perf / style）；一个模块或一个独立问题一个提交，只暂存相关文件；提交前验证已通过；正文写明原因与验证方式。不推送、不改写历史，除非用户明确要求。开启 GitHub issue-first 设置时，按 github_workflow 的流程执行。
+Conventional Commits：`type(scope): 简述`（feat / fix / refactor / test / docs / chore / perf / style）；一个模块或一个独立问题一个提交，只暂存相关文件；提交前验证已通过；正文写明原因与验证方式。不推送、不改写历史，除非用户明确要求。在有 GitHub 远程仓库的项目里，按 github_workflow 的固定流程执行（没有开关）。
