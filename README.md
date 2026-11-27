@@ -57,6 +57,10 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## 无证据断言
+
+`node scripts/claim-audit.mjs --strict 草稿.md` 逐句找「已完成 / 全部通过 / 应该可以」这类断言，要求同句或邻近几行里有证据（命令、比例、测试输出、`文件:行`、箭头结果）；写了「未验证 / 未做」的诚实标注不报。**用途是交付报告草稿**，不是历史账本——账本的证据在提交里，不在行内。
+
 ## 技能命中率
 
 `node scripts/skill-hits.mjs --window 20` 从迭代账本读最近若干轮，区分「引用了技能」「显式没用」「漏记」三类并给出命中率。协议要求每轮记账行写明所用技能，否则算漏记。
