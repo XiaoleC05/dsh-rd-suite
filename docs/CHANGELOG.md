@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.19.0 — 2026-11-27
+
+- 新增 `github/lib/release-check.js`：tag 规范化（去 v 前缀与构建后缀）、与 package.json 版本比对、
+  校验 CHANGELOG 是否有对应版本标题（行内提及不算）。
+- `release` 发布前做校验，不一致直接返回 `RELEASE_INCONSISTENT` 且不调用 `gh release create`；
+  读不到文件时记 warning 并跳过该项，新增 `verify` 参数（默认 true）。
+- 新增 8 例纯函数测试与 1 例集成测试；全量 193/193。
 ## 0.18.0 — 2026-11-27
 
 - Issue 正文改为七段固定模板：现象 / 复现 / 影响 / 受影响文件 / 验收标准 / 计划 / 环境，

@@ -51,7 +51,7 @@
 | 032 | open_pr 支持关联多个 Issue | 完成 | #28 |
 | 033 | pr_status 输出失败检查项名单 | 完成 | #25 |
 | 034 | merge_pr 的 auto 与失败重试 | 完成 | #29 |
-| 035 | release 校验 tag 与 CHANGELOG 一致 | 待做 | |
+| 035 | release 校验 tag 与 CHANGELOG 一致 | 完成 | #31 |
 | 036 | Issue 模板与标签兜底创建 | 完成 | #30 |
 | 037 | PR 与 Issue 双向提示 | 待做 | |
 | 038 | 远端分叉时提示 rebase 步骤 | 待做 | |
@@ -172,3 +172,4 @@
 | 第 13 轮 | #28 | multi-issue-pr | open_pr 支持 issues 数组，逐个补 Closes 且去重；1 例测试 |
 | 第 14 轮 | #29 | merge-retry | 瞬时失败重试一次、永久失败不重试、auto 排队确认；2 例测试 |
 | 第 15 轮 | #30 | issue-template | 七段固定模板（缺段给占位）+ 标签兜底创建与 warning；3 例测试 |
+| 第 16 轮 | #31 | release-check | 发版前校验版本号与 CHANGELOG 标题，不一致拒绝发布；8 例纯函数测试 + 1 例集成 |

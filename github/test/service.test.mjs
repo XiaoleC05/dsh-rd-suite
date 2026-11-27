@@ -807,3 +807,32 @@ test('create_issue 为缺失标签兜底创建，失败只记 warning', async ()
   assert.ok(issueArgs.includes('bug'))
   assert.equal(issueArgs.includes('auth'), false, '建失败的标签不要传给 issue create')
 })
+
+test('release：版本号或 CHANGELOG 对不上时拒绝发版', async () => {
+  const { mkdtempSync, writeFileSync: writeFixture, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const repo = mkdtempSync(join(tmpdir(), 'ghw-release-'))
+  writeFixture(join(repo, 'package.json'), JSON.stringify({ name: 'x', version: '0.18.0' }), 'utf8')
+  const { mkdirSync } = await import('node:fs')
+  mkdirSync(join(repo, 'docs'), { recursive: true })
+  writeFixture(join(repo, 'docs', 'CHANGELOG.md'), '# 变更日志\n\n## 0.18.0 — 2026-11-27\n', 'utf8')
+
+  const good = makeRun({ revParse: () => ok(repo + '\n') })
+  const published = await release(good.run, { path: targetFile, tag: 'v0.18.0' })
+  assert.equal(published.ok, true)
+  assert.ok(good.calls.some((call) => /gh release create/.test(call.command)))
+
+  const mismatch = makeRun({ revParse: () => ok(repo + '\n') })
+  const refused = await release(mismatch.run, { path: targetFile, tag: 'v9.9.9' })
+  assert.equal(refused.ok, false)
+  assert.equal(refused.code, 'RELEASE_INCONSISTENT')
+  assert.match(String(refused.message), /9\.9\.9/u)
+  assert.equal(mismatch.calls.some((call) => /gh release create/.test(call.command)), false, '不一致时不得调用发布')
+
+  const bypass = makeRun({ revParse: () => ok(repo + '\n') })
+  const forced = await release(bypass.run, { path: targetFile, tag: 'v9.9.9', verify: false })
+  assert.equal(forced.ok, true, 'verify: false 时跳过校验')
+
+  rmSync(repo, { recursive: true, force: true })
+})

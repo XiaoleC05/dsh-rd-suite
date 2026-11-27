@@ -8,9 +8,10 @@
  * without the Host subprocess service.
  */
 
-import { statSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 
+import { checkReleaseConsistency, readReleaseFacts } from './release-check.js'
 import {
   buildIssueBody,
   GIT_CLEAR_ENV,
@@ -1836,6 +1837,22 @@ export async function release(run, options = {}) {
   const title =
     typeof options.title === 'string' && options.title.trim() !== '' ? options.title.trim() : tag
   const notes = typeof options.notes === 'string' ? options.notes.trim() : ''
+
+  // 发版前先核对版本号与 CHANGELOG：不一致就不发，避免发出错误的版本。
+  const releaseWarnings = []
+  if (options.verify !== false) {
+    const facts = readReleaseFacts(check.repositoryRoot, (file) => readFileSync(file, 'utf8'))
+    releaseWarnings.push(...facts.warnings)
+    const verdict = checkReleaseConsistency({ tag, version: facts.version, changelog: facts.changelog })
+    if (!verdict.ok) {
+      return failure(action, 'RELEASE_INCONSISTENT', `拒绝发版：${verdict.errors.join('；')}`, {
+        ...repositoryIdentity(check),
+        tag,
+        ...(releaseWarnings.length === 0 ? {} : { warnings: releaseWarnings }),
+        guidance: '先把版本号与 CHANGELOG 条目对齐（或显式传 verify: false 跳过校验），再重新发版。',
+      })
+    }
+  }
 
   try {
     const argv = ['release', 'create', tag, '--repo', check.slug, '--title', title]
