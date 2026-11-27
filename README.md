@@ -57,6 +57,10 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## 宪章与技能分工
+
+`node scripts/charter-overlap.mjs --strict` 比较宪章与十个技能的**行文**（先剔掉命令、代码、表格与英文标识符），12 字以上的成句重复会被点名——同一句话两边都写，改一处忘一处必然互相矛盾。
+
 ## 引用完整性
 
 `node scripts/link-check.mjs --strict` 校验 README、docs 与技能正文里的链接和路径：只认带目录的仓库路径，外链与纯锚点跳过，技能正文里的 `references/…` 相对技能目录解析。能力清单记在 [docs/REGISTRY.md](docs/REGISTRY.md)。
