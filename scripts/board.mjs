@@ -33,7 +33,7 @@ export const END = '<!-- rd-board:end -->'
  */
 export function renderBoard(data) {
   const lines = [
-    `**进度**：${data.round}/${data.target} 轮 · 用例 ${data.tests} · 版本 ${data.version} · 门禁 ${data.gates}`,
+    `进度：${data.round}/${data.target} 轮 · 用例 ${data.tests} · 版本 ${data.version} · 门禁 ${data.gates}`,
     '',
     '| 最近三轮 | 做了什么 |',
     '|---|---|',

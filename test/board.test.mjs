@@ -21,7 +21,7 @@ const DATA = {
 
 test('渲染：一行摘要加最近三轮表格', () => {
   const block = renderBoard(DATA)
-  assert.match(block, /\*\*进度\*\*：48\/100 轮 · 用例 318 · 版本 0\.48\.1 · 门禁 六项全过/u)
+  assert.match(block, /进度：48\/100 轮 · 用例 318 · 版本 0\.48\.1 · 门禁 六项全过/u)
   assert.match(block, /\| 第 46 轮 \| 分支命名 \|/u)
   assert.equal(block.split('\n').filter((line) => line.startsWith('| 第')).length, 3)
 })
