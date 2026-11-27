@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.40.0 — 2026-11-27
+
+- 新增 scripts/flow-drill.mjs：内置有状态的假 git/gh 执行器，按顺序跑 precheck → create_issue →
+  prepare_branch → open_pr → pr_status → merge_pr → close_issue，并断言跨步骤契约
+  （PR 正文自动带关闭关键词、合并用 squash 且删分支、关闭后状态为 CLOSED）。
+- 测试 +4，全量 273 条。
 ## 0.39.0 — 2026-11-27
 
 - 新增 memory/fixtures/recall-cases.json（八条记忆、十条查询）与 scripts/memory-recall.mjs：
