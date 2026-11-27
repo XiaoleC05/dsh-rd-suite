@@ -29,6 +29,10 @@ description: 插件、MCP 与技能的发现、评估、试用、引入和沉淀
 | 可逆性 | 一步即可关闭或移除 | 需要手工清理 |
 合计 ≥ 7 且没有 0 分项，才建议引入。
 
+## 3.1 批量调用示例
+
+`run_code` 怎么写、什么场景才值得用、反例长什么样：见 `references/run-code-examples.md`。示例的语法与工具名由 `test/run-code-examples.test.mjs` 校验，改了工具名记得同步例子。
+
 ## 4 引入流程（每一步执行前都要用户同意）
 1. 基线：记录当前 bundle 顺序（list_bundles 的结果）与本模式会话首轮的 prompt token。
 2. 试装：`plugin_manager` action=install_bundle，target=<绝对路径、npm 包名或 installTarget.spec>。严格按返回的 application 与 nextStep 处理：
