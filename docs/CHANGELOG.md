@@ -1,5 +1,13 @@
 # 变更日志
 
+## 0.14.0 — 2026-11-27
+
+- 新增 `memory_export`（整库导出到 JSON）与 `memory_import`（从文件或内联数组导入）。
+- 合并语义（`memory/lib/merge.js`）：按类型 + 归一化标题对齐，正文取 updatedAt 较新者，
+  标签取并集、hits 取较大值、revisions 累加、保留较早的 createdAt；
+  `replace` 模式整库替换并统计丢弃数。
+- 非法条目（缺 type/title、null）在合并前被过滤；读取或写入失败时明确报错且不改库。
+- 新增 `test/memory-import.test.mjs`（6 例，含导出后再导入的往返一致）；全量 166/166。
 ## 0.13.0 — 2026-11-27
 
 - 新增侧栏「记忆库」标页：搜索框、类型筛选、条目列表（标题 + 类型 + 命中次数）、

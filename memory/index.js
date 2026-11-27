@@ -5,12 +5,14 @@
  * 与仓库无关，所以换项目也能复用。侧栏面板读同一个文件（见 client-sources/hub-rd.js）。
  */
 
+import { readFileSync, writeFileSync as writeFile } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import z from '@deepseek-ai/schemastery'
 
+import { mergeDocuments } from './lib/merge.js'
 import { registerMemoryRoutes } from './lib/routes.js'
 import { findEntry, recordHits, searchEntries } from './lib/search.js'
 import {
@@ -403,4 +405,111 @@ export function apply(ctx, config) {
       },
     }),
   )
+
+  ctx.tools.register(defineTool({
+    name: 'memory_export',
+    description: 'Write the whole long-term memory store to a JSON file, for backup or for moving it to another machine.',
+    parameters: {
+      path: { type: 'string', required: true, description: '导出文件路径（绝对路径或相对工作目录）。' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          ok: { type: 'boolean', required: true },
+          message: { type: 'string', required: true },
+          path: { type: 'string' },
+          total: { type: 'integer' },
+        },
+      },
+      render: (_args, value) => [{ type: 'text', text: value.message }],
+    },
+    presentCall: (args) => ({ card: 'generic', title: 'memory_export', kind: 'other', rawInput: args }),
+    async execute(args) {
+      if (typeof args.path !== 'string' || args.path.trim() === '') {
+        return { ok: false, message: '未导出：path 不能为空' }
+      }
+      const store = openStore(file, maxEntries)
+      try {
+        writeFile(args.path, `${JSON.stringify({ version: store.document.version, entries: store.document.entries }, null, 2)}\n`, 'utf8')
+        return { ok: true, message: `已导出 ${store.document.entries.length} 条到 ${args.path}`, path: args.path, total: store.document.entries.length }
+      } catch (error) {
+        return { ok: false, message: `导出失败：${error instanceof Error ? error.message : String(error)}` }
+      }
+    },
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'memory_import',
+    description: 'Import memory entries from a JSON file or inline array. merge (default) aligns entries by type and title, keeping the newer body and unioning tags; '
+      + 'replace swaps the whole store. An unreadable or malformed source changes nothing.',
+    parameters: {
+      path: { type: 'string', description: '要导入的 JSON 文件路径。' },
+      entries: {
+        type: 'array',
+        description: '直接给出的条目数组，与 path 二选一。',
+        items: {
+          type: 'object',
+          additionalProperties: true,
+          properties: {
+            type: { type: 'string' },
+            title: { type: 'string' },
+            body: { type: 'string' },
+            tags: { type: 'array', items: { type: 'string' } },
+            scope: { type: 'string' },
+            source: { type: 'string' },
+          },
+        },
+      },
+      mode: { type: 'string', enum: ['merge', 'replace'], description: '默认 merge；replace 会丢掉当前库里的其余条目。' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          ok: { type: 'boolean', required: true },
+          message: { type: 'string', required: true },
+          mode: { type: 'string' },
+          created: { type: 'integer' },
+          updated: { type: 'integer' },
+          kept: { type: 'integer' },
+          dropped: { type: 'integer' },
+          total: { type: 'integer' },
+        },
+      },
+      render: (_args, value) => [{ type: 'text', text: value.message }],
+    },
+    presentCall: (args) => ({ card: 'generic', title: 'memory_import', kind: 'other', rawInput: args }),
+    async execute(args) {
+      const mode = args.mode === 'replace' ? 'replace' : 'merge'
+      let source
+      try {
+        if (Array.isArray(args.entries)) source = args.entries
+        else if (typeof args.path === 'string' && args.path.trim() !== '') source = JSON.parse(readFileSync(args.path, 'utf8'))
+        else return { ok: false, message: '未导入：需要 path 或 entries' }
+      } catch (error) {
+        return { ok: false, message: `未导入：读取失败 ${error instanceof Error ? error.message : String(error)}` }
+      }
+      const store = openStore(file, maxEntries)
+      const result = mergeDocuments(store.document, source, { mode })
+      try {
+        writeMemory(file, result.document)
+      } catch (error) {
+        return { ok: false, message: `未导入：写入失败 ${error instanceof Error ? error.message : String(error)}` }
+      }
+      return {
+        ok: true,
+        mode,
+        created: result.created,
+        updated: result.updated,
+        kept: result.kept,
+        dropped: result.dropped,
+        total: result.document.entries.length,
+        message: `${mode === 'replace' ? '已整库替换' : '已合并'}：新增 ${result.created}、更新 ${result.updated}、保留 ${result.kept}${result.dropped > 0 ? `、丢弃 ${result.dropped}` : ''}，现有 ${result.document.entries.length} 条`,
+      }
+    },
+  }))
+
 }

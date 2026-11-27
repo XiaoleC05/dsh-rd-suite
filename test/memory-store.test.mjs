@@ -141,6 +141,8 @@ test('工具注册：memory_save 与 memory_list 都挂上了，参数契约完�
   const toolsDir = mkdtempSync(join(tmpdir(), 'rd-memory-tools-'))
   apply(ctx, { directory: toolsDir, maxEntries: 50 })
   assert.deepEqual(registered.map((tool) => tool.name).sort(), [
+    'memory_export',
+    'memory_import',
     'memory_list',
     'memory_read',
     'memory_save',
