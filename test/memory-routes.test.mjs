@@ -108,7 +108,7 @@ test('export：导出整库，可直接作为备份', async () => {
   assert.ok(exported.entries.every((entry) => typeof entry.body === 'string'))
 })
 
-test('注册：四个路由都挂在同一前缀下，且受信任闸门保护', async () => {
+test('注册：四个只读路由加一个写入路由，都受信任闸门保护', async () => {
   const registered = []
   const ctx = {
     get: () => ({ requestRejection: () => 401 }),
@@ -122,12 +122,17 @@ test('注册：四个路由都挂在同一前缀下，且受信任闸门保护',
   assert.deepEqual(registered.map((route) => route.path).sort(), [
     '/dsh-rd-memory/api/entry',
     '/dsh-rd-memory/api/export',
+    '/dsh-rd-memory/api/forget',
     '/dsh-rd-memory/api/list',
     '/dsh-rd-memory/api/stats',
   ])
   const list = registered.find((route) => route.path.endsWith('/list'))
   const response = await list.resource(new Request('http://localhost/dsh-rd-memory/api/list'))
   assert.equal(response.status, 401, '未通过信任闸门时不得返回数据')
+
+  const forget = registered.find((route) => route.path.endsWith('/forget'))
+  assert.equal(typeof forget.handler, 'function', '写入路径要用 handler 形式')
+  assert.equal(forget.resource, undefined, '写入路径不能注册成只读 resource')
 })
 
 test('stats 带上限与用量，未配置上限时不出现', async () => {
@@ -159,5 +164,70 @@ test('stats 带上限与用量，未配置上限时不出现', async () => {
   const plain = await (await uncapped.stats()).json()
   assert.equal(plain.limit, undefined)
   assert.equal(plain.usage, undefined)
+  rmSync(dir, { recursive: true, force: true })
+})
+
+test('删除：POST 生效并落盘，缺 id 与找不到分别给 400/404，其它方法 405', async () => {
+  const { mkdtempSync, rmSync, writeFileSync: writeFixture, readFileSync: readFixture } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'rd-mem-forget-'))
+  const target = join(dir, 'memory.json')
+  const entry = (id, title) => ({
+    id,
+    type: 'fix',
+    title,
+    body: '正文够长，用于删除测试。',
+    tags: [],
+    hits: 0,
+    revisions: 0,
+    createdAt: '2026-11-01T00:00:00.000Z',
+    updatedAt: '2026-11-01T00:00:00.000Z',
+  })
+  writeFixture(target, JSON.stringify({ version: 1, entries: [entry('keep-me', '保留'), entry('drop-me', '删掉')] }), 'utf8')
+
+  const { createMemoryHandlers } = await import('../memory/lib/routes.js')
+  const handlers = createMemoryHandlers({ file: target, maxEntries: 10 })
+
+  const missing = await handlers.forget(new URL('http://localhost/forget'))
+  assert.equal(missing.status, 400)
+
+  const unknown = await handlers.forget(new URL('http://localhost/forget?id=ghost'))
+  assert.equal(unknown.status, 404)
+
+  const ok = await handlers.forget(new URL('http://localhost/forget?id=drop-me'))
+  assert.equal(ok.status, 200)
+  const payload = await ok.json()
+  assert.equal(payload.removed, 'drop-me')
+  assert.equal(payload.total, 1)
+  const stored = JSON.parse(readFixture(target, 'utf8'))
+  assert.deepEqual(stored.entries.map((item) => item.id), ['keep-me'])
+
+  // 路由层的方法校验
+  const registered = []
+  const ctx = {
+    // 闸门放行：方法校验才是这条用例要验的东西。
+    get: () => ({ requestRejection: () => undefined }),
+    effect: (callback) => {
+      callback()
+      return () => {}
+    },
+    webServer: { register: (route) => registered.push(route) },
+  }
+  const { registerMemoryRoutes } = await import('../memory/lib/routes.js')
+  registerMemoryRoutes(ctx, { file: target, maxEntries: 10 })
+  const forget = registered.find((route) => route.path.endsWith('/forget'))
+  const makeResponse = () => {
+    const response = { statusCode: 0, body: '', headers: {}, headersSent: false, setHeader() {}, end(value) { this.body = value; this.headersSent = true } }
+    return response
+  }
+  const getResponse = makeResponse()
+  await forget.handler({ method: 'GET', url: '/dsh-rd-memory/api/forget?id=keep-me', headers: {} }, getResponse)
+  assert.equal(getResponse.statusCode, 405)
+
+  const postResponse = makeResponse()
+  await forget.handler({ method: 'POST', url: '/dsh-rd-memory/api/forget?id=keep-me', headers: {} }, postResponse)
+  assert.equal(postResponse.statusCode, 200)
+  assert.equal(JSON.parse(postResponse.body).total, 0)
   rmSync(dir, { recursive: true, force: true })
 })

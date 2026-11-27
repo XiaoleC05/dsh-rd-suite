@@ -36,6 +36,10 @@ window.__ModuleLoader__.load({
         detailHint: '左侧选一条查看全文',
         capacityWarn: '记忆库已用 {total}/{limit}，接近上限；再写入会按命中与时间淘汰旧条目。',
         close: '关闭',
+        remove: '删除',
+        removeConfirm: '再点一次确认删除',
+        removed: '已删除',
+        removeFailed: '删除失败：{message}',
       },
       en: {
         panelName: 'Memory',
@@ -59,6 +63,10 @@ window.__ModuleLoader__.load({
         detailHint: 'Pick an entry on the left',
         capacityWarn: 'Memory store at {total}/{limit}; further writes evict older entries by hits and recency.',
         close: 'Close',
+        remove: 'Delete',
+        removeConfirm: 'Click again to confirm',
+        removed: 'Deleted',
+        removeFailed: 'Delete failed: {message}',
       },
     }
 
@@ -203,6 +211,8 @@ window.__ModuleLoader__.load({
       const [detail, setDetail] = React.useState(null)
       const [capacity, setCapacity] = React.useState(null)
       const [copied, setCopied] = React.useState(null)
+      const [confirming, setConfirming] = React.useState(false)
+      const [removeState, setRemoveState] = React.useState(null)
       const requestSeq = React.useRef(0)
 
       const load = React.useCallback(async () => {
@@ -250,6 +260,8 @@ window.__ModuleLoader__.load({
 
       const open = async (id) => {
         setCopied(null)
+        setConfirming(false)
+        setRemoveState(null)
         try {
           const payload = await getJson(`/entry?id=${encodeURIComponent(id)}`)
           setDetail(payload.entry)
@@ -269,6 +281,26 @@ window.__ModuleLoader__.load({
           setCopied('ok')
         } catch {
           setCopied('failed')
+        }
+      }
+
+      // 两段式删除：第一次点击只切到确认态，避免误删。
+      const remove = async () => {
+        if (detail === null) return
+        if (!confirming) {
+          setConfirming(true)
+          return
+        }
+        setConfirming(false)
+        try {
+          const response = await fetch(`${API}/forget?id=${encodeURIComponent(detail.id)}`, { method: 'POST' })
+          const payload = await response.json().catch(() => ({}))
+          if (!response.ok || payload.ok === false) throw new Error(payload.message ?? `HTTP ${response.status}`)
+          setRemoveState('ok')
+          setDetail(null)
+          await load()
+        } catch (error) {
+          setRemoveState(fill(translate('removeFailed'), { message: error.message }))
         }
       }
 

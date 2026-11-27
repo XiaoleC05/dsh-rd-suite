@@ -100,6 +100,22 @@ export function createMemoryHandlers({ file, maxEntries }) {
       })
     },
 
+    /**
+     * 删除一条记忆：写入路径，仅接受 POST。
+     * @param {URL} url - 请求 URL，id 从查询串取
+     * @returns {Promise<Response>} 结果
+     */
+    async forget(url) {
+      const id = String(url.searchParams.get('id') ?? '').trim()
+      if (id === '') return json({ ok: false, code: 'missing-id', message: '缺少 id' }, 400)
+      const document = load()
+      const index = document.entries.findIndex((entry) => String(entry.id ?? '') === id)
+      if (index < 0) return json({ ok: false, code: 'not-found', message: '没有这条记忆' }, 404)
+      const [removed] = document.entries.splice(index, 1)
+      writeMemory(file, document)
+      return json({ ok: true, removed: removed.id, total: document.entries.length })
+    },
+
     exportAll() {
       const document = load()
       return json({ ok: true, version: document.version, entries: document.entries })
@@ -149,4 +165,33 @@ export function registerMemoryRoutes(ctx, options) {
       }),
     )
   }
+
+  // 写入路径单独注册：只接受 POST，其余方法直接 405。
+  ctx.effect(() =>
+    ctx.webServer.register({
+      kind: 'exact',
+      path: `${MEMORY_PREFIX}/forget`,
+      handler: async (request, response) => {
+        const rejection = guard(request)
+        const send = (status, value) => {
+          if (response.headersSent) return
+          response.statusCode = status
+          for (const [name, headerValue] of Object.entries(REJECTION_HEADERS)) response.setHeader(name, headerValue)
+          response.end(JSON.stringify(value))
+        }
+        if (rejection) return send(rejection.status, { ok: false, code: rejection.code })
+        if (String(request.method ?? 'GET').toUpperCase() !== 'POST') {
+          return send(405, { ok: false, code: 'method-not-allowed', message: '只用 POST' })
+        }
+        try {
+          const result = await handlers.forget(new URL(request.url, 'http://localhost'))
+          response.statusCode = result.status
+          for (const [name, headerValue] of Object.entries(REJECTION_HEADERS)) response.setHeader(name, headerValue)
+          response.end(await result.text())
+        } catch (cause) {
+          send(500, { ok: false, message: cause instanceof Error ? cause.message : String(cause) })
+        }
+      },
+    }),
+  )
 }

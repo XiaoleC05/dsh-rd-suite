@@ -133,3 +133,11 @@ test('容量提示：用量达八成时显示，未达或没有数据时不显�
   // 初始渲染时还没有 stats，页面照常显示加载态。
   assert.match(renderPage({}), /记忆库/u)
 })
+
+test('删除：源码里是两段式确认，且调用 POST forget', () => {
+  const source = readFileSync(join(here, '..', 'client-sources', 'memory.js'), 'utf8')
+  assert.match(source, /confirming/u, '要有确认态')
+  assert.match(source, /method: 'POST'/u, '删除必须走 POST')
+  assert.match(source, /\/forget\?id=/u, '要带上条目 id')
+  assert.equal((source.match(/setConfirming\(true\)/gu) ?? []).length, 1, '只在一处进入确认态')
+})
