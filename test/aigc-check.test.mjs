@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, before, test } from 'node:test'
 
-import { analyze, main } from '../scripts/aigc-check.mjs'
+import { analyze, main, mergeCliches, readBannedWords } from '../scripts/aigc-check.mjs'
 
 const AI_ISH = `在当今快速发展的数字时代，数据已经成为企业最重要的资产之一。首先，我们需要建立统一的数据治理体系。其次，我们需要完善数据质量监控机制。最后，我们需要持续优化数据服务能力。综上所述，数据治理是一项系统性工程，需要我们全方位、多层次地推进。这不仅能极大地提升效率，还能显著地降低成本，助力企业实现数字化转型，赋能业务增长。值得注意的是，数据治理并非一蹴而就，而是一个持续演进的过程。由此可见，只有坚持不懈，才能真正释放数据价值。`
 
@@ -105,4 +105,36 @@ test('分析器自身的豁免：行尾 allow 只跳一行，文件头 allow-fil
   const result = analyze(fileLevel)
   assert.equal(result.hits.patterns.length, 0)
   assert.ok(result.metrics.characters > 0, '指标仍按原文统计')
+})
+
+test('自定义禁用词：命中即扣分，且与内置表合并去重', async () => {
+  const before = analyze(HUMAN)
+  const after = analyze(`${HUMAN}\n这套方案实现了业务闭环与协同增效。`, { extraCliches: ['业务闭环', '协同增效'] })
+  assert.ok(after.hits.cliches.some((hit) => hit.word === '业务闭环'), '自定义词应当被识别')
+  assert.ok(after.score < 100, '命中自定义词要扣分')
+  assert.ok(before.hits.cliches.length === 0, '默认词表对这段文字无命中')
+
+  const merged = mergeCliches(['赋能', '业务闭环', '  ', '业务闭环'])
+  assert.equal(merged.filter((word) => word === '赋能').length, 1, '与内置表去重')
+  assert.equal(merged.filter((word) => word === '业务闭环').length, 1, '自定义词自身去重')
+})
+
+test('词表文件：换行与 JSON 数组两种格式都支持', async () => {
+  const { mkdtempSync, writeFileSync: writeFixture, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'rd-banned-'))
+  const lines = join(dir, 'lines.txt')
+  const json = join(dir, 'words.json')
+  const missing = join(dir, 'missing.txt')
+  writeFixture(lines, '# 项目禁用词\n业务闭环\n协同增效\n', 'utf8')
+  writeFixture(json, JSON.stringify(['业务闭环']), 'utf8')
+
+  assert.deepEqual(readBannedWords(lines), ['业务闭环', '协同增效'])
+  assert.deepEqual(readBannedWords(json), ['业务闭环'])
+  assert.deepEqual(readBannedWords(missing), [])
+  const article = join(dir, 'article.md')
+  writeFixture(article, HUMAN, 'utf8')
+  assert.equal(main([article, '--banned', lines, '--min-score', '0']), 0)
+  rmSync(dir, { recursive: true, force: true })
 })

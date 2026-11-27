@@ -77,7 +77,7 @@
 
 | 编号 | 目标 | 状态 | 提交 |
 |---|---|---|---|
-| 051 | 词表可配置（项目自定义禁用词） | 待做 | |
+| 051 | 词表可配置（项目自定义禁用词） | 完成 | #37 |
 | 052 | 英文文案专用规则 | 待做 | |
 | 053 | 跨文件重复检测 | 待做 | |
 | 054 | 多文件分数汇总报告 | 待做 | |
@@ -178,3 +178,4 @@
 | 第 19 轮 | #34 | audit-changed | parseGitStatus / changedPaths / auditChanged + scripts/audit-changed.mjs；5 例测试 |
 | 第 20 轮 | #35 | audit-cache | 按 mtime+size 的进程内缓存，只缓存干净判定；5 例测试 |
 | 第 21 轮 | #36 | charter-audit-line | 报告模板加审计行 + test/charter.test.mjs 六项结构守卫 |
+| 第 22 轮 | #37 | copy-banned-words | analyze 支持 extraCliches，CLI 加 --banned（换行或 JSON 词表）；2 例测试 |

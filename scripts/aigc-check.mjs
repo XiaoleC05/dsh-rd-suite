@@ -267,7 +267,52 @@ function findWords(text, words) {
  * @param {string} text - 正文
  * @returns {{ score: number; metrics: Record<string, unknown>; hits: Record<string, unknown> }} 分析结果
  */
-export function analyze(text) {
+/**
+ * 合并内置词表与项目自定义词表（去重、去空、小写比较）。
+ * @param {string[]} extra - 自定义词
+ * @returns {string[]} 合并后的词表
+ */
+export function mergeCliches(extra) {
+  const merged = new Map()
+  for (const word of [...CLICHES, ...(Array.isArray(extra) ? extra : [])]) {
+    if (typeof word !== 'string') continue
+    const trimmed = word.trim()
+    if (trimmed === '') continue
+    merged.set(trimmed.toLowerCase(), trimmed)
+  }
+  return [...merged.values()]
+}
+
+/**
+ * 读取自定义词表文件：支持 JSON 数组或每行一个词。
+ * @param {string} file - 词表路径
+ * @returns {string[]} 词表（读不到返回空数组）
+ */
+export function readBannedWords(file) {
+  let raw
+  try {
+    raw = readFileSync(file, 'utf8')
+  } catch {
+    return []
+  }
+  const trimmed = raw.trim()
+  if (trimmed === '') return []
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      return Array.isArray(parsed) ? parsed.filter((word) => typeof word === 'string') : []
+    } catch {
+      return []
+    }
+  }
+  return trimmed
+    .split(/\r?\n/u)
+    .map((line) => line.trim())
+    // 注释行先排除再处理，否则「# 项目禁用词」会被当成一个词。
+    .filter((line) => line !== '' && !line.startsWith('#') && !line.startsWith('//'))
+}
+
+export function analyze(text, options = {}) {
   const raw = String(text ?? '')
   // 文件开头带 `aigc-check: allow-file` 说明它本身就在讲这些规则（词表、句式示例），
   // 只给指标、不做词表与句式判定；行尾带 `aigc-check: allow` 则豁免单行。
@@ -278,7 +323,7 @@ export function analyze(text) {
   const lengths = sentences.map((sentence) => sentence.length)
   const cv = coefficientOfVariation(lengths)
 
-  const cliches = findWords(body, CLICHES)
+  const cliches = findWords(body, mergeCliches(options.extraCliches))
   const connectors = findWords(body, CONNECTORS)
   const buzzwords = findWords(body, EN_BUZZWORDS)
   const openerHits = OPENERS.filter((opener) => {
@@ -337,10 +382,15 @@ export function analyze(text) {
  */
 export function main(argv) {
   const json = argv.includes('--json')
+  const bannedIndex = argv.indexOf('--banned')
+  const bannedFile = bannedIndex >= 0 ? argv[bannedIndex + 1] : undefined
+  const extraCliches = bannedFile === undefined ? [] : readBannedWords(bannedFile)
   const minScoreIndex = argv.indexOf('--min-score')
   const minScoreValue = minScoreIndex >= 0 ? argv[minScoreIndex + 1] : undefined
   const minScore = minScoreValue === undefined ? 60 : Number(minScoreValue)
-  const files = argv.filter((argument) => !argument.startsWith('--') && argument !== minScoreValue)
+  const files = argv.filter(
+    (argument) => !argument.startsWith('--') && argument !== minScoreValue && argument !== bannedFile,
+  )
   if (files.length === 0) {
     process.stderr.write('用法: node scripts/aigc-check.mjs <文件...> [--json] [--min-score N]\n')
     return 2
@@ -357,7 +407,7 @@ export function main(argv) {
       failed = true
       continue
     }
-    const analysis = analyze(text)
+    const analysis = analyze(text, { extraCliches })
     results.push({ file, ...analysis })
     if (analysis.score < minScore) failed = true
   }
