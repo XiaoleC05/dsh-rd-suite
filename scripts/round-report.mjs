@@ -92,7 +92,10 @@ export function findRoundRow(ledgerText, round) {
     .split('\n')
     .find((candidate) => new RegExp(`^\\|\\s*第\\s*${round}\\s*轮\\s*\\|`, 'u').test(candidate))
   if (line === undefined) return null
-  const cells = line.split('|').slice(2, -1).map((cell) => cell.trim())
+  const cells = line
+    .split('|')
+    .slice(2, -1)
+    .map((cell) => cell.trim())
   return { issue: cells[0] ?? '', note: cells.slice(1).join(' · ') }
 }
 
