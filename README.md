@@ -33,6 +33,7 @@
 | `scripts/verify-package.mjs` | 打包校验：files 覆盖、技能 frontmatter、成员目录、client.js 新鲜度 |
 | `scripts/dup-check.mjs` | 跨文件重复段落检测（降重的另一半） |
 | `scripts/audit-changed.mjs` | 只审 git 改动过的代码文件（交付前最后一道便宜检查） |
+| `scripts/preflight.mjs` | 交付门禁：文档分数、重复、术语、打包、冒烟五合一 |
 | `scripts/term-check.mjs` | 术语一致性：按 docs/glossary.json 查同义词变体 |
 | `scripts/health.mjs` | 横向体检：宪章体积、技能、测试、文档分数、打包缺口、术语漂移六项 |
 | `scripts/repo-map.mjs` | 仓库地图：文件 + 顶层符号 + 行数，按字符预算输出，给侦察用的骨架 |

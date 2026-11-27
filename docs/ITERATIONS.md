@@ -192,3 +192,4 @@
 | 第 33 轮 | #48 | memory-forget | POST /forget 路由 + 面板两段式删除；3 例测试 |
 | 第 34 轮 | #49 | memory-hit-stats | stats 给 unused / topHits / hitless，面板显示从未命中的条目；1 例测试 |
 | 第 35 轮 | #50 | memory-keyboard | 上下键移动光标、Enter 打开、Esc 关闭、斜杠聚焦搜索；2 例测试 |
+| 第 36 轮 | #51 | preflight | 五道门禁合一（分数/重复/术语/打包/冒烟）；5 例测试 |

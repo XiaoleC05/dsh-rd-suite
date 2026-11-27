@@ -3,6 +3,7 @@
 脚本能算的交给脚本，算不了的靠人看一眼。跑法：
 
 ```
+node scripts/preflight.mjs        # 五道交付门禁一次跑完
 node scripts/health.mjs --fail-on-drift
 node scripts/health.mjs --row    # 直接输出下面表格的新行
 ```
