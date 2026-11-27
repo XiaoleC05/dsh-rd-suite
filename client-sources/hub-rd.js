@@ -701,7 +701,7 @@ window.__ModuleLoader__.load({
             type: 'button',
             role: 'tab',
             id: 'rd-hub-tab-' + (index + 1),
-            'aria-controls': 'rd-hub-panel-' + (index + 1),
+            ...(mounted.has(index) ? { 'aria-controls': 'rd-hub-panel-' + (index + 1) } : {}),
             'aria-selected': active === index,
             tabIndex: active === index ? 0 : -1,
             style: active === index ? { ...ui.tab, ...ui.tabActive } : ui.tab,

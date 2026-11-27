@@ -2620,7 +2620,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
             type: 'button',
             role: 'tab',
             id: 'rd-hub-tab-' + (index + 1),
-            'aria-controls': 'rd-hub-panel-' + (index + 1),
+            ...(mounted.has(index) ? { 'aria-controls': 'rd-hub-panel-' + (index + 1) } : {}),
             'aria-selected': active === index,
             tabIndex: active === index ? 0 : -1,
             style: active === index ? { ...ui.tab, ...ui.tabActive } : ui.tab,

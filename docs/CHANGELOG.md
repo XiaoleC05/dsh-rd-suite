@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.55.0 — 2026-11-27
+
+- 新增 test/a11y.test.mjs：断言 tablist / tab / tabpanel 三件套与 id 对应、装饰性元素 aria-hidden、
+  搜索框 aria-label、筛选按钮 aria-pressed、列表项 role=button 与 tabIndex、错误 alert 与提示 status。
+- 断言当场抓到真缺陷：未挂载的页签仍写 `aria-controls`，指向不存在的面板 id。
+  修复为「只在面板已挂载时写 aria-controls」。
+- 用例 370。
 ## 0.54.1 — 2026-11-27
 
 - AIGC 自检增加 `--fix-suggest`：每条命中给出文件 / 行号 / 命中内容 / 建议改法。
