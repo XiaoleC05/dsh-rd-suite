@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "canonical": "研发模式",
+      "variants": ["RD 模式", "RD模式", "rd 模式", "rd模式"],
+      "note": "模式名统一写「研发模式」；「工作台」指侧栏界面，是另一个东西。"
+    },
+    {
+      "canonical": "长期记忆",
+      "variants": ["长时记忆", "持久记忆"],
+      "note": "记忆库指侧栏面板，长期记忆指这套能力本身。"
+    },
+    {
+      "canonical": "固定流程",
+      "variants": ["issue-first 流程", "issue-first 工作流", "issue 优先流程"],
+      "note": "GitHub 流程没有开关，叫固定流程。"
+    },
+    {
+      "canonical": "代码审计",
+      "variants": ["代码自动修正检查", "自动审查修正"],
+      "note": "面板标签叫「代码修正」，但能力本身叫代码审计。"
+    }
+  ]
+}
