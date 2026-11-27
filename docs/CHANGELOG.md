@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.63.0 — 2026-11-27
+
+- 新增 scripts/tool-inventory.mjs：从源码抽实际注册的工具（defineTool 与 ctx.tools.register 两种写法），
+  与 README 工具表、宪章 §7 对账，漏写点名并给补法；--strict 退出码 1。
+- 新增 test/tool-inventory.test.mjs：两种写法抽取、不重复、真实仓库九个工具、文档漏写被点名。
+- 用例 453。
 ## 0.62.2 — 2026-11-27
 
 - 新增 test/brand.test.mjs：图标固定 16×16 且 currentColor、aria-hidden；包名 / 预设 / 侧栏入口三级命名

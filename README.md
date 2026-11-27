@@ -57,6 +57,10 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## 工具清单对账
+
+`node scripts/tool-inventory.mjs --strict` 从源码抽出实际注册的工具（两种注册写法都认），与 README 工具表和宪章 §7 逐一比对；漏写会点名并给出补法。
+
 ## CI 覆盖
 
 `node scripts/ci-parity.mjs --strict` 从 `.github/workflows` 抽出所有 `run:` 命令，逐项核对构建、测试与全量门禁是否被 CI 覆盖；缺项时退出码 1。preflight 的第八道门禁就用它，所以「CI 与本地同一套」不再依赖手写断言。
