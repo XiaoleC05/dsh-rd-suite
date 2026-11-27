@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "t-sandbox",
+      "type": "template",
+      "title": "Windows 沙箱写文件被拒的排查骨架",
+      "body": "先用 skill diagnose-windows-sandbox-acl 跑一遍，确认是 ACL 问题还是预期的沙箱限制；再决定是否用 workspace-write 重试。",
+      "tags": ["windows", "sandbox", "acl"],
+      "hits": 4,
+      "revisions": 2,
+      "createdAt": "2026-11-10T00:00:00.000Z",
+      "updatedAt": "2026-11-20T00:00:00.000Z"
+    },
+    {
+      "id": "p-defineTool",
+      "type": "pitfall",
+      "title": "defineTool 的数组参数必须写 additionalProperties",
+      "body": "参数里 items 只写 type: object 会在工具注册时抛 UNSUPPORTED_SCHEMA，整个插件行加载失败；要显式写 additionalProperties。",
+      "tags": ["dsh", "tool", "schema"],
+      "hits": 6,
+      "revisions": 1,
+      "createdAt": "2026-11-12T00:00:00.000Z",
+      "updatedAt": "2026-11-22T00:00:00.000Z"
+    },
+    {
+      "id": "f-push-hang",
+      "type": "fix",
+      "title": "git push POST 卡住时改用 Git Data API 推送",
+      "body": "receive-pack 被链路阻断时 git push 会挂住；改用 blob → tree → commit → PATCH ref 的接口流程，推完再用 ls-tree 比对树是否一致。",
+      "tags": ["git", "push", "api"],
+      "hits": 9,
+      "revisions": 3,
+      "createdAt": "2026-11-14T00:00:00.000Z",
+      "updatedAt": "2026-11-24T00:00:00.000Z"
+    },
+    {
+      "id": "s-report-first",
+      "type": "strategy",
+      "title": "交付报告先给结论再给证据",
+      "body": "结论先行，然后改动、验收表格、风险；审查者先判断要不要细看，再决定读多少。",
+      "tags": ["report", "review"],
+      "hits": 3,
+      "revisions": 1,
+      "createdAt": "2026-11-11T00:00:00.000Z",
+      "updatedAt": "2026-11-19T00:00:00.000Z"
+    },
+    {
+      "id": "f-node-test-glob",
+      "type": "fix",
+      "title": "node --test 传目录在 Node 22 上不展开",
+      "body": "传目录只会跑该目录下的部分文件，必须传 glob 或者显式列出文件，否则测试会静默漏跑。",
+      "tags": ["node", "test"],
+      "hits": 5,
+      "revisions": 1,
+      "createdAt": "2026-11-13T00:00:00.000Z",
+      "updatedAt": "2026-11-21T00:00:00.000Z"
+    },
+    {
+      "id": "p-charter-budget",
+      "type": "pitfall",
+      "title": "宪章有 5000 字符预算，加规则前先删等量表述",
+      "body": "宪章每次膨胀都会挤占模型注意力；新增一条规则必须先找到等量的旧表述删掉，否则体积断言会直接失败。",
+      "tags": ["charter", "budget"],
+      "hits": 2,
+      "revisions": 1,
+      "createdAt": "2026-11-15T00:00:00.000Z",
+      "updatedAt": "2026-11-25T00:00:00.000Z"
+    },
+    {
+      "id": "t-memory-write",
+      "type": "template",
+      "title": "接入长期记忆的三步骨架",
+      "body": "一写 memory_save 收四类可复用内容，二读 memory_search 在开工前查，三维护面板查看与删除。",
+      "tags": ["memory", "workflow"],
+      "hits": 1,
+      "revisions": 1,
+      "createdAt": "2026-11-16T00:00:00.000Z",
+      "updatedAt": "2026-11-26T00:00:00.000Z"
+    },
+    {
+      "id": "s-cheap-gate",
+      "type": "strategy",
+      "title": "先做便宜的门禁，再做贵的",
+      "body": "格式与术语检查是毫秒级的，测试套件是秒级的；顺序从便宜到贵，失败时能更早拿到反馈。",
+      "tags": ["gate", "ci"],
+      "hits": 2,
+      "revisions": 1,
+      "createdAt": "2026-11-17T00:00:00.000Z",
+      "updatedAt": "2026-11-26T00:00:00.000Z"
+    }
+  ],
+  "cases": [
+    { "query": "沙箱 写文件 被拒", "expect": "t-sandbox" },
+    { "query": "additionalProperties 报错", "expect": "p-defineTool" },
+    { "query": "push 卡住", "expect": "f-push-hang" },
+    { "query": "报告 结论先行", "expect": "s-report-first" },
+    { "query": "node --test 目录 漏跑", "expect": "f-node-test-glob" },
+    { "query": "宪章 预算", "expect": "p-charter-budget" },
+    { "query": "记忆 三步", "expect": "t-memory-write" },
+    { "query": "门禁 从便宜到贵", "expect": "s-cheap-gate" },
+    { "query": "Windows ACL", "expect": "t-sandbox" },
+    { "query": "Git Data API", "expect": "f-push-hang" }
+  ]
+}

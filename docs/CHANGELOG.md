@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.39.0 — 2026-11-27
+
+- 新增 memory/fixtures/recall-cases.json（八条记忆、十条查询）与 scripts/memory-recall.mjs：
+  跑 searchEntries 给出 top1 准确率与 MRR，低于 80% 退出码 1。
+- 实测 top1 100%、MRR 1.000。
+- 测试 +5，全量 269 条。
 ## 0.38.0 — 2026-11-27
 
 - 新增 scripts/preflight.mjs：一条命令跑五道交付门禁（文档分数 ≥80、跨文件重复、术语一致、
