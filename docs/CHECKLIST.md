@@ -3,14 +3,14 @@
 脚本能算的交给脚本，算不了的靠人看一眼。跑法：
 
 ```
-node scripts/preflight.mjs        # 五道交付门禁一次跑完
+node scripts/preflight.mjs        # 六道交付门禁一次跑完
 node scripts/health.mjs --fail-on-drift
 node scripts/health.mjs --row    # 直接输出下面表格的新行
 ```
 
 只要出现术语漂移或打包缺口就返回 1，可以直接当门禁用。
 
-## 脚本覆盖的六项
+## 体检脚本覆盖的六项
 
 | 项 | 指标 | 判断标准 |
 |---|---|---|

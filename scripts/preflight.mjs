@@ -19,6 +19,7 @@ import { findDuplicates } from './dup-check.mjs'
 import { findVariants, loadGlossary } from './term-check.mjs'
 import { verifyPackage } from './verify-package.mjs'
 import { smokeInstall } from './smoke-install.mjs'
+import { runDrill } from './flow-drill.mjs'
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
 
@@ -110,12 +111,26 @@ async function smokeGate() {
   }
 }
 
+/** 流程演练门禁：七步走通才算过。 */
+async function drillGate() {
+  const { steps, problem } = await runDrill()
+  const failedStep = steps.find((step) => !step.ok)
+  return {
+    name: '流程演练',
+    ok: problem === null,
+    detail:
+      problem === null
+        ? `${steps.length} 步全过`
+        : `${failedStep === undefined ? problem : `${failedStep.name}：${failedStep.detail}`}`,
+  }
+}
+
 /**
  * 跑完全部门禁。
  * @returns {Promise<{ gates: { name: string; ok: boolean; detail: string }[]; summary: { ok: boolean; passed: number; failed: string[] } }>} 结果
  */
 export async function runPreflight() {
-  const gates = [docsGate(), duplicateGate(), termGate(), packageGate(), await smokeGate()]
+  const gates = [docsGate(), duplicateGate(), termGate(), packageGate(), await smokeGate(), await drillGate()]
   return { gates, summary: summarizeGates(gates) }
 }
 

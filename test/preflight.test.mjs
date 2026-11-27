@@ -37,12 +37,14 @@ test('文档阈值是 80', () => {
   assert.equal(MIN_DOC_SCORE, 80)
 })
 
-test('在本仓库跑一次：五道门禁全过', async () => {
+test('在本仓库跑一次：六道门禁全过', async () => {
   const { gates, summary } = await runPreflight()
   assert.deepEqual(
     gates.map((gate) => gate.name),
-    ['文档分数', '重复段落', '术语一致', '打包校验', '安装冒烟'],
+    ['文档分数', '重复段落', '术语一致', '打包校验', '安装冒烟', '流程演练'],
   )
   for (const gate of gates) assert.ok(gate.detail !== '', `${gate.name} 要有可读的结论行`)
-  assert.deepEqual(summary, { ok: true, passed: 5, failed: [] })
+  assert.deepEqual(summary, { ok: true, passed: 6, failed: [] })
+  const drill = gates.find((gate) => gate.name === '流程演练')
+  assert.match(drill.detail, /7 步全过/u)
 })

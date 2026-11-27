@@ -1,5 +1,10 @@
 # 变更日志
 
+## 0.41.0 — 2026-11-27
+
+- preflight 增加第六道门禁「流程演练」：调用 flow-drill，七步全过才算通过，失败时点名具体步骤。
+- CHECKLIST 与 README 从五道改成六道；preflight 测试同步更新为六项。
+- 全量 273 条用例保持通过。
 ## 0.40.0 — 2026-11-27
 
 - 新增 scripts/flow-drill.mjs：内置有状态的假 git/gh 执行器，按顺序跑 precheck → create_issue →
