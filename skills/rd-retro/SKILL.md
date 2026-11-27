@@ -5,6 +5,10 @@ description: 研发模式的复盘与进化：汇总会话与交付数据、诊�
 ---
 # 复盘与进化（rd-retro）
 
+## 踩坑记录的写法
+
+失败复盘存成 `type: pitfall` 时按五段写：现象 / 触发条件 / 根因 / 修复 / 防复发检查。格式与反例见 `references/pitfall-template.md`；样例能通过记忆校验由 `test/pitfall-template.test.mjs` 验证。
+
 ## 0 路径与边界
 模式仓库 = 本技能 Base directory 的上两级目录（含 package.json、cordis.patch.yml、client-sources/、skills/），下文写作 <模式仓库>。本技能中以 docs/、scripts/、client-sources/ 开头的路径以及 package.json、cordis.patch.yml 都相对 <模式仓库>；只有 references/ 相对 Base directory。命令的 workdir 设为 <模式仓库>，read、write、edit 一律先拼绝对路径。产物写在 <模式仓库> 内。
 除第 5 节第 2 步经用户同意的 set_bundle 外，不修改 DSH profile。不解码、不读取、不输出会话日志原文，只看会话页展示的用量数字与交付报告。

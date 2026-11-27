@@ -9,7 +9,7 @@
 | rd-copy | 1.1.0 | 90 |
 | rd-data | 1.0.0 | 41 |
 | rd-ecosystem | 1.0.0 | 60 |
-| rd-retro | 1.0.0 | 50 |
+| rd-retro | 1.0.0 | 54 |
 | rd-selftest | 1.0.0 | 29 |
 | rd-spec | 1.0.0 | 49 |
 | rd-testing | 1.0.0 | 52 |
