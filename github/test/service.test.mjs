@@ -716,3 +716,31 @@ test('precheck 带上最近提交与保护细节', async () => {
   assert.deepEqual(guarded.requiredChecks, ['ci/test', 'ci/lint'])
   assert.equal(guarded.strategy, 'pr')
 })
+
+test('open_pr 一次关联多个 Issue：逐个补关闭关键词且不重复', async () => {
+  const { run, calls } = makeRun({ branch: () => ok('fix/9-toolbar-overflow\n') })
+  const result = await openPr(run, {
+    path: targetFile,
+    title: 'fix(toolbar): 收口两个模块 (#9, #10)',
+    body: '顺带把 #10 的表格也修了。',
+    issues: [9, 10, 'https://github.com/acme/widgets/issues/11'],
+  })
+  assert.equal(result.ok, true)
+  const create = calls.find((call) => /gh pr create/.test(call.command))
+  const body = create.argv[create.argv.indexOf('--body') + 1]
+  for (const number of [9, 10, 11]) assert.ok(body.includes(`Closes #${number}`), `缺少 Closes #${number}`)
+  assert.equal((body.match(/Closes #9/gu) ?? []).length, 1, '编号不能重复')
+
+  const partial = makeRun({ branch: () => ok('fix/9-toolbar-overflow\n') })
+  const second = await openPr(partial.run, {
+    path: targetFile,
+    title: 'fix(toolbar): 已含一个关闭关键词 (#9)',
+    body: '正文已经写了 Closes #9。',
+    issues: [9, 12],
+  })
+  assert.equal(second.ok, true)
+  const createSecond = partial.calls.find((call) => /gh pr create/.test(call.command))
+  const secondBody = createSecond.argv[createSecond.argv.indexOf('--body') + 1]
+  assert.equal((secondBody.match(/Closes #9/gu) ?? []).length, 1, '已有的不重复补')
+  assert.ok(secondBody.includes('Closes #12'))
+})

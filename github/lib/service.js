@@ -364,12 +364,20 @@ const CLOSING_KEYWORD =
  * @param {unknown} issue - issue number or URL, when the module has one.
  * @returns {string} body guaranteed to close the issue on merge.
  */
-function ensureClosingKeyword(body, issue) {
-  const number = parseIssueNumber(issue)
+function ensureClosingKeyword(body, issue, extraIssues = []) {
   const text = typeof body === 'string' ? body.trim() : ''
-  if (number === null) return text
-  if (CLOSING_KEYWORD.test(text)) return text
-  return text === '' ? `Closes #${number}` : `${text}\n\nCloses #${number}`
+  const candidates = [issue, ...(Array.isArray(extraIssues) ? extraIssues : [])]
+  const numbers = []
+  for (const candidate of candidates) {
+    const number = parseIssueNumber(candidate)
+    if (number !== null && !numbers.includes(number)) numbers.push(number)
+  }
+  if (numbers.length === 0) return text
+  // 只补正文里还没有的编号：一个 PR 收口多个模块时逐个列全，已有的不重复。
+  const missing = numbers.filter((number) => !new RegExp(`(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+#${number}\\b`, 'iu').test(text))
+  if (missing.length === 0) return text
+  const lines = missing.map((number) => `Closes #${number}`).join('\n')
+  return text === '' ? lines : `${text}\n\n${lines}`
 }
 
 /**
@@ -1435,7 +1443,7 @@ export async function openPr(run, options = {}) {
       },
     )
   }
-  const body = ensureClosingKeyword(options.body, options.issue)
+  const body = ensureClosingKeyword(options.body, options.issue, options.issues)
   const draft = options.draft !== false
 
   try {

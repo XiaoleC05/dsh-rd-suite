@@ -48,7 +48,7 @@
 | 编号 | 目标 | 状态 | 提交 |
 |---|---|---|---|
 | 031 | precheck 增加最近提交与保护细节 | 完成 | #27 |
-| 032 | open_pr 支持关联多个 Issue | 待做 | |
+| 032 | open_pr 支持关联多个 Issue | 完成 | #28 |
 | 033 | pr_status 输出失败检查项名单 | 完成 | #25 |
 | 034 | merge_pr 的 auto 与失败重试 | 待做 | |
 | 035 | release 校验 tag 与 CHANGELOG 一致 | 待做 | |
@@ -169,3 +169,4 @@
 | 第 10 轮 | #25 | pr-checks | pr_status 给出 failingChecks / pendingChecks 名单并在 guidance 点名；2 例测试 |
 | 第 11 轮 | #26 | health-check | scripts/health.mjs 六项指标 + docs/CHECKLIST.md 四项人工项；首跑修掉 5 处术语漂移；4 例测试 |
 | 第 12 轮 | #27 | precheck-details | precheck 增加 requiredReviews / requiredChecks / recentCommits；1 例测试 |
+| 第 13 轮 | #28 | multi-issue-pr | open_pr 支持 issues 数组，逐个补 Closes 且去重；1 例测试 |
