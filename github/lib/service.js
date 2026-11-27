@@ -1654,6 +1654,17 @@ export async function prStatus(run, options = {}) {
 }
 
 /**
+ * GitHub 侧的瞬时失败：网络抖动、5xx、限流。这类错误重试一次通常就过。
+ * @param {string} diagnostic - gh 的错误输出
+ * @returns {boolean} 是否值得重试
+ */
+export function isTransientGhFailure(diagnostic) {
+  return /timed out|timeout|connection (?:reset|refused|closed)|network is unreachable|tls handshake|\b50[234]\b|rate limit|secondary rate/iu.test(
+    String(diagnostic ?? ''),
+  )
+}
+
+/**
  * Merge one pull request and delete its branch.
  * @param {Function} run - command runner.
  * @param {{ path?: string; sessionCwd?: string; signal?: AbortSignal; pr?: unknown; method?: unknown; deleteBranch?: unknown; auto?: unknown }} options - merge settings.
@@ -1686,7 +1697,13 @@ export async function mergePr(run, options = {}) {
     const argv = ['pr', 'merge', target, '--repo', check.slug, `--${method}`]
     if (deleteBranch) argv.push('--delete-branch')
     if (options.auto === true) argv.push('--auto')
-    const merged = await runGh(run, argv, check.repositoryRoot, options.signal)
+    // 瞬时失败重试一次：不 sleep，直接重发；永久失败（不可合并、缺权限）不重试。
+    let merged = await runGh(run, argv, check.repositoryRoot, options.signal)
+    let retried = false
+    if (merged.exitCode !== 0 && isTransientGhFailure(merged.stderr || merged.stdout)) {
+      retried = true
+      merged = await runGh(run, argv, check.repositoryRoot, options.signal)
+    }
     if (merged.exitCode !== 0) {
       const classified = classifyGitHubDiagnostic(merged.stderr || merged.stdout, check.host)
       return failure(
@@ -1696,7 +1713,7 @@ export async function mergePr(run, options = {}) {
         {
           ...repositoryIdentity(check),
           mergeMethod: method,
-          guidance: `${classified.guidance} Run pr_status to see what the branch still needs, and do not claim a merge.`,
+          guidance: `${classified.guidance}${retried ? ' (retried once after a transient failure)' : ''} Run pr_status to see what the branch still needs, and do not claim a merge.`,
         },
       )
     }
@@ -1714,6 +1731,22 @@ export async function mergePr(run, options = {}) {
       info = null
     }
     const state = info !== null && typeof info.state === 'string' ? info.state : undefined
+    // auto 模式要确认真的排队了，别把「已下发 --auto」当成「已合并」。
+    let autoQueued
+    if (options.auto === true) {
+      const autoView = await runGh(
+        run,
+        ['pr', 'view', target, '--repo', check.slug, '--json', 'autoMergeRequest'],
+        check.repositoryRoot,
+        options.signal,
+      )
+      try {
+        const autoInfo = JSON.parse(autoView.stdout)
+        autoQueued = autoInfo?.autoMergeRequest != null
+      } catch {
+        autoQueued = undefined
+      }
+    }
     const done = state === 'MERGED'
     return compact({
       ok: true,
@@ -1725,6 +1758,7 @@ export async function mergePr(run, options = {}) {
       merged: done,
       mergeMethod: method,
       branchDeleted: deleteBranch && done,
+      ...(autoQueued === undefined ? {} : { autoQueued }),
       message: done
         ? `Merged pull request ${target} with a ${method} commit.`
         : `Merge accepted; the pull request is ${String(state ?? 'not yet merged')}.`,

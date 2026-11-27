@@ -76,6 +76,7 @@ export const RESULT_FIELDS = Object.freeze({
   merged: { type: 'boolean' },
   mergeMethod: { type: 'string', enum: ['squash', 'merge', 'rebase'] },
   branchDeleted: { type: 'boolean' },
+  autoQueued: { type: 'boolean' },
   closed: { type: 'boolean' },
   alreadyClosed: { type: 'boolean' },
   commented: { type: 'boolean' },

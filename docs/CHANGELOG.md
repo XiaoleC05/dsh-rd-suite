@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.17.1 — 2026-11-27
+
+- `merge_pr` 对瞬时失败（超时、连接重置、5xx、限流）重试一次，永久失败不重试；
+  重试过会在 guidance 里注明。
+- `auto` 模式用 `gh pr view --json autoMergeRequest` 确认是否真的排队，结果带 `autoQueued`。
+- result-schema 增加 `autoQueued`；新增 2 例测试；全量 182/182。
 ## 0.17.0 — 2026-11-27
 
 - `open_pr` 新增 `issues` 数组：一个 PR 收口多个模块时，为每个编号补一行 `Closes #N`，

@@ -744,3 +744,45 @@ test('open_pr 一次关联多个 Issue：逐个补关闭关键词且不重复', 
   assert.equal((secondBody.match(/Closes #9/gu) ?? []).length, 1, '已有的不重复补')
   assert.ok(secondBody.includes('Closes #12'))
 })
+
+test('merge_pr：瞬时失败重试一次，永久失败不重试', async () => {
+  let attempts = 0
+  const flaky = makeRun({
+    prMerge: () => {
+      attempts += 1
+      return attempts === 1 ? failed('gh: connection reset by peer') : ok('')
+    },
+    prView: () => ok(JSON.stringify({ number: 43, url: 'https://github.com/acme/widgets/pull/43', state: 'MERGED' })),
+  })
+  const recovered = await mergePr(flaky.run, { path: targetFile, pr: '43' })
+  assert.equal(recovered.ok, true)
+  assert.equal(recovered.merged, true)
+  assert.equal(attempts, 2, '瞬时失败应当重试一次')
+
+  let hard = 0
+  const blocked = makeRun({
+    prMerge: () => {
+      hard += 1
+      return failed('gh: Pull request is not mergeable: the merge commit cannot be cleanly created')
+    },
+  })
+  const refused = await mergePr(blocked.run, { path: targetFile, pr: '43' })
+  assert.equal(refused.ok, false)
+  assert.equal(hard, 1, '永久失败不应重试')
+})
+
+test('merge_pr：auto 模式确认排队状态', async () => {
+  const queued = makeRun({
+    prMerge: () => ok(''),
+    prView: (argv) => {
+      const json = argv.includes('autoMergeRequest')
+        ? { autoMergeRequest: { enabledBy: { login: 'octocat' } } }
+        : { number: 43, url: 'https://github.com/acme/widgets/pull/43', state: 'OPEN' }
+      return ok(JSON.stringify(json))
+    },
+  })
+  const result = await mergePr(queued.run, { path: targetFile, pr: '43', auto: true })
+  assert.equal(result.ok, true)
+  assert.equal(result.autoQueued, true)
+  assert.match(result.guidance, /Auto-merge is queued/u)
+})
