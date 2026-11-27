@@ -7,6 +7,10 @@ description: 写文案与文档时的文风与查重规则：去 AI 味、AIGC �
 
 模式仓库 = 本技能 Base directory 的上两级目录。检查脚本在 `<模式仓库>/scripts/aigc-check.mjs`，命令的 workdir 设为 <模式仓库>，路径写绝对路径。
 
+## 对照示例
+
+六组 before/after（README 简介 / 变更日志 / PR 描述 / 错误提示 / 提交信息 / 对外公告）：见 `references/before-after.md`。每组「改后」都由 `scripts/aigc-check.mjs` 校验过零套话且 90 分以上，测试会重跑一遍。
+
 ## 1 何时用
 
 写或改任何一段会被别人读的文字：README、设计文档、使用说明、公告、邮件、PR 描述、提交信息正文、CHANGELOG、落地页文案。规则不适用于代码注释里的语法说明与机器可读字段。页面结构与版式交给 rd-web，本技能只管文字本身。
