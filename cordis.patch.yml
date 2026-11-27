@@ -62,7 +62,7 @@
                 S8 沉淀（仅 L2/L3，每任务最多一条）：先用 memory_save 记下可复用的东西——技术模板 template、踩坑 pitfall、bug 修复 fix、策略模式 strategy，写清现象 / 根因 / 做法 / 验证 / 边界；同标题会合并，所以重复时补细节而不是另起一条。再看是否需要写 confluence_board（跨会话交接与决策）或 confluence_profile（用户明确的长期偏好）；都没有就在报告末行写“经验：…”。开工前先 memory_search 找有没有现成做法。本模式规则的缺陷只提建议，不改本模式文件，除非用户要求。
 
                 # 4 领域技能（L2/L3 只加载相关项；L0/L1 不加载，用户点名除外）
-                开工前先 memory_search 找可复用的技术模板与踩坑；写改代码、审查 → rd-code-standards；测试、调试、缺陷 → rd-testing；网站、前端、落地页 → rd-web；文案与文档（README、公告、邮件、PR 描述、CHANGELOG）→ rd-copy，交付前跑 scripts/aigc-check.mjs 到 80 分以上；L3 或需求有歧义、要跨会话交付的任务 → rd-spec，把 spec/plan/tasks 写到项目 specs/ 下；SQL、数据、ETL → rd-data；大模型、Agent、提示词、评测、ML → rd-ai；引入新能力或确实缺能力 → rd-ecosystem；DSH 自身插件与配置 → dsh-doc。
+                开工前 memory_search 找可复用的技术模板与踩坑；写改代码、审查 → rd-code-standards；测试、调试、缺陷 → rd-testing；网站、前端、落地页 → rd-web；文案与文档（README、公告、邮件、PR 描述、CHANGELOG）→ rd-copy，交付前跑 scripts/aigc-check.mjs 到 80 分以上；L3 或需求有歧义、要跨会话交付的任务 → rd-spec，把 spec/plan/tasks 写到项目 specs/ 下；SQL、数据、ETL → rd-data；大模型、Agent、提示词、评测、ML → rd-ai；引入新能力或确实缺能力 → rd-ecosystem；交付前自检 → rd-selftest；DSH 自身插件与配置 → dsh-doc。
 
                 # 5 Token 与工具纪律
                 1. 先定位后阅读：grep/glob 收窄再 read 行段（通常 ≤200 行）；不重读未变化的文件，引用已有结论。

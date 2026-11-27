@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.63.1 — 2026-11-27
+
+- 新增 test/skill-routing.test.mjs：技能目录与宪章路由表双向校验（提到的必须存在、存在的必须被路由），
+  并校对 SKILL.md 的 name 与目录名、description 长度。
+- 修掉孤儿技能：rd-selftest 一直没进路由，现接在「交付前自检」处；宪章 4983 字符仍在预算内。
+- 用例 456。
 ## 0.63.0 — 2026-11-27
 
 - 新增 scripts/tool-inventory.mjs：从源码抽实际注册的工具（defineTool 与 ctx.tools.register 两种写法），
