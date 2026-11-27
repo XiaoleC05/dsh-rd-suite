@@ -9,7 +9,10 @@
 export const DEFAULT_COMMAND_TIMEOUT_MS = 20_000;
 
 /** Maximum captured bytes per output stream. */
-export const COMMAND_OUTPUT_LIMIT_BYTES = 1024 * 1024;
+import { LIMITS } from '../../lib/limits.js'
+
+/** 保留导出名，实际数值来自 lib/limits.js。 */
+export const COMMAND_OUTPUT_LIMIT_BYTES = LIMITS.commandOutputBytes;
 
 /** Termination grace period for one managed process. */
 export const COMMAND_GRACE_MS = 1_500;

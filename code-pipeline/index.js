@@ -24,10 +24,11 @@ import { buildStatePayload, buildStandardizePayload, summarizeForTool, errorPayl
 import { homedir } from 'node:os'
 
 import { auditHistoryFile } from './lib/history.js'
+import { LIMITS } from '../lib/limits.js'
 import { collectStatus } from './lib/status.js'
 
 const API_PREFIX = '/dsh-code-pipeline/api'
-const BODY_LIMIT = 2 * 1024 * 1024
+const BODY_LIMIT = LIMITS.httpBodyBytes
 const MAX_PATH_LENGTH = 4096
 
 export const inject = ['tools', 'webServer']

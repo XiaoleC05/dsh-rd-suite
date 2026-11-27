@@ -8,6 +8,7 @@
  * 不带浏览器信任闸门，没有 Connection 服务的部署一律失败关闭（503）。
  */
 
+import { LIMITS } from '../../lib/limits.js'
 import { createRequestGuard, REJECTION_HEADERS } from '../../code-pipeline/lib/trust.js'
 import { findEntry, recordHits, searchEntries } from './search.js'
 import { listEntries, readMemory, writeMemory } from './store.js'
@@ -48,14 +49,14 @@ export function createMemoryHandlers({ file, maxEntries }) {
         query,
         type: url.searchParams.get('type') ?? undefined,
         tag: url.searchParams.get('tag') ?? undefined,
-        limit: Number(url.searchParams.get('limit') ?? '50'),
+        limit: Number(url.searchParams.get('limit') ?? String(LIMITS.listItems)),
         offset: Number(url.searchParams.get('offset') ?? '0'),
       })
       if (query === '') {
         const plain = listEntries(document, {
           type: url.searchParams.get('type') ?? undefined,
           tag: url.searchParams.get('tag') ?? undefined,
-          limit: Number(url.searchParams.get('limit') ?? '50'),
+          limit: Number(url.searchParams.get('limit') ?? String(LIMITS.listItems)),
           offset: Number(url.searchParams.get('offset') ?? '0'),
         })
         return json({ ok: true, total: plain.total, entries: plain.entries })

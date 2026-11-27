@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.57.1 — 2026-11-27
+
+- 新增 lib/limits.js：命令输出字节 / HTTP 请求体 / 工具文本字符 / 列表条数 / 诊断字符五项上限集中定义，
+  附 truncateText（截断后标明截掉多少）。
+- github 的命令输出上限、code-pipeline 的请求体上限、记忆列表条数都改为引用同一份常量；
+  github 保留原导出名以免破坏调用方。
+- 用例 386。
 ## 0.57.0 — 2026-11-27
 
 - 新增 skills/rd-ecosystem/references/run-code-examples.md：四个正例（批量读取汇总 / 扇出扫描合并 /
