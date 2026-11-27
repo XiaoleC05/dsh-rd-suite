@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.66.2 — 2026-11-27
+
+- 新增 scripts/release-notes.mjs：从 CHANGELOG 取版本块，按新增 / 修复 / 文档分桶，套用户向四段模板；
+  「一句话变化」与「需要你做什么」留占位，机器不猜。
+- 新增 skills/rd-copy/references/release-notes.md：四段结构与措辞规则（不用「优化 / 完善」，写可观察差异）。
+- 用例 527。
 ## 0.66.1 — 2026-11-27
 
 - 新增 test/package-manifest.test.mjs：枚举 scripts / lib / docs / skills / 三个成员目录的真实文件，

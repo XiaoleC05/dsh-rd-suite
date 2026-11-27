@@ -57,6 +57,10 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## 发布说明
+
+`node scripts/release-notes.mjs --version 0.66.1` 从 CHANGELOG 取版本块，按新增 / 修复 / 文档分桶，套用户向四段模板；「一句话变化」与「需要你做什么」留占位由人补。措辞规则见 `skills/rd-copy/references/release-notes.md`。
+
 ## 无证据断言
 
 `node scripts/claim-audit.mjs --strict 草稿.md` 逐句找「已完成 / 全部通过 / 应该可以」这类断言，要求同句或邻近几行里有证据（命令、比例、测试输出、`文件:行`、箭头结果）；写了「未验证 / 未做」的诚实标注不报。**用途是交付报告草稿**，不是历史账本——账本的证据在提交里，不在行内。

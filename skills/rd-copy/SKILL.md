@@ -8,6 +8,10 @@ description: 写文案与文档时的文风与查重规则：去 AI 味、AIGC �
 
 模式仓库 = 本技能 Base directory 的上两级目录。检查脚本在 `<模式仓库>/scripts/aigc-check.mjs`，命令的 workdir 设为 <模式仓库>，路径写绝对路径。
 
+## 发布说明
+
+面向用户的发布说明四段（一句话变化 / 你会遇到什么不同 / 需要你做什么 / 已知问题）：见 `references/release-notes.md`。草稿用 `node scripts/release-notes.mjs` 从 CHANGELOG 生成，占位段落需要人补。
+
 ## 对照示例
 
 六组 before/after（README 简介 / 变更日志 / PR 描述 / 错误提示 / 提交信息 / 对外公告）：见 `references/before-after.md`。每组「改后」都由 `scripts/aigc-check.mjs` 校验过零套话且 90 分以上，测试会重跑一遍。
