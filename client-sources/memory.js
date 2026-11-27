@@ -123,7 +123,7 @@ window.__ModuleLoader__.load({
         flex: 1,
         minHeight: 0,
         display: 'grid',
-        gridTemplateColumns: 'minmax(240px, 34%) 1fr',
+        gridTemplateColumns: 'minmax(min(240px, 100%), 34%) 1fr',
         gap: 0,
       },
       list: {

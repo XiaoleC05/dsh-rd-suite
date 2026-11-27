@@ -1488,7 +1488,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         flex: 1,
         minHeight: 0,
         display: 'grid',
-        gridTemplateColumns: 'minmax(240px, 34%) 1fr',
+        gridTemplateColumns: 'minmax(min(240px, 100%), 34%) 1fr',
         gap: 0,
       },
       list: {
