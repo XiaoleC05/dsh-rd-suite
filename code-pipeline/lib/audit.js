@@ -13,6 +13,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
+import { statSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 
 import { classify } from './languages.js'
@@ -100,6 +101,24 @@ export function groupByLanguage(audit, paths) {
 }
 
 /**
+ * 合并两组语言统计。
+ * @param {object[]} left - 第一组
+ * @param {object[]} right - 第二组
+ * @returns {object[]} 合并结果，按语言名排序
+ */
+export function mergeLanguageGroups(left, right) {
+  const merged = new Map()
+  for (const group of [...left, ...right]) {
+    const current = merged.get(group.language) ?? { language: group.language, checked: 0, fixed: 0, needsFix: 0 }
+    current.checked += group.checked
+    current.fixed += group.fixed
+    current.needsFix += group.needsFix
+    merged.set(group.language, current)
+  }
+  return [...merged.values()].sort((a, b) => a.language.localeCompare(b.language))
+}
+
+/**
  * 把分组压成一行可读摘要。
  * @param {{ language: string; checked: number; fixed: number; needsFix: number }[]} groups - 分组
  * @returns {string} 摘要，如 `javascript 3 检 1 修；python 1 检 0 修`
@@ -173,6 +192,86 @@ export async function auditChanged(options) {
   return auditFiles(files, { mode: options.mode === 'report' ? 'report' : 'fix' })
 }
 
+
+/**
+ * 进程内审计缓存：绝对路径 → 文件指纹与上次判定。
+ * 文件指纹用 mtime + size，任一变化即失效；只缓存「干净」的判定，
+ * 有问题或解析失败的文件每次都重新检查，避免把一次失败永远记住。
+ */
+const AUDIT_CACHE = new Map()
+
+/** 缓存键统一成正斜杠，避免 Windows 反斜杠与审计结果里的路径对不上。 */
+function cacheKey(absolute) {
+  return String(absolute).replaceAll('\\', '/')
+}
+
+/** 清空缓存（测试与长时间运行后的手动重置用）。 */
+export function clearAuditCache() {
+  AUDIT_CACHE.clear()
+}
+
+/**
+ * 缓存现状。
+ * @returns {{ size: number }} 条目数
+ */
+export function auditCacheStats() {
+  return { size: AUDIT_CACHE.size }
+}
+
+/**
+ * 读文件指纹，读不到返回 null。
+ * @param {string} absolute - 绝对路径
+ * @returns {{ mtimeMs: number; size: number } | null} 指纹
+ */
+function fingerprint(absolute) {
+  try {
+    const stats = statSync(absolute)
+    return { mtimeMs: stats.mtimeMs, size: stats.size }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 按缓存把待审文件分成「可直接跳过」与「需要复审」两组。
+ * @param {readonly string[]} files - 绝对路径
+ * @returns {{ fresh: string[]; cached: string[] }} 分组
+ */
+function splitByCache(files) {
+  const fresh = []
+  const cached = []
+  for (const absolute of files) {
+    const print = fingerprint(absolute)
+    const known = AUDIT_CACHE.get(cacheKey(absolute))
+    if (print !== null && known !== undefined && known.mtimeMs === print.mtimeMs && known.size === print.size) {
+      cached.push(absolute)
+      continue
+    }
+    if (print === null) AUDIT_CACHE.delete(cacheKey(absolute))
+    fresh.push(absolute)
+  }
+  return { fresh, cached }
+}
+
+/**
+ * 记录审计后的判定：只有干净的文件进缓存。
+ * @param {readonly string[]} files - 参与本次审计的文件
+ * @param {{ files: string[]; remaining: number }} audit - 审计摘要
+ * @returns {void}
+ */
+function rememberVerdicts(files, audit) {
+  const dirty = new Set((Array.isArray(audit.files) ? audit.files : []).map(cacheKey))
+  for (const absolute of files) {
+    const print = fingerprint(absolute)
+    if (print === null) continue
+    if (dirty.has(cacheKey(absolute))) {
+      AUDIT_CACHE.delete(cacheKey(absolute))
+      continue
+    }
+    AUDIT_CACHE.set(cacheKey(absolute), { mtimeMs: print.mtimeMs, size: print.size })
+  }
+}
+
 /**
  * Audit the files one module touched.
  * @param {readonly string[]} files - absolute paths of files the module wrote.
@@ -181,10 +280,24 @@ export async function auditChanged(options) {
  */
 export async function auditFiles(files, options = {}) {
   const mode = options.mode === 'report' ? 'report' : 'fix'
-  const groups = groupByDirectory(files)
-  if (groups.size === 0) return { checked: 0, needsFix: 0, fixed: 0, remaining: 0, files: [], byLanguage: [] }
+  const requested = files.filter((file) => typeof file === 'string' && file !== '')
+  // 未变化的文件直接跳过：只有上次判定干净、且 mtime 与 size 都没变才算命中。
+  const useCache = options.cache !== false
+  const { fresh, cached } = useCache ? splitByCache(requested) : { fresh: requested, cached: [] }
+  const groups = groupByDirectory(fresh)
+  if (groups.size === 0) {
+    return {
+      checked: cached.length,
+      needsFix: 0,
+      fixed: 0,
+      remaining: 0,
+      files: [],
+      cached: cached.length,
+      byLanguage: groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
+    }
+  }
 
-  const originalPaths = files.filter((file) => typeof file === 'string' && file !== '')
+  const originalPaths = requested
   const report = await runPass(groups, 'report')
   if (mode === 'report') {
     const summary = {
@@ -194,11 +307,29 @@ export async function auditFiles(files, options = {}) {
       remaining: report.failed.length,
       files: report.changed,
     }
-    return { ...summary, byLanguage: groupByLanguage(summary, originalPaths) }
+    if (useCache) rememberVerdicts(fresh, summary)
+    return {
+      ...summary,
+      checked: summary.checked + cached.length,
+      cached: cached.length,
+      byLanguage: mergeLanguageGroups(
+        groupByLanguage(summary, fresh),
+        groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
+      ),
+    }
   }
   if (report.changed.length === 0) {
     const summary = { checked: report.checked, needsFix: 0, fixed: 0, remaining: report.failed.length, files: [] }
-    return { ...summary, byLanguage: groupByLanguage(summary, originalPaths) }
+    if (useCache) rememberVerdicts(fresh, summary)
+    return {
+      ...summary,
+      checked: summary.checked + cached.length,
+      cached: cached.length,
+      byLanguage: mergeLanguageGroups(
+        groupByLanguage(summary, fresh),
+        groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
+      ),
+    }
   }
 
   const fixGroups = groupByDirectory(report.changed)
@@ -211,5 +342,14 @@ export async function auditFiles(files, options = {}) {
     remaining: report.failed.length + applied.failed.length + applied.changed.length,
     files: report.changed,
   }
-  return { ...summary, byLanguage: groupByLanguage(summary, originalPaths) }
+  if (useCache) rememberVerdicts(fresh, summary)
+  return {
+    ...summary,
+    checked: summary.checked + cached.length,
+    cached: cached.length,
+    byLanguage: mergeLanguageGroups(
+      groupByLanguage(summary, fresh),
+      groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
+    ),
+  }
 }

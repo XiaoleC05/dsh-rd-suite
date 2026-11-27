@@ -64,7 +64,7 @@ test('report 模式只检查、不改文件', async () => {
 
 test('没有文件时返回全零，不抛错', async () => {
   const audit = await auditFiles([], { mode: 'fix' })
-  assert.deepEqual(audit, { checked: 0, needsFix: 0, fixed: 0, remaining: 0, files: [], byLanguage: [] })
+  assert.deepEqual(audit, { checked: 0, needsFix: 0, fixed: 0, remaining: 0, files: [], cached: 0, byLanguage: [] })
 })
 
 test('不存在的路径不会让审计崩掉', async () => {

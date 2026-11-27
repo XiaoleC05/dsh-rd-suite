@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.22.0 — 2026-11-27
+
+- 审计增加进程内缓存：按 mtime + size 判定文件是否变过，命中且上次干净就直接计为 cached；
+  有问题的文件不进缓存，每次复审都要重新报告；`cache: false` 可绕过。
+- 新增 `clearAuditCache` / `auditCacheStats` / `mergeLanguageGroups`；返回结果带 `cached`，
+  语言分组把命中缓存的文件也统计进去。
+- 新增 `test/audit-cache.test.mjs`（5 例）；全量 206/206。
 ## 0.21.0 — 2026-11-27
 
 - 新增「只审改动文件」入口：`parseGitStatus` / `changedPaths` / `auditChanged`，

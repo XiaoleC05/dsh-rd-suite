@@ -67,7 +67,7 @@
 | 043 | 无法格式化的文件给出原因分类 | 待做 | |
 | 044 | 只审 git 改动文件 | 完成 | #34 |
 | 045 | 审计耗时统计 | 待做 | |
-| 046 | 未变化文件跳过（缓存） | 待做 | |
+| 046 | 未变化文件跳过（缓存） | 完成 | #35 |
 | 047 | 面板展示审计历史 | 待做 | |
 | 048 | 审计结果进交付报告模板 | 待做 | |
 | 049 | 有 CI 时对齐 CI 命令 | 待做 | |
@@ -176,3 +176,4 @@
 | 第 17 轮 | #32 | divergence-hint | precheck 给出 ahead/behind/diverged 并在分叉时给 rebase 步骤；1 例测试（四种情形） |
 | 第 18 轮 | #33 | audit-grouping | auditFiles 返回 byLanguage 与一行摘要，close_issue 带 codeAuditByLanguage；3 例测试 |
 | 第 19 轮 | #34 | audit-changed | parseGitStatus / changedPaths / auditChanged + scripts/audit-changed.mjs；5 例测试 |
+| 第 20 轮 | #35 | audit-cache | 按 mtime+size 的进程内缓存，只缓存干净判定；5 例测试 |
