@@ -2,6 +2,16 @@
 
 每轮优化都走同一条流水线，不做临场发挥。账本在 [ITERATIONS.md](ITERATIONS.md)。
 
+## 记账
+
+账本别手改，用命令：
+
+```
+node scripts/ledger.mjs --list 待做
+node scripts/ledger.mjs --mark 022 完成 --issue "#58"
+node scripts/ledger.mjs --append-round 43 "#58" ledger-cli "账本脚本上线"
+```
+
 ## 开工前
 
 新会话或中断后接手，先跑：
