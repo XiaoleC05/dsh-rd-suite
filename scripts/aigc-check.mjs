@@ -434,6 +434,88 @@ export function analyze(text, options = {}) {
  * @param {{ threshold?: number }} [options] - 阈值，默认 60
  * @returns {{ count: number; mean: number; lowest: { file: string; score: number } | null; below: { file: string; score: number }[] }} 汇总
  */
+/** 套话的具体替换建议：能直接换的给具体词，换不了的给方向。 */
+export const CLICHE_REPLACEMENTS = {
+  赋能: '换成「让……可以做……」，或直接写做法',
+  一站式: '列出实际包含的几步，别用打包词',
+  全方位: '写出覆盖的具体范围',
+  全面提升: '给出提升前后的数字',
+  极大地: '删掉程度副词，用数字说明幅度',
+  显著地: '同上：用差值代替副词',
+  深刻地: '删掉，直接说结论',
+  助力: '换成「帮助」或直接写做了什么',
+  颠覆: '说明改变了什么行为，别用评价词',
+  无缝: '说明衔接方式',
+  极致: '给出可测的性能或体验指标',
+  领先: '给出对比对象与差距数值',
+  世界一流: '换成可核对的基准',
+  不容忽视: '说明不忽视的后果',
+  至关重要: '说明影响链条',
+  必不可少: '说明缺了会怎样',
+  众所周知: '删掉，直接陈述事实',
+  毋庸置疑: '删掉，让证据说话',
+  不难发现: '删掉，直接给结论',
+  值得注意的: '删掉，直接说重点',
+  在当今: '从读者遇到的问题开始',
+  随着: '从具体时间点或事件开始',
+  由此可见: '删掉，直接给结论',
+  总的来说: '删掉；总结句往往可以省',
+  综上所述: '删掉；同上',
+}
+
+/**
+ * 把一次分析结果转成可执行的改写建议。
+ * @param {{ file: string; hits: object }} result - 单份分析结果
+ * @returns {{ file: string; line: number; what: string; suggestion: string }[]} 建议
+ */
+export function suggestFixes(result) {
+  const file = String(result?.file ?? '')
+  const hits = result?.hits ?? {}
+  const suggestions = []
+
+  for (const hit of Array.isArray(hits.cliches) ? hits.cliches : []) {
+    suggestions.push({
+      file,
+      line: Number(hit.firstLine) || 0,
+      what: `套话「${hit.word}」×${hit.count}`,
+      suggestion: CLICHE_REPLACEMENTS[hit.word] ?? '换成一个具体事实或数字',
+    })
+  }
+  for (const hit of Array.isArray(hits.templateOpeners) ? hits.templateOpeners : []) {
+    suggestions.push({
+      file,
+      line: Number(hit.firstLine) || 0,
+      what: `模板化开头「${hit.word ?? hit.phrase ?? ''}」`,
+      suggestion: '从读者的问题或一个具体数字开始',
+    })
+  }
+  for (const hit of Array.isArray(hits.connectors) ? hits.connectors : []) {
+    suggestions.push({
+      file,
+      line: Number(hit.firstLine) || 0,
+      what: `连接词堆叠「${hit.word ?? ''}」×${hit.count}`,
+      suggestion: '一段里保留一个过渡即可，其余删掉',
+    })
+  }
+  for (const hit of Array.isArray(hits.patterns) ? hits.patterns : []) {
+    suggestions.push({
+      file,
+      line: Number(hit.firstLine) || 0,
+      what: `结构痕迹：${hit.label}`,
+      suggestion: String(hit.hint ?? '按提示改写该段'),
+    })
+  }
+  for (const hit of Array.isArray(hits.repeatedPhrases) ? hits.repeatedPhrases : []) {
+    suggestions.push({
+      file,
+      line: 0,
+      what: `重复片段「${hit.phrase}」×${hit.count}`,
+      suggestion: '换一种句式，或把并列改成斜杠清单',
+    })
+  }
+  return suggestions
+}
+
 export function summarizeScores(results, options = {}) {
   const threshold = Number.isFinite(options.threshold) ? options.threshold : 60
   const scored = (Array.isArray(results) ? results : []).filter(
@@ -484,6 +566,17 @@ export function main(argv) {
 
   if (json) {
     process.stdout.write(`${JSON.stringify(results, null, 2)}\n`)
+  } else if (argv.includes('--fix-suggest')) {
+    const suggestions = results.flatMap((result) => (result.error === undefined ? suggestFixes(result) : []))
+    if (suggestions.length === 0) {
+      process.stdout.write('没有需要改写的地方\n')
+    } else {
+      process.stdout.write(`${suggestions.length} 条改写建议：\n`)
+      for (const item of suggestions) {
+        const where = item.line > 0 ? `:${item.line}` : ''
+        process.stdout.write(`  ${item.file}${where} ${item.what}\n    → ${item.suggestion}\n`)
+      }
+    }
   } else if (argv.includes('--summary')) {
     // 批量场景只要一张表和一行结论：文件太多时逐份明细没人看。
     const summary = summarizeScores(results, { threshold: minScore })

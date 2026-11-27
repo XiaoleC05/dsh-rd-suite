@@ -10,7 +10,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, before, test } from 'node:test'
 
-import { analyze, main, mergeCliches, readBannedWords, summarizeScores } from '../scripts/aigc-check.mjs'
+import {
+  analyze,
+  CLICHE_REPLACEMENTS,
+  main,
+  mergeCliches,
+  readBannedWords,
+  suggestFixes,
+  summarizeScores,
+} from '../scripts/aigc-check.mjs'
 
 const AI_ISH = `在当今快速发展的数字时代，数据已经成为企业最重要的资产之一。首先，我们需要建立统一的数据治理体系。其次，我们需要完善数据质量监控机制。最后，我们需要持续优化数据服务能力。综上所述，数据治理是一项系统性工程，需要我们全方位、多层次地推进。这不仅能极大地提升效率，还能显著地降低成本，助力企业实现数字化转型，赋能业务增长。值得注意的是，数据治理并非一蹴而就，而是一个持续演进的过程。由此可见，只有坚持不懈，才能真正释放数据价值。`
 
@@ -205,4 +213,32 @@ test('分数汇总：低于阈值的清单按分数升序', () => {
     summary.below.map((item) => item.score),
     [20, 30, 40],
   )
+})
+
+test('改写建议：已知套话给具体替换，未知给通用方向', () => {
+  const result = analyze('在当今这个时代，我们提供一站式方案，极大地助力团队，另外还有某某词。')
+  const suggestions = suggestFixes({ file: 'a.md', hits: result.hits })
+  assert.ok(suggestions.length >= 3, '应当给出多条建议')
+
+  const oneStop = suggestions.find((item) => item.what.includes('一站式'))
+  assert.ok(oneStop !== undefined)
+  assert.equal(oneStop.suggestion, CLICHE_REPLACEMENTS['一站式'])
+  assert.equal(oneStop.file, 'a.md')
+  assert.ok(oneStop.line > 0, '要能定位到行号')
+})
+
+test('改写建议：结构痕迹复用 hint，重复片段给句式建议', () => {
+  const result = analyze('这不是工具，而是平台。\n\n这不是工具，而是平台。\n\n这不是工具，而是平台。')
+  const suggestions = suggestFixes({ file: 'b.md', hits: result.hits })
+  const pattern = suggestions.find((item) => item.what.startsWith('结构痕迹'))
+  assert.ok(pattern !== undefined)
+  assert.match(pattern.suggestion, /结论|对峙|对比/u)
+
+  const repeated = suggestions.find((item) => item.what.startsWith('重复片段'))
+  if (repeated !== undefined) assert.match(repeated.suggestion, /斜杠|句式/u)
+})
+
+test('改写建议：干净文本返回空数组', () => {
+  const result = analyze('重试上限三次。实测 42 次运行，尾延迟从 1.9 秒降到 0.6 秒。')
+  assert.deepEqual(suggestFixes({ file: 'c.md', hits: result.hits }), [])
 })
