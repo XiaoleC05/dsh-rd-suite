@@ -16,6 +16,18 @@
 | 8 关闭 | `close_issue` 带验证证据；模块审计结果一并记录 | Issue 关闭 |
 | 9 记账 | 更新 ITERATIONS.md 的状态、提交号、评估结论 | 下一轮输入 |
 
+## 推送失败时的回退
+
+`git push` 的 receive-pack POST 在某些链路上会挂起（`git ls-remote` 与 `gh api` 却正常）。
+按顺序处理，不跳过、不改用别的交付方式：
+
+1. 重试一次，确认不是瞬时抖动。
+2. `node scripts/push-via-api.mjs --dry-run` 看要上传多少文件、是否会与远端分叉。
+3. `node scripts/push-via-api.mjs` 走 Git Data API 推送（快进校验通不过就停下 rebase）。
+4. `git fetch origin && git reset --hard origin/<branch>` 对齐历史：内容一致，提交号换成 API 建的那个。
+5. 在当轮 Issue 里写明「API 回退推送」与实际提交号，别写成本地号。
+
+API 推送的提交作者是 token 用户、时间为当时，只作回退；能走 `git push` 时仍用 `git push`。
 ## 什么算「正向」
 
 一轮只有同时满足下列条件才计入迭代次数：

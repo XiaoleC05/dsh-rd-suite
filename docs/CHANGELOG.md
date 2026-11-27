@@ -1,5 +1,13 @@
 # 变更日志
 
+## 0.10.1 — 2026-11-27
+
+- 新增推送回退通道：`scripts/push-via-api.mjs` 在 `git push` 的 POST 被掐断时，
+  用 Git Data API 上传 blob、建树、建提交并快进 ref；`--dry-run` 先看计划，
+  非快进一律拒绝。
+- 纯逻辑拆到 `scripts/lib/push-plan.mjs`（解析、建树、快进校验、改动分类），
+  由 `test/push-api.test.mjs` 覆盖。
+- 协议补「推送失败时的回退」五步；账本 026 完成。
 ## 0.10.0 — 2026-11-27
 
 - 新增长期记忆模块 `memory/`：技术模板、踩坑、bug 修复方案、策略模式四类，
