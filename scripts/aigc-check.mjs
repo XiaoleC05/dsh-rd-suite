@@ -428,6 +428,28 @@ export function analyze(text, options = {}) {
  * @param {string[]} argv - process.argv.slice(2)
  * @returns {number} 退出码
  */
+/**
+ * 汇总多份文档的分数：均分、最低分与低于阈值的清单。
+ * @param {{ file: string; score: number; error?: string }[]} results - 逐份结果
+ * @param {{ threshold?: number }} [options] - 阈值，默认 60
+ * @returns {{ count: number; mean: number; lowest: { file: string; score: number } | null; below: { file: string; score: number }[] }} 汇总
+ */
+export function summarizeScores(results, options = {}) {
+  const threshold = Number.isFinite(options.threshold) ? options.threshold : 60
+  const scored = (Array.isArray(results) ? results : []).filter(
+    (result) => result !== null && typeof result === 'object' && typeof result.score === 'number' && result.error === undefined,
+  )
+  if (scored.length === 0) return { count: 0, mean: 0, lowest: null, below: [] }
+  const total = scored.reduce((sum, result) => sum + result.score, 0)
+  const sorted = [...scored].sort((left, right) => left.score - right.score)
+  return {
+    count: scored.length,
+    mean: Math.round((total / scored.length) * 10) / 10,
+    lowest: { file: sorted[0].file, score: sorted[0].score },
+    below: sorted.filter((result) => result.score < threshold).map((result) => ({ file: result.file, score: result.score })),
+  }
+}
+
 export function main(argv) {
   const json = argv.includes('--json')
   const bannedIndex = argv.indexOf('--banned')
@@ -462,6 +484,15 @@ export function main(argv) {
 
   if (json) {
     process.stdout.write(`${JSON.stringify(results, null, 2)}\n`)
+  } else if (argv.includes('--summary')) {
+    // 批量场景只要一张表和一行结论：文件太多时逐份明细没人看。
+    const summary = summarizeScores(results, { threshold: minScore })
+    for (const result of results) {
+      process.stdout.write(`${result.error === undefined ? String(result.score).padStart(3, ' ') : '  -'}  ${result.file}\n`)
+    }
+    process.stdout.write(
+      `${summary.count} 份 · 均分 ${summary.mean} · 最低 ${summary.lowest?.file ?? '无'} ${summary.lowest?.score ?? ''} · 低于 ${minScore} 分 ${summary.below.length} 份\n`,
+    )
   } else {
     for (const result of results) {
       if (result.error !== undefined) {

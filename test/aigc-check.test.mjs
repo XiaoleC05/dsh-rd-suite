@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, before, test } from 'node:test'
 
-import { analyze, main, mergeCliches, readBannedWords } from '../scripts/aigc-check.mjs'
+import { analyze, main, mergeCliches, readBannedWords, summarizeScores } from '../scripts/aigc-check.mjs'
 
 const AI_ISH = `在当今快速发展的数字时代，数据已经成为企业最重要的资产之一。首先，我们需要建立统一的数据治理体系。其次，我们需要完善数据质量监控机制。最后，我们需要持续优化数据服务能力。综上所述，数据治理是一项系统性工程，需要我们全方位、多层次地推进。这不仅能极大地提升效率，还能显著地降低成本，助力企业实现数字化转型，赋能业务增长。值得注意的是，数据治理并非一蹴而就，而是一个持续演进的过程。由此可见，只有坚持不懈，才能真正释放数据价值。`
 
@@ -165,4 +165,44 @@ test('英文 AI 腔能被检出，正常英文与中文不受影响', () => {
 test('破折号密度：一行两个以上才算', () => {
   assert.equal(analyze('a — b').hits.patterns.some((hit) => hit.id === 'em-dash-density'), false)
   assert.equal(analyze('a — b — c').hits.patterns.some((hit) => hit.id === 'em-dash-density'), true)
+})
+
+test('分数汇总：均分、最低分与低于阈值的清单', () => {
+  const summary = summarizeScores(
+    [
+      { file: 'a.md', score: 90 },
+      { file: 'b.md', score: 55 },
+      { file: 'c.md', score: 70 },
+      { file: 'd.md', error: '读不到' },
+    ],
+    { threshold: 60 },
+  )
+  assert.equal(summary.count, 3, '读不到的文件不计入统计')
+  assert.equal(summary.mean, 71.7)
+  assert.deepEqual(summary.lowest, { file: 'b.md', score: 55 })
+  assert.deepEqual(summary.below, [{ file: 'b.md', score: 55 }])
+})
+
+test('分数汇总：等于阈值不算低于，空输入不除零', () => {
+  const edge = summarizeScores([{ file: 'a.md', score: 60 }], { threshold: 60 })
+  assert.deepEqual(edge.below, [])
+  assert.equal(edge.mean, 60)
+
+  const empty = summarizeScores([])
+  assert.deepEqual(empty, { count: 0, mean: 0, lowest: null, below: [] })
+})
+
+test('分数汇总：低于阈值的清单按分数升序', () => {
+  const summary = summarizeScores(
+    [
+      { file: 'x.md', score: 40 },
+      { file: 'y.md', score: 20 },
+      { file: 'z.md', score: 30 },
+    ],
+    { threshold: 50 },
+  )
+  assert.deepEqual(
+    summary.below.map((item) => item.score),
+    [20, 30, 40],
+  )
 })

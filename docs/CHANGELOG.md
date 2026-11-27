@@ -1,5 +1,10 @@
 # 变更日志
 
+## 0.53.1 — 2026-11-27
+
+- AIGC 自检增加 `--summary`：逐份分数加一行汇总（份数 / 均分 / 最低分与文件 / 低于阈值几份），
+  实跑四份文档得到均分 90、最低 README 81。
+- 新增 summarizeScores 纯函数，读不到的文件不计入统计。用例 362。
 ## 0.53.0 — 2026-11-27
 
 - 新增 .github/workflows/checks.yml：push 与 PR 上跑构建、测试与 preflight 七项，Node 22 + pnpm。
