@@ -1399,6 +1399,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         hits: '被检索 {hits} 次',
         updated: '更新于 {time}',
         detailHint: '左侧选一条查看全文',
+        contextRepo: '当前仓库：{repo}',
         capacityWarn: '记忆库已用 {total}/{limit}，接近上限；再写入会按命中与时间淘汰旧条目。',
         unusedHint: '其中 {count} 条从未被检索过：{titles}',
         unusedMore: '等',
@@ -1428,6 +1429,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         hits: 'Retrieved {hits} times',
         updated: 'Updated {time}',
         detailHint: 'Pick an entry on the left',
+        contextRepo: 'Repository: {repo}',
         capacityWarn: 'Memory store at {total}/{limit}; further writes evict older entries by hits and recency.',
         unusedHint: '{count} entries were never retrieved: {titles}',
         unusedMore: 'and more',
@@ -1574,7 +1576,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
       return String(template).replace(/\{(\w+)\}/g, (_match, key) => String(values[key] ?? ''))
     }
 
-    function MemoryPage({ t }) {
+    function MemoryPage({ t, context }) {
       const translate = typeof t === 'function' ? t : (key) => key
       const [query, setQuery] = React.useState('')
       const [type, setType] = React.useState('')
@@ -1887,6 +1889,10 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
             },
             translate('subtitle'),
           ),
+          // 仓库来自入口页的 /status，两个面板共用一份。
+          context !== null && typeof context?.repo === 'string' && context.repo !== ''
+            ? h('p', { style: { margin: 0, fontSize: 12, lineHeight: '18px', color: 'var(--dsw-alias-label-secondary)' } }, fill(translate('contextRepo'), { repo: context.repo }))
+            : null,
         ),
         capacity !== null && typeof capacity.unused === 'number' && capacity.unused > 0
           ? h(
@@ -2731,7 +2737,15 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
       ]
       tabs.forEach((tab, index) => {
         if (!mounted.has(index)) return
-        let pageProps = {}
+        // 共享上下文：/status 拿到的仓库与版本，成员页面用同一份。
+        const sharedContext =
+          status === null
+            ? null
+            : {
+                repo: typeof status.root === 'string' ? status.root : null,
+                version: typeof status.version === 'string' ? status.version : null,
+              }
+        let pageProps = { context: sharedContext }
         try {
           pageProps = tab.getProps() ?? {}
         } catch {

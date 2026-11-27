@@ -34,6 +34,7 @@ window.__ModuleLoader__.load({
         hits: '被检索 {hits} 次',
         updated: '更新于 {time}',
         detailHint: '左侧选一条查看全文',
+        contextRepo: '当前仓库：{repo}',
         capacityWarn: '记忆库已用 {total}/{limit}，接近上限；再写入会按命中与时间淘汰旧条目。',
         unusedHint: '其中 {count} 条从未被检索过：{titles}',
         unusedMore: '等',
@@ -63,6 +64,7 @@ window.__ModuleLoader__.load({
         hits: 'Retrieved {hits} times',
         updated: 'Updated {time}',
         detailHint: 'Pick an entry on the left',
+        contextRepo: 'Repository: {repo}',
         capacityWarn: 'Memory store at {total}/{limit}; further writes evict older entries by hits and recency.',
         unusedHint: '{count} entries were never retrieved: {titles}',
         unusedMore: 'and more',
@@ -209,7 +211,7 @@ window.__ModuleLoader__.load({
       return String(template).replace(/\{(\w+)\}/g, (_match, key) => String(values[key] ?? ''))
     }
 
-    function MemoryPage({ t }) {
+    function MemoryPage({ t, context }) {
       const translate = typeof t === 'function' ? t : (key) => key
       const [query, setQuery] = React.useState('')
       const [type, setType] = React.useState('')
@@ -522,6 +524,10 @@ window.__ModuleLoader__.load({
             },
             translate('subtitle'),
           ),
+          // 仓库来自入口页的 /status，两个面板共用一份。
+          context !== null && typeof context?.repo === 'string' && context.repo !== ''
+            ? h('p', { style: { margin: 0, fontSize: 12, lineHeight: '18px', color: 'var(--dsw-alias-label-secondary)' } }, fill(translate('contextRepo'), { repo: context.repo }))
+            : null,
         ),
         capacity !== null && typeof capacity.unused === 'number' && capacity.unused > 0
           ? h(

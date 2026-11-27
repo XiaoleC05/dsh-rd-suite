@@ -812,7 +812,15 @@ window.__ModuleLoader__.load({
       ]
       tabs.forEach((tab, index) => {
         if (!mounted.has(index)) return
-        let pageProps = {}
+        // 共享上下文：/status 拿到的仓库与版本，成员页面用同一份。
+        const sharedContext =
+          status === null
+            ? null
+            : {
+                repo: typeof status.root === 'string' ? status.root : null,
+                version: typeof status.version === 'string' ? status.version : null,
+              }
+        let pageProps = { context: sharedContext }
         try {
           pageProps = tab.getProps() ?? {}
         } catch {
