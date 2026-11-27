@@ -58,6 +58,7 @@ export const RESULT_FIELDS = Object.freeze({
   warnings: { type: 'array', items: { type: 'string' } },
   issueNumber: { type: 'integer' },
   issueUrl: { type: 'string' },
+  labelsEnsured: { type: 'array', items: { type: 'string' } },
   branchCreated: { type: 'boolean' },
   branchReused: { type: 'boolean' },
   prNumber: { type: 'integer' },

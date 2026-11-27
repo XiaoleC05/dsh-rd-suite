@@ -146,12 +146,19 @@ export function buildIssueBody(input) {
     .map(file => String(file).trim())
     .filter(file => file !== '');
 
+  const repro = String(input.repro ?? '').trim();
+  const acceptance = String(input.acceptance ?? '').trim();
+  const placeholder = (value, hint) => (value === '' ? `_待补充：${hint}_` : value);
+
+  // 固定模板：现象 / 复现 / 影响 / 文件 / 验收 / 计划 / 环境。缺的段落给占位，不留空标题。
   const sections = [
-    `## Problem\n\n${symptom}`,
-    ...(moduleName === '' ? [] : [`## Module\n\n${moduleName}`]),
-    `## Affected files\n\n${files.map(file => `- \`${file}\``).join('\n')}`,
-    `## Fix plan\n\n${fixPlan}`,
-    '## Workflow\n\n- One module, one issue, one atomic commit.\n- The fix commit uses Conventional Commits and closes this issue with `Closes #<number>`.',
+    `## 现象\n\n${placeholder(symptom, '观察到的问题，不写计划中的修法')}`,
+    `## 复现\n\n${placeholder(repro, '命令、输入或步骤，能重复出现即可')}`,
+    `## 影响\n\n${moduleName === '' ? '_待补充：谁受影响、影响多大_' : `模块 ${moduleName}`}`,
+    `## 受影响文件\n\n${files.length === 0 ? '_待补充：涉及的文件路径_' : files.map(file => `- \`${file}\``).join('\n')}`,
+    `## 验收标准\n\n${placeholder(acceptance, '每条都能由命令或可观察结果判定')}`,
+    `## 计划\n\n${placeholder(fixPlan, '打算怎么改，按步骤写')}`,
+    `## 环境\n\n- 提交约定：Conventional Commits，一个模块一次提交，正文写 \`Closes #<number>\`\n- 流程：开发方建单 → 分支 → 原子提交 → 代码审计 → PR/合并 → 关闭`,
   ];
   return `${sections.join('\n\n')}\n`;
 }

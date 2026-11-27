@@ -374,7 +374,10 @@ function ensureClosingKeyword(body, issue, extraIssues = []) {
   }
   if (numbers.length === 0) return text
   // 只补正文里还没有的编号：一个 PR 收口多个模块时逐个列全，已有的不重复。
-  const missing = numbers.filter((number) => !new RegExp(`(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+#${number}\\b`, 'iu').test(text))
+  const missing = numbers.filter(
+    (number) =>
+      !new RegExp(`(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+#${number}\\b`, 'iu').test(text),
+  )
   if (missing.length === 0) return text
   const lines = missing.map((number) => `Closes #${number}`).join('\n')
   return text === '' ? lines : `${text}\n\n${lines}`
@@ -990,6 +993,8 @@ export async function createIssue(run, options = {}) {
     const body = buildIssueBody({
       module: options.module,
       symptom: options.symptom,
+      repro: options.repro,
+      acceptance: options.acceptance,
       files: options.files,
       fixPlan: options.fixPlan,
     })
@@ -1003,7 +1008,40 @@ export async function createIssue(run, options = {}) {
       '--body',
       body,
     ]
-    for (const label of normalizeLabels(options.labels)) argv.push('--label', label)
+    // 标签兜底：仓库里没有就先建，建失败只记 warning，不因此放弃建单。
+    const labels = normalizeLabels(options.labels)
+    const labelsEnsured = []
+    const labelWarnings = []
+    for (const label of labels) {
+      try {
+        const created = await runGh(
+          run,
+          [
+            'label',
+            'create',
+            label,
+            '--repo',
+            check.slug,
+            '--color',
+            'ededed',
+            '--description',
+            'created by rd-suite',
+            '--force',
+          ],
+          check.repositoryRoot,
+          options.signal,
+        )
+        if (created.exitCode === 0) labelsEnsured.push(label)
+        else
+          labelWarnings.push(
+            `标签 ${label} 未能创建：${firstDiagnosticLine(created.stderr) || 'unknown error'}`,
+          )
+      } catch (error) {
+        labelWarnings.push(`标签 ${label} 未能创建：${describeError(error)}`)
+      }
+    }
+    // 只有创建成功的标签才传给 issue create，避免整条命令失败。
+    for (const label of labelsEnsured) argv.push('--label', label)
     const result = await runGh(run, argv, check.repositoryRoot, options.signal)
     if (result.exitCode !== 0) {
       const classified = classifyGitHubDiagnostic(result.stderr || result.stdout, check.host)
@@ -1037,7 +1075,9 @@ export async function createIssue(run, options = {}) {
       ...repositoryIdentity(check),
       ...(issueNumber === null ? {} : { issueNumber }),
       issueUrl,
-      message: `Created GitHub issue ${issueUrl}.`,
+      ...(labelsEnsured.length === 0 ? {} : { labelsEnsured }),
+      ...(labelWarnings.length === 0 ? {} : { warnings: labelWarnings }),
+      message: `Created GitHub issue ${issueUrl}${labelWarnings.length > 0 ? '（部分标签未创建，见 warnings）' : ''}.`,
       guidance: `Fix only this module, then commit with a Conventional Commit containing \`Closes #${String(issueNumber ?? '<number>')}\` and close the issue with close_issue after verification.`,
     })
   } catch (error) {

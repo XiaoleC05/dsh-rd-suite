@@ -114,24 +114,37 @@ test('parseIssueNumber accepts numbers, hashes and issue URLs', () => {
   assert.equal(parseIssueNumber(null), null);
 });
 
-test('buildIssueBody always records the problem, files, fix plan and workflow rule', () => {
+test('buildIssueBody 用固定模板记录现象、文件、计划与流程', () => {
   const body = buildIssueBody({
     module: 'auth',
     symptom: 'Login retries forever',
+    repro: 'Run the login test with a dead proxy.',
+    acceptance: 'The login test passes and no retry exceeds three attempts.',
     files: ['src/auth/login.ts', ' src/auth/retry.ts '],
     fixPlan: 'Cap the retry loop at three attempts.',
   });
-  assert.match(body, /^## Problem\n\nLogin retries forever/);
-  assert.match(body, /## Module\n\nauth/);
-  assert.match(body, /## Affected files\n\n- `src\/auth\/login.ts`\n- `src\/auth\/retry.ts`/);
-  assert.match(body, /## Fix plan\n\nCap the retry loop at three attempts\./);
-  assert.match(body, /One module, one issue, one atomic commit\./);
-  assert.match(body, /`Closes #<number>`/);
+  assert.match(body, /^## 现象\n\nLogin retries forever/);
+  assert.match(body, /## 复现\n\nRun the login test with a dead proxy\./);
+  assert.match(body, /## 影响\n\n模块 auth/);
+  assert.match(body, /## 受影响文件\n\n- `src\/auth\/login.ts`\n- `src\/auth\/retry.ts`/);
+  assert.match(body, /## 验收标准\n\nThe login test passes/u);
+  assert.match(body, /## 计划\n\nCap the retry loop at three attempts\./);
+  assert.match(body, /## 环境\n\n- 提交约定：Conventional Commits/u);
+  assert.match(body, /`Closes #<number>`/u);
   assert.ok(body.endsWith('\n'));
 });
 
-test('buildIssueBody omits an empty module and tolerates empty files', () => {
+test('buildIssueBody 缺段时给占位，不留空标题', () => {
+  const body = buildIssueBody({ symptom: 'Only a symptom.' });
+  assert.match(body, /## 复现\n\n_待补充：/);
+  assert.match(body, /## 验收标准\n\n_待补充：/);
+  assert.match(body, /## 受影响文件\n\n_待补充：/);
+  assert.doesNotMatch(body, /## [^\n]*\n\n\n/u, '不允许出现空段落');
+});
+
+test('buildIssueBody 空模块与空文件时用占位而不是空段落', () => {
   const body = buildIssueBody({ symptom: 'Boom', files: [], fixPlan: 'Fix it' });
-  assert.doesNotMatch(body, /## Module/);
-  assert.match(body, /## Affected files[\s\S]*## Fix plan/);
+  assert.match(body, /## 影响\n\n_待补充：/);
+  assert.match(body, /## 受影响文件\n\n_待补充：/);
+  assert.match(body, /## 受影响文件[\s\S]*## 验收标准[\s\S]*## 计划/u);
 });

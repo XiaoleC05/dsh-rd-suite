@@ -93,6 +93,7 @@ function makeRun(overrides = {}) {
       ),
     prMerge: () => ok(''),
     releaseCreate: () => ok('https://github.com/acme/widgets/releases/tag/v1.4.0\n'),
+    labelCreate: () => ok(''),
     issueCreate: () => ok('https://github.com/acme/widgets/issues/42\n'),
     issueComment: () => ok(''),
     issueClose: () => ok(''),
@@ -131,6 +132,7 @@ function makeRun(overrides = {}) {
     if (/gh pr view/.test(command)) return handlers.prView(argv, options)
     if (/gh pr merge/.test(command)) return handlers.prMerge(argv, options)
     if (/gh release create/.test(command)) return handlers.releaseCreate(argv, options)
+    if (/gh label create/.test(command)) return handlers.labelCreate(argv, options)
     if (/gh issue create/.test(command)) return handlers.issueCreate(argv, options)
     if (/gh issue comment/.test(command)) return handlers.issueComment(argv, options)
     if (/gh issue close/.test(command)) return handlers.issueClose(argv, options)
@@ -326,10 +328,10 @@ test('create_issue files one structured issue for the module', async () => {
   assert.ok(create.argv.includes('Login retries forever'))
   assert.ok(create.argv.includes('--label'))
   const body = create.argv[create.argv.indexOf('--body') + 1]
-  assert.match(body, /## Problem/)
-  assert.match(body, /## Module\n\nauth/)
-  assert.match(body, /## Affected files\n\n- `src\/login\.js`/)
-  assert.match(body, /## Fix plan/)
+  assert.match(body, /## 现象/)
+  assert.match(body, /## 影响\n\n模块 auth/u)
+  assert.match(body, /## 受影响文件\n\n- `src\/login\.js`/u)
+  assert.match(body, /## 计划/u)
 })
 
 test('create_issue validates module fields before touching Git or gh', async () => {
@@ -785,4 +787,23 @@ test('merge_pr：auto 模式确认排队状态', async () => {
   assert.equal(result.ok, true)
   assert.equal(result.autoQueued, true)
   assert.match(result.guidance, /Auto-merge is queued/u)
+})
+
+test('create_issue 为缺失标签兜底创建，失败只记 warning', async () => {
+  const created = makeRun()
+  const first = await createIssue(created.run, { ...CREATE_INPUT, labels: ['bug', 'auth'] })
+  assert.equal(first.ok, true)
+  const labelCalls = created.calls.filter((call) => /^gh label create/.test(call.command))
+  assert.equal(labelCalls.length, 2, '两个标签各建一次')
+  assert.deepEqual(first.labelsEnsured, ['bug', 'auth'])
+  assert.equal(first.warnings, undefined)
+
+  const partial = makeRun({ labelCreate: (argv) => (argv.includes('auth') ? failed('gh: HTTP 403') : ok('')) })
+  const warned = await createIssue(partial.run, { ...CREATE_INPUT, labels: ['bug', 'auth'] })
+  assert.equal(warned.ok, true, '标签建不出来也要建单')
+  assert.deepEqual(warned.labelsEnsured, ['bug'])
+  assert.match(String(warned.warnings?.[0]), /auth/u)
+  const issueArgs = partial.calls.find((call) => /^gh issue create/.test(call.command)).argv
+  assert.ok(issueArgs.includes('bug'))
+  assert.equal(issueArgs.includes('auth'), false, '建失败的标签不要传给 issue create')
 })
