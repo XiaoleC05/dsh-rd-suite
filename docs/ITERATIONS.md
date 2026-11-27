@@ -191,3 +191,4 @@
 | 第 32 轮 | #47 | term-check | docs/glossary.json 四条规则 + term-check 脚本；6 例测试 |
 | 第 33 轮 | #48 | memory-forget | POST /forget 路由 + 面板两段式删除；3 例测试 |
 | 第 34 轮 | #49 | memory-hit-stats | stats 给 unused / topHits / hitless，面板显示从未命中的条目；1 例测试 |
+| 第 35 轮 | #50 | memory-keyboard | 上下键移动光标、Enter 打开、Esc 关闭、斜杠聚焦搜索；2 例测试 |

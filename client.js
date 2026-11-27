@@ -1507,6 +1507,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         gap: 4,
       },
       itemActive: { background: 'var(--dsw-alias-bg-layer-2)' },
+      itemCursor: { outline: '2px solid var(--dsw-alias-state-focus-primary, var(--dsw-alias-border-l2))', outlineOffset: -2 },
       itemTitle: { fontSize: 13, lineHeight: '20px', color: 'var(--dsw-alias-label-primary)' },
       meta: { fontSize: 12, lineHeight: '18px', color: 'var(--dsw-alias-label-secondary)' },
       detail: {
@@ -1588,6 +1589,10 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
       const [copied, setCopied] = React.useState(null)
       const [confirming, setConfirming] = React.useState(false)
       const [removeState, setRemoveState] = React.useState(null)
+      // 键盘光标：与「已打开的条目」分开，上下键只移动光标。
+      const [cursor, setCursor] = React.useState(0)
+      const searchRef = React.useRef(null)
+      const listRef = React.useRef(null)
       const requestSeq = React.useRef(0)
 
       const load = React.useCallback(async () => {
@@ -1659,6 +1664,59 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         }
       }
 
+      /**
+       * 列表与详情区的键盘操作：上下移动光标、Enter 打开、Esc 关闭、斜杠聚焦搜索。
+       * @param {object} event - 键盘事件
+       * @returns {void}
+       */
+      const onKeyDown = (event) => {
+        const entries = list.entries
+        if (event.key === 'ArrowDown' && entries.length > 0) {
+          event.preventDefault()
+          setCursor((previous) => Math.min(entries.length - 1, previous + 1))
+          return
+        }
+        if (event.key === 'ArrowUp' && entries.length > 0) {
+          event.preventDefault()
+          setCursor((previous) => Math.max(0, previous - 1))
+          return
+        }
+        if (event.key === 'Enter' && entries.length > 0) {
+          const target = entries[Math.min(cursor, entries.length - 1)]
+          if (target !== undefined) {
+            event.preventDefault()
+            void open(target.id)
+          }
+          return
+        }
+        if (event.key === 'Escape') {
+          if (detail !== null) {
+            event.preventDefault()
+            setDetail(null)
+            setConfirming(false)
+            setRemoveState(null)
+            if (listRef.current !== null && typeof listRef.current.focus === 'function') listRef.current.focus()
+          }
+          return
+        }
+        if (event.key === '/' && event.target?.tagName !== 'INPUT') {
+          event.preventDefault()
+          if (searchRef.current !== null && typeof searchRef.current.focus === 'function') searchRef.current.focus()
+        }
+      }
+
+      const scrollCursorIntoView = (index) => {
+        const node = listRef.current?.children?.[index]
+        if (node !== null && node !== undefined && typeof node.scrollIntoView === 'function') {
+          node.scrollIntoView({ block: 'nearest' })
+        }
+      }
+
+      // 光标移动后确保目标可见，键盘浏览长列表时才不会「看不见自己选到哪」。
+      React.useEffect(() => {
+        scrollCursorIntoView(cursor)
+      }, [cursor])
+
       // 两段式删除：第一次点击只切到确认态，避免误删。
       const remove = async () => {
         if (detail === null) return
@@ -1679,6 +1737,17 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         }
       }
 
+      /**
+       * 条目样式：已打开的用高亮底，键盘光标用描边，两者可同时存在。
+       * @param {number} index - 在列表中的位置
+       * @param {string} id - 条目 id
+       * @returns {object} 样式
+       */
+      const itemStyle = (index, id) => {
+        const base = detail?.id === id ? { ...ui.item, ...ui.itemActive } : ui.item
+        return index === cursor ? { ...base, ...ui.itemCursor } : base
+      }
+
       const typeName = (value) => translate('typeNames')[value] ?? value
 
       const toolbar = h(
@@ -1686,6 +1755,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         { style: ui.bar },
         h('input', {
           style: ui.input,
+          ref: searchRef,
           type: 'search',
           value: query,
           placeholder: translate('search'),
@@ -1729,7 +1799,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
           { style: ui.body },
           h(
             'ul',
-            { style: ui.list },
+            { style: ui.list, ref: listRef, onKeyDown, tabIndex: -1 },
             list.entries.map((entry) =>
               h(
                 'li',
@@ -1737,13 +1807,12 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
                 h(
                   'div',
                   {
-                    style: detail?.id === entry.id ? { ...ui.item, ...ui.itemActive } : ui.item,
+                    style: itemStyle(list.entries.indexOf(entry), entry.id),
                     role: 'button',
                     tabIndex: 0,
+                    'aria-current': detail?.id === entry.id ? 'true' : undefined,
                     onClick: () => open(entry.id),
-                    onKeyDown: (event) => {
-                      if (event.key === 'Enter' || event.key === ' ') open(entry.id)
-                    },
+                    onKeyDown,
                   },
                   h('span', { style: ui.itemTitle }, entry.title),
                   h(

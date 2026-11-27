@@ -141,3 +141,21 @@ test('删除：源码里是两段式确认，且调用 POST forget', () => {
   assert.match(source, /\/forget\?id=/u, '要带上条目 id')
   assert.equal((source.match(/setConfirming\(true\)/gu) ?? []).length, 1, '只在一处进入确认态')
 })
+
+test('键盘操作：上下移动、Enter 打开、Esc 关闭、斜杠聚焦搜索', () => {
+  const source = readFileSync(join(here, '..', 'client-sources', 'memory.js'), 'utf8')
+  for (const key of ['ArrowDown', 'ArrowUp', 'Enter', 'Escape']) {
+    assert.ok(source.includes(`'${key}'`), `要处理 ${key} 键`)
+  }
+  assert.match(source, /\.key === '\/'/u, '斜杠要能聚焦搜索框')
+  assert.match(source, /scrollCursorIntoView/u, '光标移动后要滚动到可见')
+  assert.match(source, /'aria-current'/u, '当前打开条目要有 aria 标记')
+  assert.match(source, /itemCursor/u, '键盘光标要有可见样式')
+})
+
+test('键盘光标与已打开条目分开记录', () => {
+  const source = readFileSync(join(here, '..', 'client-sources', 'memory.js'), 'utf8')
+  assert.match(source, /const \[cursor, setCursor\]/u)
+  assert.match(source, /const \[detail, setDetail\]/u)
+  assert.match(source, /index === cursor/u, '样式要同时考虑光标与打开态')
+})
