@@ -14,6 +14,8 @@
 
 import { basename, dirname } from 'node:path'
 
+import { classify } from './languages.js'
+
 import { standardize } from './standardize.js'
 
 /** One file outcome, reduced to what the audit reports. */
@@ -72,6 +74,42 @@ async function runPass(groups, mode) {
 }
 
 /**
+ * 按语言给审计结果分组，便于判断是不是某种语言的预设出了问题。
+ * @param {{ checked: number; needsFix: number; fixed: number; remaining: number; files: string[] }} audit - 审计摘要
+ * @param {readonly string[]} paths - 参与审计的绝对路径
+ * @returns {{ language: string; checked: number; fixed: number; needsFix: number }[]} 分组结果，按语言名排序
+ */
+export function groupByLanguage(audit, paths) {
+  const groups = new Map()
+  const fixedSet = new Set(Array.isArray(audit.files) ? audit.files : [])
+  for (const absolute of paths) {
+    const decision = classify(absolute)
+    const key = decision.kind === 'code'
+      ? (decision.language ?? decision.display ?? 'other')
+      : 'non-code'
+    const group = groups.get(key) ?? { language: key, checked: 0, fixed: 0, needsFix: 0 }
+    group.checked += 1
+    if (fixedSet.has(absolute)) {
+      group.fixed += 1
+      group.needsFix += 1
+    }
+    groups.set(key, group)
+  }
+  return [...groups.values()].sort((left, right) => left.language.localeCompare(right.language))
+}
+
+/**
+ * 把分组压成一行可读摘要。
+ * @param {{ language: string; checked: number; fixed: number; needsFix: number }[]} groups - 分组
+ * @returns {string} 摘要，如 `javascript 3 检 1 修；python 1 检 0 修`
+ */
+export function describeLanguageGroups(groups) {
+  return groups
+    .map((group) => `${group.language} ${group.checked} 检 ${group.fixed} 修`)
+    .join('；')
+}
+
+/**
  * Audit the files one module touched.
  * @param {readonly string[]} files - absolute paths of files the module wrote.
  * @param {{ mode?: 'report' | 'fix' }} [options] - `fix` rewrites what the report flags, `report` only checks.
@@ -80,36 +118,34 @@ async function runPass(groups, mode) {
 export async function auditFiles(files, options = {}) {
   const mode = options.mode === 'report' ? 'report' : 'fix'
   const groups = groupByDirectory(files)
-  if (groups.size === 0) return { checked: 0, needsFix: 0, fixed: 0, remaining: 0, files: [] }
+  if (groups.size === 0) return { checked: 0, needsFix: 0, fixed: 0, remaining: 0, files: [], byLanguage: [] }
 
+  const originalPaths = files.filter((file) => typeof file === 'string' && file !== '')
   const report = await runPass(groups, 'report')
   if (mode === 'report') {
-    return {
+    const summary = {
       checked: report.checked,
       needsFix: report.changed.length,
       fixed: 0,
       remaining: report.failed.length,
       files: report.changed,
     }
+    return { ...summary, byLanguage: groupByLanguage(summary, originalPaths) }
   }
   if (report.changed.length === 0) {
-    return {
-      checked: report.checked,
-      needsFix: 0,
-      fixed: 0,
-      remaining: report.failed.length,
-      files: [],
-    }
+    const summary = { checked: report.checked, needsFix: 0, fixed: 0, remaining: report.failed.length, files: [] }
+    return { ...summary, byLanguage: groupByLanguage(summary, originalPaths) }
   }
 
   const fixGroups = groupByDirectory(report.changed)
   const applied = await runPass(fixGroups, 'fix')
   const fixed = report.changed.length - applied.changed.length - applied.failed.length
-  return {
+  const summary = {
     checked: report.checked,
     needsFix: report.changed.length,
     fixed: fixed < 0 ? 0 : fixed,
     remaining: report.failed.length + applied.failed.length + applied.changed.length,
     files: report.changed,
   }
+  return { ...summary, byLanguage: groupByLanguage(summary, originalPaths) }
 }

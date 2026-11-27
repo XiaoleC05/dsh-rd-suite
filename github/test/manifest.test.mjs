@@ -96,7 +96,14 @@ test('the Host plugin reports the module code audit inside close_issue', () => {
   assert.match(source, /codeAuditNote/)
   assert.deepEqual(
     Object.keys(RESULT_FIELDS).filter((key) => key.startsWith('codeAudit')),
-    ['codeAuditChecked', 'codeAuditFixed', 'codeAuditRemaining', 'codeAuditFiles', 'codeAuditNote'],
+    [
+      'codeAuditChecked',
+      'codeAuditFixed',
+      'codeAuditRemaining',
+      'codeAuditFiles',
+      'codeAuditByLanguage',
+      'codeAuditNote',
+    ],
   )
 })
 

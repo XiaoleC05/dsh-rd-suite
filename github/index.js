@@ -286,6 +286,13 @@ export function apply(ctx, config) {
                 codeAuditFixed: audit.fixed,
                 codeAuditRemaining: audit.remaining,
                 ...(audit.files.length === 0 ? {} : { codeAuditFiles: audit.files }),
+                ...(Array.isArray(audit.byLanguage) && audit.byLanguage.length > 0
+                  ? {
+                      codeAuditByLanguage: audit.byLanguage
+                        .map((group) => `${group.language} ${group.checked} 检 ${group.fixed} 修`)
+                        .join('；'),
+                    }
+                  : {}),
                 codeAuditNote:
                   audit.fixed > 0
                     ? `已自动修正 ${String(audit.fixed)} 个文件的格式；若本轮已提交，用 git commit --amend --no-edit 带上这些修正。`

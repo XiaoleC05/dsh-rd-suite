@@ -64,11 +64,44 @@ test('report 模式只检查、不改文件', async () => {
 
 test('没有文件时返回全零，不抛错', async () => {
   const audit = await auditFiles([], { mode: 'fix' })
-  assert.deepEqual(audit, { checked: 0, needsFix: 0, fixed: 0, remaining: 0, files: [] })
+  assert.deepEqual(audit, { checked: 0, needsFix: 0, fixed: 0, remaining: 0, files: [], byLanguage: [] })
 })
 
 test('不存在的路径不会让审计崩掉', async () => {
   const audit = await auditFiles([join(workspace, 'ghost.js')], { mode: 'fix' })
   assert.equal(audit.checked + audit.remaining >= 0, true)
   assert.equal(typeof audit.fixed, 'number')
+})
+
+test('按语言分组：不同扩展名各成一组', async () => {
+  const { mkdtempSync, writeFileSync: writeFixture, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'rd-audit-lang-'))
+  const js = join(dir, 'a.js')
+  const py = join(dir, 'b.py')
+  const txt = join(dir, 'notes.txt')
+  writeFixture(js, 'const  a = { b:1 };\n', 'utf8')
+  writeFixture(py, 'x=1\ny =  2\n', 'utf8')
+  writeFixture(txt, '不是代码文件。\n', 'utf8')
+
+  const audit = await auditFiles([js, py, txt], { mode: 'report' })
+  const languages = audit.byLanguage.map((group) => group.language).sort()
+  assert.deepEqual(languages, ['javascript', 'non-code', 'python'])
+  const jsGroup = audit.byLanguage.find((group) => group.language === 'javascript')
+  assert.equal(jsGroup.checked, 1)
+  assert.equal(jsGroup.fixed, 0, 'report 模式不产生修复数')
+
+  rmSync(dir, { recursive: true, force: true })
+})
+
+test('语言摘要是一行可读文本', async () => {
+  const { describeLanguageGroups } = await import('../code-pipeline/lib/audit.js')
+  assert.equal(
+    describeLanguageGroups([
+      { language: 'javascript', checked: 3, fixed: 1, needsFix: 1 },
+      { language: 'python', checked: 1, fixed: 0, needsFix: 0 },
+    ]),
+    'javascript 3 检 1 修；python 1 检 0 修',
+  )
 })

@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.20.0 — 2026-11-27
+
+- 审计结果按语言分组：`auditFiles` 返回 `byLanguage`（复用 languages.js 的 classify，无法判定的落 non-code），
+  `close_issue` 结果新增 `codeAuditByLanguage`（如「javascript 3 检 1 修；python 1 检 0 修」）。
+- 用途：判断是不是某一种语言的预设有问题，报告里也能说清改的是哪类文件。
+- 新增 3 例测试；全量 197/197。
 ## 0.19.1 — 2026-11-27
 
 - `precheck` 用 `git rev-list --left-right --count HEAD...origin/<branch>` 给出 `ahead` / `behind` / `diverged`；

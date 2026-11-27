@@ -62,7 +62,7 @@
 
 | 编号 | 目标 | 状态 | 提交 |
 |---|---|---|---|
-| 041 | 审计结果按语言分组 | 待做 | |
+| 041 | 审计结果按语言分组 | 完成 | #33 |
 | 042 | 只报告模式的独立开关 | 待做 | |
 | 043 | 无法格式化的文件给出原因分类 | 待做 | |
 | 044 | 只审 git 改动文件 | 待做 | |
@@ -174,3 +174,4 @@
 | 第 15 轮 | #30 | issue-template | 七段固定模板（缺段给占位）+ 标签兜底创建与 warning；3 例测试 |
 | 第 16 轮 | #31 | release-check | 发版前校验版本号与 CHANGELOG 标题，不一致拒绝发布；8 例纯函数测试 + 1 例集成 |
 | 第 17 轮 | #32 | divergence-hint | precheck 给出 ahead/behind/diverged 并在分叉时给 rebase 步骤；1 例测试（四种情形） |
+| 第 18 轮 | #33 | audit-grouping | auditFiles 返回 byLanguage 与一行摘要，close_issue 带 codeAuditByLanguage；3 例测试 |

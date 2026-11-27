@@ -90,5 +90,6 @@ export const RESULT_FIELDS = Object.freeze({
   codeAuditFixed: { type: 'integer' },
   codeAuditRemaining: { type: 'integer' },
   codeAuditFiles: { type: 'array', items: { type: 'string' } },
+  codeAuditByLanguage: { type: 'string' },
   codeAuditNote: { type: 'string' },
 })
