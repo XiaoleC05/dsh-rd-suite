@@ -1,5 +1,13 @@
 # 变更日志
 
+## 0.31.0 — 2026-11-27
+
+- 新增 scripts/smoke-install.mjs：按 package.json files[] 把包内容复制到仓库内临时副本，
+  动态 import 副本的 index.js 并用最小假 ctx 调 apply()，断言工具与路由都注册上；
+  同时校验 cordis.patch.yml 引用的成员在副本里存在，跑完清理副本。
+- 冒烟顺带记录了插件真正依赖的宿主能力：subprocess、systemPrompt.section、events、workingDirectory。
+- 实测：104 个文件、9 个工具、8 条路由，通过。
+- 新增 4 例测试；全量 243/243。
 ## 0.30.0 — 2026-11-27
 
 - 声明 `engines.dsh: >=0.2.2-rc.5`；打包校验把缺失 engines 从提示升级为问题，并新增范围匹配校验。

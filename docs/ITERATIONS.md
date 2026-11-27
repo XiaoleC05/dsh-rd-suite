@@ -185,3 +185,4 @@
 | 第 26 轮 | #41 | overview-status | /api/status 读版本与账本轮次，概览显示四个真实指标；6 例测试 |
 | 第 27 轮 | #42 | verify-package | files/技能 frontmatter/成员目录/client 新鲜度四项校验；6 例测试 |
 | 第 28 轮 | #43 | engines-declaration | 声明 engines.dsh 并让校验必填 + 语义化版本比较；3 例测试 |
+| 第 29 轮 | #44 | smoke-install | 按 files[] 复制到临时副本并真加载，断言 9 工具 8 路由；4 例测试 |
