@@ -6,6 +6,9 @@ import { test } from 'node:test'
 
 import {
   REQUIRED_DIRECTORIES,
+  checkEnginesRange,
+  compareVersions,
+  parseEnginesRange,
   checkClientFreshness,
   checkFilesCoverage,
   checkLoaderRows,
@@ -79,4 +82,27 @@ test('client.js 陈旧要报，够新则通过', () => {
   assert.deepEqual(checkClientFreshness(2000, [1000, 1999]), [])
   assert.equal(checkClientFreshness(1000, [1000, 2000]).length, 1)
   assert.deepEqual(checkClientFreshness(1000, []), [], '没有源码时不做新鲜度判断')
+})
+
+test('版本比较：预发布小于同版本正式版', () => {
+  assert.ok(compareVersions('0.2.2-rc.5', '0.2.2') < 0)
+  assert.ok(compareVersions('0.2.2', '0.2.2-rc.5') > 0)
+  assert.equal(compareVersions('0.2.2-rc.5', '0.2.2-rc.5'), 0)
+  assert.ok(compareVersions('0.2.10', '0.2.9') > 0)
+})
+
+test('范围解析：支持 >= > = ^ ~ 与裸版本', () => {
+  assert.deepEqual(parseEnginesRange('>=0.2.2'), { operator: '>=', version: '0.2.2' })
+  assert.deepEqual(parseEnginesRange('^1.0.0'), { operator: '^', version: '1.0.0' })
+  assert.deepEqual(parseEnginesRange('0.3.0'), { operator: '>=', version: '0.3.0' })
+  assert.equal(parseEnginesRange('banana'), null)
+})
+
+test('engines 校验：不满足要报，无法比较时放行', () => {
+  assert.deepEqual(checkEnginesRange('>=0.2.2-rc.5', '0.2.2-rc.5'), [])
+  assert.deepEqual(checkEnginesRange('>=0.2.2', '0.2.2'), [])
+  assert.equal(checkEnginesRange('>=0.2.2', '0.2.2-rc.5').length, 1, '预发布版本不满足 >=0.2.2')
+  assert.equal(checkEnginesRange('>0.2.2', '0.2.2').length, 1)
+  assert.deepEqual(checkEnginesRange('>=0.2.2', undefined), [], '拿不到当前版本时不判断')
+  assert.equal(checkEnginesRange('nonsense', '0.2.2').length, 1)
 })

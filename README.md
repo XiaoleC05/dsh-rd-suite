@@ -41,7 +41,10 @@
 | `cordis.patch.yml` | 上面 3 行的完整声明，头部有相对官方 `ptc` 预设的差异表 |
 | `docs/` | `DESIGN.md`（设计与成本模型）、`DETAIL.md`（插件详情页）、`CHANGELOG.md` |
 
-## 安装与维护
+## 安装
+
+最低 DSH 版本：`0.2.2-rc.5`（`package.json` 的 `engines.dsh`）。低于该版本会在运行期才暴露问题，`node scripts/verify-package.mjs` 会在仓库里直接拦下。
+与维护
 
 - 安装：`plugin_manager install_bundle target=D:/05_Code/dsh-rd-suite`。
 - 装好后重载：`plugin_manager set_bundle target=dsh-rd-suite enabled=false`，再 `enabled=true`；浏览器半需刷新页面。

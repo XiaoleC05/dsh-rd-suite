@@ -1,6 +1,6 @@
 {
   "name": "dsh-rd-suite",
-  "version": "0.29.0",
+  "version": "0.30.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -69,5 +69,8 @@
         "@deepseek-ai/dsh-client-store"
       ]
     }
+  },
+  "engines": {
+    "dsh": ">=0.2.2-rc.5"
   }
 }

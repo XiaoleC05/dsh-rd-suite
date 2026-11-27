@@ -102,6 +102,64 @@ export function checkClientFreshness(clientStat, sourceStats) {
   return ['client.js 比客户端源码旧，先运行 node scripts/build-client.mjs']
 }
 
+/** 当前 DSH 版本：随包安装的 dsh-tools 与之同版本；读不到就不做范围校验。 */
+const INSTALLED_DSH_VERSION = (() => {
+  try {
+    return JSON.parse(readFileSync(join(root, 'node_modules', '@deepseek-ai', 'dsh-tools', 'package.json'), 'utf8')).version
+  } catch {
+    return undefined
+  }
+})()
+
+/**
+ * 解析形如 >=1.2.3 的最小版本声明。
+ * @param {unknown} range - engines.dsh 的值
+ * @returns {{ operator: string; version: string } | null} 解析结果
+ */
+export function parseEnginesRange(range) {
+  const match = /^\s*(>=|>|=|\^|~)?\s*v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?)\s*$/u.exec(String(range ?? ''))
+  if (match === null) return null
+  return { operator: match[1] ?? '>=', version: match[2] }
+}
+
+/**
+ * 比较两个语义化版本，只看数字段与预发布标记（预发布小于同版本正式版）。
+ * @param {string} left - 版本
+ * @param {string} right - 版本
+ * @returns {number} 负数表示 left 更小
+ */
+export function compareVersions(left, right) {
+  const split = (value) => {
+    const [core, pre] = String(value).split('-')
+    return { parts: core.split('.').map((part) => Number(part) || 0), pre }
+  }
+  const a = split(left)
+  const b = split(right)
+  for (let index = 0; index < 3; index += 1) {
+    if (a.parts[index] !== b.parts[index]) return a.parts[index] - b.parts[index]
+  }
+  if (a.pre === b.pre) return 0
+  if (a.pre === undefined) return 1
+  if (b.pre === undefined) return -1
+  return a.pre < b.pre ? -1 : 1
+}
+
+/**
+ * 校验 engines.dsh 是否接受当前 DSH 版本。
+ * @param {unknown} range - 声明的范围
+ * @param {string} [current] - 当前版本，缺省表示无法比较
+ * @returns {string[]} 问题列表
+ */
+export function checkEnginesRange(range, current) {
+  const parsed = parseEnginesRange(range)
+  if (parsed === null) return [`engines.dsh 的范围无法解析：${String(range)}`]
+  if (current === undefined) return []
+  const order = compareVersions(current, parsed.version)
+  const satisfied =
+    parsed.operator === '>' ? order > 0 : parsed.operator === '=' ? order === 0 : order >= 0
+  return satisfied ? [] : [`当前 DSH ${current} 不满足 engines.dsh ${String(range)}`]
+}
+
 /**
  * 收集问题。
  * @returns {{ problems: string[]; warnings: string[] }} 结论
@@ -142,7 +200,8 @@ export function verifyPackage() {
     problems.push(...checkClientFreshness(statSync(join(root, 'client.js')).mtimeMs, sourceStats))
 
   if (manifest.version === undefined) warnings.push('package.json 没有 version')
-  if (manifest.engines?.dsh === undefined) warnings.push('没有声明 engines.dsh')
+  if (manifest.engines?.dsh === undefined) problems.push('没有声明 engines.dsh：装到旧版本上会在运行期才报错')
+  else problems.push(...checkEnginesRange(manifest.engines.dsh, INSTALLED_DSH_VERSION))
 
   return { problems, warnings }
 }
