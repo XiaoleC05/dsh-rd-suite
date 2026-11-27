@@ -105,3 +105,33 @@ test('语言摘要是一行可读文本', async () => {
     'javascript 3 检 1 修；python 1 检 0 修',
   )
 })
+
+test('跳过的文件带原因：非 P0 与纯文本各有说法', async () => {
+  const { mkdtempSync, writeFileSync: writeFixture, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'rd-audit-skip-'))
+  const rust = join(dir, 'main.rs')
+  const notes = join(dir, 'notes.txt')
+  writeFixture(rust, 'fn main() {}\n', 'utf8')
+  writeFixture(notes, '纯文本。\n', 'utf8')
+
+  const audit = await auditFiles([rust, notes], { mode: 'report' })
+  assert.equal(audit.reportOnly, true, 'report 模式要标明只报告')
+  assert.ok(Array.isArray(audit.skipped) && audit.skipped.length >= 1, '要列出跳过的文件')
+  const reasons = audit.skipped.map((item) => item.detail).join(' ')
+  assert.match(reasons, /预设语言外|不是代码文件/u)
+  for (const item of audit.skipped) {
+    assert.ok(typeof item.reason === 'string' && item.reason !== '')
+    assert.ok(typeof item.detail === 'string' && item.detail !== '')
+  }
+  rmSync(dir, { recursive: true, force: true })
+})
+
+test('原因翻译：已知码给中文，未知码原样返回', async () => {
+  const { describeSkipReason, SKIP_REASONS } = await import('../code-pipeline/lib/audit.js')
+  assert.match(describeSkipReason('engine-error'), /引擎报错/u)
+  assert.match(describeSkipReason('not-idempotent'), /不稳定/u)
+  assert.equal(describeSkipReason('something-new'), 'something-new')
+  assert.ok(Object.keys(SKIP_REASONS).length >= 6)
+})

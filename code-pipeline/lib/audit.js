@@ -50,6 +50,7 @@ function groupByDirectory(files) {
 async function runPass(groups, mode) {
   const changed = []
   const failed = []
+  const skippedFiles = []
   let checked = 0
   for (const [root, paths] of groups) {
     let result
@@ -70,9 +71,11 @@ async function runPass(groups, mode) {
     }
     for (const entry of skipped) {
       if (entry?.status === FAILED) failed.push(`${root}/${String(entry.path ?? '')}`)
+      // standardize 回的已经是绝对路径，别再拼 root，否则会变成双前缀。
+      skippedFiles.push({ path: String(entry?.path ?? ''), reason: String(entry?.reason ?? 'unknown') })
     }
   }
-  return { changed, failed, checked }
+  return { changed, failed, checked, skipped: skippedFiles }
 }
 
 /**
@@ -123,6 +126,30 @@ export function mergeLanguageGroups(left, right) {
  * @param {{ language: string; checked: number; fixed: number; needsFix: number }[]} groups - 分组
  * @returns {string} 摘要，如 `javascript 3 检 1 修；python 1 检 0 修`
  */
+/**
+ * 跳过原因的中文解释：让「没被修」变成「为什么没修」。
+ */
+export const SKIP_REASONS = {
+  'outside-p0': '不在十种预设语言范围内',
+  'non-code': '不是代码文件',
+  'not-code': '不是代码文件',
+  'generated-minified': '生成或压缩文件，不做改写',
+  'missing-preset': '没有可用的预设',
+  'engine-error': '引擎报错，已跳过该文件',
+  'not-idempotent': '格式化结果不稳定，已放弃该文件',
+  'write-denied': '写入被策略拒绝（越界或只读）',
+  unchanged: '格式已符合规范',
+}
+
+/**
+ * 把跳过原因翻译成一句可读的话。
+ * @param {string} reason - 原始原因码
+ * @returns {string} 可读说明；未知原因原样返回
+ */
+export function describeSkipReason(reason) {
+  return SKIP_REASONS[String(reason ?? '')] ?? String(reason ?? 'unknown')
+}
+
 export function describeLanguageGroups(groups) {
   return groups
     .map((group) => `${group.language} ${group.checked} 检 ${group.fixed} 修`)
@@ -299,6 +326,12 @@ export async function auditFiles(files, options = {}) {
 
   const originalPaths = requested
   const report = await runPass(groups, 'report')
+  // 跳过的文件与原因：只看总数无法判断是配置问题还是代码问题。
+  const skipped = (Array.isArray(report.skipped) ? report.skipped : []).map((item) => ({
+    path: String(item.path ?? ''),
+    reason: String(item.reason ?? 'unknown'),
+    detail: describeSkipReason(item.reason),
+  }))
   if (mode === 'report') {
     const summary = {
       checked: report.checked,
@@ -306,6 +339,8 @@ export async function auditFiles(files, options = {}) {
       fixed: 0,
       remaining: report.failed.length,
       files: report.changed,
+      reportOnly: true,
+      skipped,
     }
     if (useCache) rememberVerdicts(fresh, summary)
     return {
@@ -319,7 +354,14 @@ export async function auditFiles(files, options = {}) {
     }
   }
   if (report.changed.length === 0) {
-    const summary = { checked: report.checked, needsFix: 0, fixed: 0, remaining: report.failed.length, files: [] }
+    const summary = {
+      checked: report.checked,
+      needsFix: 0,
+      fixed: 0,
+      remaining: report.failed.length,
+      files: [],
+      skipped,
+    }
     if (useCache) rememberVerdicts(fresh, summary)
     return {
       ...summary,
@@ -341,6 +383,7 @@ export async function auditFiles(files, options = {}) {
     fixed: fixed < 0 ? 0 : fixed,
     remaining: report.failed.length + applied.failed.length + applied.changed.length,
     files: report.changed,
+    skipped,
   }
   if (useCache) rememberVerdicts(fresh, summary)
   return {
