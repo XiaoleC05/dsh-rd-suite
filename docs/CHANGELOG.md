@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.9.1 — 2026-11-27
+
+- 修复打包清单：files 补上 scripts，按包安装后 repo-map、secret-scan、
+  commit-msg、aigc-check、build-client 都在（#15）。
+- 新增 test/packaging.test.mjs：断言 files 覆盖全部运行时脚本、技能目录、
+  成员实现与文档；npm pack --dry-run 现为 91 个文件、230 kB（#15）。
 ## 0.9.0 — 2026-11-27
 
 - 新增 rd-spec 技能与 spec/plan/tasks 三份模板（仿 spec-kit）：

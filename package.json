@@ -1,6 +1,6 @@
 {
   "name": "dsh-rd-suite",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -26,6 +26,7 @@
     "code-pipeline",
     "github",
     "skills",
+    "scripts",
     "locale/*.json",
     "docs",
     "icon.svg",
