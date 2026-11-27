@@ -206,3 +206,4 @@
 | 第 47 轮 | #62 | rollback-drill | 临时仓库真跑 revert 并断言树还原/历史保留；3 例测试 |
 | 第 48 轮 | #63 | release-cadence | 版本推进脚本（每 10 轮 minor）+ CHANGELOG 骨架；8 例测试 |
 | 第 49 轮 | #64 | board | README 进度块自动刷新（标记替换幂等）；6 例测试 |
+| 第 50 轮 | #65 | health-round-50 | 第五次体检：宪章 4964、用例 324、README 81→88、升 0.49.0 |

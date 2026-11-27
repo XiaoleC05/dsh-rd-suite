@@ -32,8 +32,8 @@
 | `scripts/smoke-install.mjs` | 按 files[] 装出最小副本并试加载，验证工具与路由都注册上 |
 | `scripts/verify-package.mjs` | 打包校验：files 覆盖、技能 frontmatter、成员目录、client.js 新鲜度 |
 | `scripts/dup-check.mjs` | 跨文件重复段落检测（降重的另一半） |
-| `scripts/audit-changed.mjs` | 只审 git 改动过的代码文件（交付前最后一道便宜检查） |
-| `scripts/flow-drill.mjs` | 全流程演练：假 git/gh 跑通建单→分支→PR→合并→关闭七步 |
+| `scripts/audit-changed.mjs` | 只审 git 改动过的代码文件（交付前的轻量复查） |
+| `scripts/flow-drill.mjs` | 全流程演练：假 git/gh 跑通建单、分支、PR、合并、关闭七步 |
 | `scripts/memory-recall.mjs` | 记忆召回基准：top1 准确率与 MRR，低于阈值即失败 |
 | `scripts/board.mjs` | 刷新 README 里的迭代进度块（标记之间替换，幂等） |
 | `scripts/release.mjs` | 版本推进：每 10 轮 minor，其余 patch，同时改清单与 CHANGELOG 骨架 |
@@ -61,13 +61,13 @@
 ## 迭代进度
 
 <!-- rd-board:start -->
-**进度**：49/100 轮 · 用例 324 · 版本 0.48.2 · 门禁 六项全过
+**进度**：50/100 轮 · 用例 324 · 版本 0.49.0 · 门禁 六项全过
 
 | 最近三轮 | 做了什么 |
 |---|---|
-| 第 47 轮 | 临时仓库真跑 revert 并断言树还原/历史保留；3 例测试 |
 | 第 48 轮 | 版本推进脚本（每 10 轮 minor）+ CHANGELOG 骨架；8 例测试 |
 | 第 49 轮 | README 进度块自动刷新（标记替换幂等）；6 例测试 |
+| 第 50 轮 | 第五次体检：宪章 4964、用例 324、README 81→88、升 0.49.0 |
 <!-- rd-board:end -->
 
 ## 安装
