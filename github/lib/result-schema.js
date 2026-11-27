@@ -69,6 +69,7 @@ export const RESULT_FIELDS = Object.freeze({
   prState: { type: 'string' },
   prDraft: { type: 'boolean' },
   prCreated: { type: 'boolean' },
+  commentsPosted: { type: 'integer' },
   pushed: { type: 'boolean' },
   mergeable: { type: 'string' },
   reviewDecision: { type: 'string' },

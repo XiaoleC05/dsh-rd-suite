@@ -863,3 +863,43 @@ test('precheck 给出与远端的领先/落后/分叉', async () => {
   assert.equal(unknown.diverged, undefined)
   assert.equal(unknown.ok, true, '读不到远端分支不影响预检通过')
 })
+
+test('open_pr 在关联 Issue 上回链 PR，可关闭', async () => {
+  const { run, calls } = makeRun({ branch: () => ok('fix/9-toolbar-overflow\n') })
+  const linked = await openPr(run, {
+    path: targetFile,
+    title: 'fix(toolbar): 收口 (#9)',
+    body: '说明。',
+    issues: [9, 10],
+  })
+  assert.equal(linked.ok, true)
+  const comments = calls.filter((call) => /gh issue comment/.test(call.command))
+  assert.equal(comments.length, 2, '两个 Issue 各回链一条')
+  assert.equal(linked.commentsPosted, 2)
+  const body = comments[0].argv[comments[0].argv.indexOf('--body') + 1]
+  assert.match(body, /pull\/\d+/u, '评论里要带 PR 链接')
+
+  const quiet = makeRun({ branch: () => ok('fix/9-toolbar-overflow\n') })
+  const silent = await openPr(quiet.run, {
+    path: targetFile,
+    title: 'fix(toolbar): 安静开启 (#9)',
+    body: '说明。',
+    issues: [9],
+    linkIssues: false,
+  })
+  assert.equal(silent.ok, true)
+  assert.equal(quiet.calls.filter((call) => /gh issue comment/.test(call.command)).length, 0)
+  assert.equal(silent.commentsPosted, undefined)
+})
+
+test('回链失败不影响 PR 已创建的事实', async () => {
+  const { run } = makeRun({
+    branch: () => ok('fix/9-toolbar-overflow\n'),
+    issueComment: () => failed('gh: HTTP 403'),
+  })
+  const result = await openPr(run, { path: targetFile, title: 'fix(toolbar): x (#9)', body: '说明。', issues: [9] })
+  assert.equal(result.ok, true)
+  assert.equal(result.prCreated, true)
+  assert.equal(result.commentsPosted, undefined)
+  assert.match(String(result.warnings?.[0]), /回链 #9 失败/u)
+})

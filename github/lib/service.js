@@ -1615,6 +1615,31 @@ export async function openPr(run, options = {}) {
     }
     const prUrl = extractPullUrl(created.stdout)
     const prNumber = pullNumberFromUrl(prUrl)
+
+    // Issue 侧回链：Closes 只在合并时生效，先留一条评论，别人打开 Issue 就知道有人在推进。
+    const linkIssues = options.linkIssues !== false
+    const commentWarnings = []
+    let commentsPosted = 0
+    if (linkIssues && prUrl !== null) {
+      const targets = [options.issue, ...(Array.isArray(options.issues) ? options.issues : [])]
+        .map((value) => parseIssueNumber(value))
+        .filter((number) => number !== null)
+      for (const number of [...new Set(targets)]) {
+        try {
+          const commented = await runGh(
+            run,
+            ['issue', 'comment', String(number), '--repo', check.slug, '--body', `PR #${prNumber ?? '?'}：${prUrl}`],
+            root,
+            options.signal,
+          )
+          if (commented.exitCode === 0) commentsPosted += 1
+          else commentWarnings.push(`回链 #${number} 失败：${firstDiagnosticLine(commented.stderr) || 'unknown error'}`)
+        } catch (error) {
+          commentWarnings.push(`回链 #${number} 失败：${error instanceof Error ? error.message : String(error)}`)
+        }
+      }
+    }
+
     return compact({
       ok: true,
       action,
@@ -1626,6 +1651,8 @@ export async function openPr(run, options = {}) {
       prDraft: draft,
       prCreated: true,
       pushed: true,
+      ...(commentsPosted === 0 ? {} : { commentsPosted }),
+      ...(commentWarnings.length === 0 ? {} : { warnings: commentWarnings }),
       message: `Opened pull request${prUrl === null ? '' : ` ${prUrl}`}.`,
       guidance:
         'Check pr_status, then merge_pr (squash, delete branch) once the checks are green. The closing keyword closes the issue on merge.',
