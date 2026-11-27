@@ -26,7 +26,10 @@ export function loadGlossary(file = join(root, 'docs', 'glossary.json')) {
   const parsed = JSON.parse(readFileSync(file, 'utf8'))
   const rules = Array.isArray(parsed?.rules) ? parsed.rules : []
   return rules.filter(
-    (rule) => typeof rule?.canonical === 'string' && Array.isArray(rule.variants) && rule.variants.length > 0,
+    (rule) =>
+      typeof rule?.canonical === 'string' &&
+      Array.isArray(rule.variants) &&
+      rule.variants.length > 0,
   )
 }
 
