@@ -79,7 +79,7 @@ test('每条都有目标与合法状态', () => {
 })
 
 test('账本记录已完成轮次', () => {
-  assert.match(ledger, /## 已完成/u, '账本缺少「已完成」一节')
   const done = ledger.slice(ledger.indexOf('## 已完成'))
-  assert.match(done, /\|\s*000\s*\|/u, '应记录第 1 轮（协议与账本）')
+  assert.match(done, /\|\s*第 1 轮\s*\|\s*#16\s*\|/u, '应记录第 1 轮（协议与账本）')
+  assert.match(done, /\|\s*第 2 轮\s*\|\s*#17\s*\|/u, '应记录第 2 轮（记忆骨架）')
 })

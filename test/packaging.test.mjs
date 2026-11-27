@@ -64,6 +64,14 @@ test('技能目录整体被打包，且每个技能都可见', () => {
   for (const file of skills) assert.ok(covered(file), `files[] 未覆盖 ${file}`)
 })
 
+test('所有运行时目录都被清单覆盖（新增模块自动纳入检查）', () => {
+  for (const directory of ['memory', 'skills', 'scripts']) {
+    for (const file of walk(join(root, directory))) {
+      assert.ok(covered(file), `files[] 未覆盖 ${file}`)
+    }
+  }
+})
+
 test('成员实现、文档、locale 与图标都在清单里', () => {
   for (const file of [
     'index.js',

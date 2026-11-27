@@ -14,6 +14,7 @@ import { basename, dirname } from 'node:path'
 import z from '@deepseek-ai/schemastery'
 import * as codePipeline from './code-pipeline/index.js'
 import * as github from './github/index.js'
+import * as memory from './memory/index.js'
 import { standardize } from './code-pipeline/lib/standardize.js'
 import { auditFiles } from './code-pipeline/lib/audit.js'
 
@@ -33,6 +34,7 @@ export const Config = z.object({
   githubIssueFirstWorkflow: z.boolean().default(false),
   autoCodeFix: z.boolean().default(true),
   codePipeline: z.any(),
+  memory: z.any(),
 })
 
 /** Tools that produce or rewrite a file, by model-visible name. */
@@ -89,6 +91,9 @@ async function autoFixFile(absolute) {
 export function apply(ctx, config) {
   const codeConfig = config?.codePipeline
   codePipeline.apply(ctx, codeConfig !== null && typeof codeConfig === 'object' ? codeConfig : {})
+  // 长期记忆：技术模板、踩坑、修复方案、策略模式，存在用户目录，换项目也能用。
+  const memoryConfig = config?.memory
+  memory.apply(ctx, memoryConfig !== null && typeof memoryConfig === 'object' ? memoryConfig : {})
 
   // 每个会话在本轮模块里写过的文件。写文件时即时格式化，模块关闭时再整体审计一次。
   const touched = new Map()

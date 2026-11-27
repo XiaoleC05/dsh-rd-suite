@@ -1,6 +1,6 @@
 {
   "name": "dsh-rd-suite",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -25,6 +25,7 @@
     "cordis.patch.yml",
     "code-pipeline",
     "github",
+    "memory",
     "skills",
     "scripts",
     "locale/*.json",

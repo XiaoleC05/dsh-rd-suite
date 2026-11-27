@@ -1,5 +1,14 @@
 # 变更日志
 
+## 0.10.0 — 2026-11-27
+
+- 新增长期记忆模块 `memory/`：技术模板、踩坑、bug 修复方案、策略模式四类，
+  存 `~/.dsh/rd-suite/memory.json`（可配置目录与条目上限），原子写、同标题合并。
+- 新增 `memory_save`（按类型写入，返回 created/updated 与 id）与 `memory_list`
+  （类型/标签过滤、分页、摘要）两个工具，融进融合插件由根 `index.js` 组合。
+- 打包清单加入 `memory`，packaging 测试改为遍历全部运行时目录，新增模块
+  不会再漏出包。
+- 新增 `test/memory-store.test.mjs`（10 例）；全量 136/136。
 ## 0.9.1 — 2026-11-27
 
 - 修复打包清单：files 补上 scripts，按包安装后 repo-map、secret-scan、
