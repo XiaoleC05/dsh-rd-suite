@@ -88,6 +88,7 @@ window.__ModuleLoader__.load({
           '极简模式：只保终端与图片；研发模式工具更全，但读、搜索与网页输出都有上限，也不挂 workflow。',
           '创造模式：改 DSH 自身；研发模式改项目代码。',
         ],
+        retry: '重新渲染',
         emptyTabs: '成员页面未加载：代码修正面板不可用，检查 bundle 是否完整启用。',
         tabListLabel: '研发工作台的页面',
       },
@@ -166,6 +167,7 @@ window.__ModuleLoader__.load({
           'Minimal mode keeps only terminal and images; R&D mode keeps more tools but caps reads, searches, and web output, and mounts no workflow.',
           'Creator mode changes DSH itself; R&D mode changes project code.',
         ],
+        retry: 'Render again',
         emptyTabs:
           'Member pages did not load: the code-fixes panel is unavailable. Check that the bundle is fully enabled.',
         tabListLabel: 'R&D workbench pages',
@@ -424,6 +426,44 @@ window.__ModuleLoader__.load({
       )
     }
 
+
+    /**
+     * 面板错误边界：一个面板渲染失败只影响它自己。
+     * 测试替身没有 React.Component 时退化为直通，保证无浏览器测试仍能渲染。
+     */
+    const PanelBoundary = typeof React.Component === 'function'
+      ? class PanelBoundary extends React.Component {
+          constructor(props) {
+            super(props)
+            this.state = { error: null }
+            this.retry = () => this.setState({ error: null })
+          }
+
+          static getDerivedStateFromError(error) {
+            return { error }
+          }
+
+          componentDidCatch(error) {
+            // 控制台留一份，方便用户在浏览器里查完整栈。
+            if (typeof console !== 'undefined' && typeof console.error === 'function') {
+              console.error('[rd-hub] panel crashed:', error)
+            }
+          }
+
+          render() {
+            if (this.state.error === null) return this.props.children
+            const message = this.state.error instanceof Error ? this.state.error.message : String(this.state.error)
+            return h(
+              'div',
+              { style: ui.panelError, role: 'alert' },
+              h('h3', { style: ui.h3 }, this.props.label ?? '面板渲染失败'),
+              h('p', { style: ui.hint }, message),
+              h('button', { type: 'button', style: ui.linkButton, onClick: this.retry }, this.props.retryLabel ?? '重新渲染'),
+            )
+          }
+        }
+      : ({ children }) => children
+
     /** "标题|说明" → [标题, 说明]。成员项在字典里是字符串，渲染时才拆开。 */
     function pair(text) {
       const value = String(text)
@@ -607,7 +647,16 @@ window.__ModuleLoader__.load({
           node,
         )
 
-      const bodies = [pane(OVERVIEW, h(Overview, { t, hasTabs: tabs.length > 0 }))]
+      const bodies = [
+        pane(
+          OVERVIEW,
+          h(
+            PanelBoundary,
+            { label: t('panelName'), retryLabel: t('retry') },
+            h(Overview, { t, hasTabs: tabs.length > 0 }),
+          ),
+        ),
+      ]
       tabs.forEach((tab, index) => {
         if (!mounted.has(index)) return
         let pageProps = {}
@@ -616,7 +665,12 @@ window.__ModuleLoader__.load({
         } catch {
           pageProps = { t }
         }
-        bodies.push(pane(index, h(tab.component, pageProps)))
+        bodies.push(
+          pane(
+            index,
+            h(PanelBoundary, { label: tab.label(), retryLabel: t('retry') }, h(tab.component, pageProps)),
+          ),
+        )
       })
 
       return h(

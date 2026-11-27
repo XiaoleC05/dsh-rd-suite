@@ -96,7 +96,7 @@
 | 062 | 键盘焦点顺序 | 待做 | |
 | 063 | 深色主题对比度 | 待做 | |
 | 064 | 空状态与加载态统一 | 待做 | |
-| 065 | 错误边界：单面板崩溃不拖垮整页 | 待做 | |
+| 065 | 错误边界：单面板崩溃不拖垮整页 | 完成 | #38 |
 | 066 | 命令面板（搜索与跳转） | 待做 | |
 | 067 | 面板间共享上下文（仓库/Issue） | 待做 | |
 | 068 | 图标与品牌一致性 | 待做 | |
@@ -179,3 +179,4 @@
 | 第 20 轮 | #35 | audit-cache | 按 mtime+size 的进程内缓存，只缓存干净判定；5 例测试 |
 | 第 21 轮 | #36 | charter-audit-line | 报告模板加审计行 + test/charter.test.mjs 六项结构守卫 |
 | 第 22 轮 | #37 | copy-banned-words | analyze 支持 extraCliches，CLI 加 --banned（换行或 JSON 词表）；2 例测试 |
+| 第 23 轮 | #38 | panel-error-boundary | 每个 pane 包一层 PanelBoundary（getDerivedStateFromError + 重试），无 Component 时退化；2 例测试 |

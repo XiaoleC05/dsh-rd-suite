@@ -195,3 +195,31 @@ test('成员页面缺失时给出明确提示', () => {
   ).join(' ')
   assert.ok(text.includes(dict.emptyTabs), '没有成员页面时要说明面板不可用')
 })
+
+test('面板错误边界：实现存在、包在每个 pane 里、有重试文案', () => {
+  const source = readFileSync(join(here, '..', 'client-sources', 'hub-rd.js'), 'utf8')
+  assert.match(source, /static getDerivedStateFromError/u, '必须实现错误边界')
+  assert.match(source, /componentDidCatch/u, '要留一份控制台日志')
+  assert.match(source, /typeof React\.Component/u, '没有 Component 的环境要退化')
+
+  const boundaryUses = source.match(/h\(\s*PanelBoundary,/gu) ?? []
+  assert.ok(boundaryUses.length >= 2, '概览与成员页面都要被包住')
+  assert.ok(source.includes('pane(\n          OVERVIEW'), '概览要经 pane 渲染')
+  const overviewStart = source.indexOf('const bodies = [')
+  const boundaryStart = source.indexOf('PanelBoundary,')
+  assert.ok(boundaryStart > overviewStart, '边界要出现在 bodies 构建之后，而不是整页外层')
+})
+
+test('替身环境（无 React.Component）下仍能渲染概览', () => {
+  const { registrations, dictionaries } = boot(fakePages)
+  const dict = dictionaries.find((item) => item.namespace === 'rdHub').dicts.zh
+  assert.equal(typeof dict.retry, 'string', '字典要有重试文案')
+  const main = registrations.find((item) => item.config.name === 'main')
+  const text = render(
+    React.createElement(main.component, {
+      pageTabs: main.config.inject().pageTabs,
+      t: (key) => dict[key],
+    }),
+  ).join(' ')
+  assert.match(text, /研发工作台/u)
+})
