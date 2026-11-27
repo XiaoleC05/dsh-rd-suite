@@ -231,3 +231,45 @@ test('删除：POST 生效并落盘，缺 id 与找不到分别给 400/404，其
   assert.equal(JSON.parse(postResponse.body).total, 0)
   rmSync(dir, { recursive: true, force: true })
 })
+
+test('stats 给出命中分布：从未命中、命中前几与条数', async () => {
+  const { createMemoryHandlers } = await import('../memory/lib/routes.js')
+  const { mkdtempSync, rmSync, writeFileSync: writeFixture } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'rd-mem-hits-'))
+  const file = join(dir, 'memory.json')
+  const make = (id, title, hits) => ({
+    id,
+    type: 'fix',
+    title,
+    body: '正文够长，用于命中统计。',
+    tags: [],
+    hits,
+    revisions: 0,
+    createdAt: '2026-11-01T00:00:00.000Z',
+    updatedAt: '2026-11-01T00:00:00.000Z',
+  })
+  writeFixture(
+    file,
+    JSON.stringify({
+      version: 1,
+      entries: [make('a', '常用条目', 7), make('b', '偶尔用', 2), make('c', '从没用过', 0), make('d', '也没用过', 0)],
+    }),
+    'utf8',
+  )
+
+  const handlers = createMemoryHandlers({ file, maxEntries: 100 })
+  const stats = await (await handlers.stats()).json()
+  assert.equal(stats.unused, 2)
+  assert.deepEqual(stats.topHits.map((entry) => entry.title), ['常用条目', '偶尔用'])
+  assert.deepEqual(stats.hitless.map((entry) => entry.title), ['从没用过', '也没用过'])
+
+  const empty = join(dir, 'empty.json')
+  writeFixture(empty, JSON.stringify({ version: 1, entries: [] }), 'utf8')
+  const emptyStats = await (await createMemoryHandlers({ file: empty, maxEntries: 10 }).stats()).json()
+  assert.equal(emptyStats.unused, 0)
+  assert.equal(emptyStats.topHits, undefined, '没有命中过的条目时不给 topHits')
+  assert.equal(emptyStats.hitless, undefined)
+  rmSync(dir, { recursive: true, force: true })
+})

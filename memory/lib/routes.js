@@ -86,6 +86,14 @@ export function createMemoryHandlers({ file, maxEntries }) {
         const stamp = String(entry.updatedAt ?? '')
         if (stamp > latest) latest = stamp
       }
+      // 命中分布：一条都没被检索过的条目要不要留，用户需要看得见。
+      const byHits = document.entries
+        .map((entry) => ({ id: String(entry.id ?? ''), title: String(entry.title ?? ''), hits: Number(entry.hits) || 0 }))
+        .sort((left, right) => right.hits - left.hits)
+      const unused = byHits.filter((entry) => entry.hits === 0).length
+      const topHits = byHits.filter((entry) => entry.hits > 0).slice(0, 5)
+      const hitless = byHits.filter((entry) => entry.hits === 0).slice(0, 5)
+
       // 带上上限与用量：面板据此在接近上限时提醒，避免用户无声地丢掉旧条目。
       const limit = Number.isFinite(maxEntries) && maxEntries > 0 ? Math.floor(maxEntries) : undefined
       const usage = limit === undefined ? undefined : Math.min(1, document.entries.length / limit)
@@ -95,6 +103,9 @@ export function createMemoryHandlers({ file, maxEntries }) {
         byType,
         latest,
         file,
+        unused,
+        ...(topHits.length === 0 ? {} : { topHits }),
+        ...(hitless.length === 0 ? {} : { hitless }),
         ...(limit === undefined ? {} : { limit }),
         ...(usage === undefined ? {} : { usage }),
       })

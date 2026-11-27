@@ -1400,6 +1400,8 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         updated: '更新于 {time}',
         detailHint: '左侧选一条查看全文',
         capacityWarn: '记忆库已用 {total}/{limit}，接近上限；再写入会按命中与时间淘汰旧条目。',
+        unusedHint: '其中 {count} 条从未被检索过：{titles}',
+        unusedMore: '等',
         close: '关闭',
         remove: '删除',
         removeConfirm: '再点一次确认删除',
@@ -1427,6 +1429,8 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         updated: 'Updated {time}',
         detailHint: 'Pick an entry on the left',
         capacityWarn: 'Memory store at {total}/{limit}; further writes evict older entries by hits and recency.',
+        unusedHint: '{count} entries were never retrieved: {titles}',
+        unusedMore: 'and more',
         close: 'Close',
         remove: 'Delete',
         removeConfirm: 'Click again to confirm',
@@ -1534,6 +1538,12 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         color: 'var(--dsw-alias-label-primary)',
         cursor: 'pointer',
         alignSelf: 'flex-start',
+      },
+      hintLine: {
+        margin: '0 20px 4px',
+        fontSize: 12,
+        lineHeight: '18px',
+        color: 'var(--dsw-alias-label-secondary)',
       },
       warn: {
         margin: '0 20px 8px',
@@ -1809,6 +1819,21 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
             translate('subtitle'),
           ),
         ),
+        capacity !== null && typeof capacity.unused === 'number' && capacity.unused > 0
+          ? h(
+              'p',
+              { style: ui.hintLine, role: 'status' },
+              fill(translate('unusedHint'), {
+                count: capacity.unused,
+                titles: [
+                  ...(Array.isArray(capacity.hitless) ? capacity.hitless.map((entry) => entry.title) : []),
+                  capacity.unused > 5 ? translate('unusedMore') : null,
+                ]
+                  .filter((item) => item !== null && item !== '')
+                  .join('、'),
+              }),
+            )
+          : null,
         capacity !== null && typeof capacity.usage === 'number' && capacity.usage >= 0.8
           ? h(
               'p',

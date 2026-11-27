@@ -190,3 +190,4 @@
 | 第 31 轮 | #46 | memory-capacity | stats 带上限与用量，面板达八成时提示；2 例测试 |
 | 第 32 轮 | #47 | term-check | docs/glossary.json 四条规则 + term-check 脚本；6 例测试 |
 | 第 33 轮 | #48 | memory-forget | POST /forget 路由 + 面板两段式删除；3 例测试 |
+| 第 34 轮 | #49 | memory-hit-stats | stats 给 unused / topHits / hitless，面板显示从未命中的条目；1 例测试 |
