@@ -17,6 +17,7 @@ import * as github from './github/index.js'
 import * as memory from './memory/index.js'
 import { standardize } from './code-pipeline/lib/standardize.js'
 import { auditFiles } from './code-pipeline/lib/audit.js'
+import { wrapToolForTiming } from './lib/tool-timing.js'
 import { appendAuditRecord, auditHistoryFile } from './code-pipeline/lib/history.js'
 import { homedir } from 'node:os'
 
@@ -91,6 +92,12 @@ async function autoFixFile(absolute) {
  * @param config - 融合配置
  */
 export function apply(ctx, config) {
+  // 工具注册处包一层计时：耗时统计对调用方完全透明。
+  if (ctx?.tools !== null && typeof ctx?.tools === 'object' && typeof ctx.tools.register === 'function') {
+    const original = ctx.tools.register.bind(ctx.tools)
+    ctx.tools.register = (definition, ...rest) => original(wrapToolForTiming(definition), ...rest)
+  }
+
   const codeConfig = config?.codePipeline
   codePipeline.apply(ctx, codeConfig !== null && typeof codeConfig === 'object' ? codeConfig : {})
   // 长期记忆：技术模板、踩坑、修复方案、策略模式，存在用户目录，换项目也能用。

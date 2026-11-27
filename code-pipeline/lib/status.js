@@ -7,6 +7,7 @@
 
 import { readFileSync } from 'node:fs'
 
+import { summarizeToolTiming } from '../../lib/tool-timing.js'
 import { readAuditHistory } from './history.js'
 import { join } from 'node:path'
 
@@ -64,7 +65,9 @@ export function collectStatus(options) {
     warnings.push('读不到 docs/CHANGELOG.md')
   }
 
+  const timing = summarizeToolTiming(5)
   return {
+    ...(timing.length === 0 ? {} : { toolTiming: timing }),
     ...(options.historyFile === undefined ? {} : { auditHistory: readAuditHistory(options.historyFile).slice(0, 3) }),
     ...(version === undefined ? {} : { version }),
     ...(rounds === undefined ? {} : { rounds }),
