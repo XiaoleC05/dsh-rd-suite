@@ -226,3 +226,4 @@
 | 第 67 轮 | #82 | subagent-templates | 三个简报模板 + 统一四栏返回格式，含模糊词黑名单；5 例测试 |
 | 第 68 轮 | #83 | tool-timing | 工具调用耗时统计（包装 register，失败也记）+ status 暴露前 5；6 例测试 |
 | 第 69 轮 | #84 | retry-policy | classifyFailure 三选一 + withRetry，mergePr 改用它；9 例测试 |
+| 第 70 轮 | #85 | health-round-70 | 第七次体检：用例 412、最大技能 rd-ecosystem 2597、升 0.60.0 |
