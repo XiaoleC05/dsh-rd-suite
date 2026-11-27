@@ -1,5 +1,15 @@
 # 变更日志
 
+## 0.8.0 — 2026-11-27
+
+- 新增 `scripts/secret-scan.mjs`（仿 gitleaks）：厂商前缀、私钥块、键名 + 凭据值三类规则，
+  命中只输出打码片段；`--staged` 扫暂存区，命中返回 1，占位符与 `process.env` 不误报（#13）。
+- 新增 `scripts/commit-msg.mjs`（仿 commitlint + release-please）：校验类型白名单、header
+  长度、空行与正文行宽，推导 semver 级别并给出 CHANGELOG 条目草稿（#13）。
+- 宪章 S5 要求交付前跑 secret-scan；GitHub 流程提示词 G3 加 commit-msg 校验、G7 说明
+  按提交类型推导版本级别（#13）。
+- 新增 `test/gates.test.mjs`（7 例：命中与打码、占位符豁免、CLI 退出码、提交信息四类
+  违规、破坏性变更、CHANGELOG 分组）；全量 115/115（#13）。
 ## 0.7.0 — 2026-11-27
 
 - 新增 `scripts/repo-map.mjs`（仿 Aider 的 repo map）：输出「文件 + 顶层符号 + 行数」的仓库骨架，支持 `--budget`/`--depth`/`--json`，跳过依赖与构建目录，并只采模块级变量与 .md 标题（#12）。
