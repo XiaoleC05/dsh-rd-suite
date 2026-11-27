@@ -49,8 +49,24 @@ test('全部命中时准确率与 MRR 都是 1', () => {
 test('命中但排第二：top1 记 0，MRR 记 0.5', () => {
   // 两条都命中同一个词、分数相同，于是按 hits 排序：b（9 次）在前。
   const tied = [
-    { id: 'a', type: 'fix', title: 'alpha 条目', body: '正文一', tags: [], hits: 1, updatedAt: '2026-11-20T00:00:00.000Z' },
-    { id: 'b', type: 'fix', title: 'alpha 条目二', body: '正文二', tags: [], hits: 9, updatedAt: '2026-11-21T00:00:00.000Z' },
+    {
+      id: 'a',
+      type: 'fix',
+      title: 'alpha 条目',
+      body: '正文一',
+      tags: [],
+      hits: 1,
+      updatedAt: '2026-11-20T00:00:00.000Z',
+    },
+    {
+      id: 'b',
+      type: 'fix',
+      title: 'alpha 条目二',
+      body: '正文二',
+      tags: [],
+      hits: 9,
+      updatedAt: '2026-11-21T00:00:00.000Z',
+    },
   ]
   const result = evaluateRecall({ entries: tied, cases: [{ query: 'alpha', expect: 'a' }] })
   assert.equal(result.accuracy, 0, '不在第一位就不算 top1 命中')
