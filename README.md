@@ -27,6 +27,8 @@
 | `skills/` | 预设按包名解析到的 rd-* 技能目录（含 rd-copy：文案去 AI 味、AIGC 自检、降重） |
 | `test/` | 入口页、代码审计、技能规范与 AIGC 检查脚本的校验（`node --test`） |
 | `scripts/aigc-check.mjs` | 文案 AIGC 自检：套话、连接词、模板开头、重复片段与句长分布，0–100 分 |
+| `scripts/repo-map.mjs` | 仓库地图：文件 + 顶层符号 + 行数，按字符预算输出，给侦察用的骨架 |
+| `docs/REFERENCES.md` | 参考项目调研：取用了哪些高星项目、哪些没取用及理由 |
 | `cordis.patch.yml` | 上面 3 行的完整声明，头部有相对官方 `ptc` 预设的差异表 |
 | `docs/` | `DESIGN.md`（设计与成本模型）、`DETAIL.md`（插件详情页）、`CHANGELOG.md` |
 
