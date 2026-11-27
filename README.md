@@ -29,6 +29,7 @@
 | `test/` | 入口页、代码审计、技能规范与 AIGC 检查脚本的校验（`node --test`） |
 | `scripts/aigc-check.mjs` | 文案 AIGC 自检：套话、连接词、模板开头、重复片段与句长分布，0–100 分 |
 | `scripts/push-via-api.mjs` | `git push` 被链路掐断时的回退：校验快进后用 Git Data API 推送并提示对齐 |
+| `scripts/audit-changed.mjs` | 只审 git 改动过的代码文件（交付前最后一道便宜检查） |
 | `scripts/health.mjs` | 横向体检：宪章体积、技能、测试、文档分数、打包缺口、术语漂移六项 |
 | `scripts/repo-map.mjs` | 仓库地图：文件 + 顶层符号 + 行数，按字符预算输出，给侦察用的骨架 |
 | `scripts/secret-scan.mjs` | 提交前密钥扫描：厂商前缀、私钥块、键名 + 高熵值，命中打码输出 |

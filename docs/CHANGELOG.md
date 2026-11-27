@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.21.0 — 2026-11-27
+
+- 新增「只审改动文件」入口：`parseGitStatus` / `changedPaths` / `auditChanged`，
+  改动来源是 `git status --porcelain`（含未跟踪），删除文件不审、纯文本不进审计；
+  命令行 `scripts/audit-changed.mjs --mode report|fix [--json]`。
+- git 不可用时按「没有改动」处理，不抛错。
+- 新增 `test/audit-changed.test.mjs`（5 例）；全量 201/201。
 ## 0.20.0 — 2026-11-27
 
 - 审计结果按语言分组：`auditFiles` 返回 `byLanguage`（复用 languages.js 的 classify，无法判定的落 non-code），

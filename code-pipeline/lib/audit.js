@@ -12,7 +12,8 @@
  * `standardize` re-checks after writing.
  */
 
-import { basename, dirname } from 'node:path'
+import { execFileSync } from 'node:child_process'
+import { basename, dirname, join } from 'node:path'
 
 import { classify } from './languages.js'
 
@@ -107,6 +108,69 @@ export function describeLanguageGroups(groups) {
   return groups
     .map((group) => `${group.language} ${group.checked} 检 ${group.fixed} 修`)
     .join('；')
+}
+
+
+/** git status 里算作「改动」的状态前缀：新增、修改、重命名、复制、类型变更。 */
+const CHANGED_STATUSES = new Set(['M', 'A', 'R', 'C', 'T'])
+
+/**
+ * 解析 `git status --porcelain` 的输出，取出改动文件的相对路径。
+ * 删除的文件不参与审计；未跟踪文件算改动。
+ * @param {string} text - porcelain 输出
+ * @returns {string[]} 相对路径
+ */
+export function parseGitStatus(text) {
+  const paths = []
+  for (const line of String(text ?? '').split(/\r?\n/u)) {
+    if (line.trim() === '') continue
+    const status = line.slice(0, 2)
+    const payload = line.slice(3).trim()
+    if (payload === '') continue
+    if (status.includes('D')) continue
+    const indicator = [...status].find((char) => char !== ' ' && char !== '?')
+    if (indicator === undefined) {
+      // 未跟踪（??）：照样审计，新文件同样需要符合规范。
+      paths.push(payload)
+      continue
+    }
+    if (indicator === 'R' || indicator === 'C') {
+      const next = payload.split(' -> ')[1]
+      if (typeof next === 'string' && next !== '') paths.push(next)
+      continue
+    }
+    if (CHANGED_STATUSES.has(indicator)) paths.push(payload)
+  }
+  return [...new Set(paths)]
+}
+
+/**
+ * 列出仓库里改动过的代码文件（绝对路径）。
+ * @param {{ root: string; run?: (command: string, args: string[]) => string }} options - 仓库根与可注入的命令执行器
+ * @returns {string[]} 绝对路径
+ */
+export function changedPaths(options) {
+  const run = options.run ?? ((command, args) => execFileSync(command, args, { encoding: 'utf8', cwd: options.root }))
+  let output
+  try {
+    output = run('git', ['status', '--porcelain=v1', '--untracked-files=all'])
+  } catch {
+    return []
+  }
+  return parseGitStatus(output)
+    .filter((relative) => classify(relative).kind === 'code')
+    .map((relative) => join(options.root, relative))
+}
+
+/**
+ * 只审计 git 改动过的文件。
+ * @param {{ root: string; mode?: 'report' | 'fix'; run?: Function }} options - 仓库根、模式与可注入的执行器
+ * @returns {Promise<{ checked: number; needsFix: number; fixed: number; remaining: number; files: string[]; byLanguage: object[] }>} 审计摘要
+ */
+export async function auditChanged(options) {
+  const files = changedPaths(options)
+  if (files.length === 0) return { checked: 0, needsFix: 0, fixed: 0, remaining: 0, files: [], byLanguage: [] }
+  return auditFiles(files, { mode: options.mode === 'report' ? 'report' : 'fix' })
 }
 
 /**
