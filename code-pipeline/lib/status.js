@@ -6,6 +6,8 @@
  */
 
 import { readFileSync } from 'node:fs'
+
+import { readAuditHistory } from './history.js'
 import { join } from 'node:path'
 
 /**
@@ -63,6 +65,7 @@ export function collectStatus(options) {
   }
 
   return {
+    ...(options.historyFile === undefined ? {} : { auditHistory: readAuditHistory(options.historyFile).slice(0, 3) }),
     ...(version === undefined ? {} : { version }),
     ...(rounds === undefined ? {} : { rounds }),
     ...(changelogVersion === undefined ? {} : { changelogVersion }),

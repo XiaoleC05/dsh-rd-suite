@@ -95,6 +95,7 @@ window.__ModuleLoader__.load({
         liveRounds: '已迭代轮次',
         liveLedger: '账本行数',
         liveChangelog: '最新变更',
+        liveAudit: '最近审计',
 
         emptyTabs: '成员页面未加载：代码修正面板不可用，检查 bundle 是否完整启用。',
         tabListLabel: '研发工作台的页面',
@@ -181,6 +182,7 @@ window.__ModuleLoader__.load({
         liveRounds: 'Iterations done',
         liveLedger: 'Ledger rows',
         liveChangelog: 'Latest change',
+        liveAudit: 'Recent audit',
 
         emptyTabs:
           'Member pages did not load: the code-fixes panel is unavailable. Check that the bundle is fully enabled.',
@@ -550,6 +552,13 @@ window.__ModuleLoader__.load({
                   value: live.rounds === undefined ? '—' : String(live.rounds.rows),
                 }),
                 h(Metric, { label: t('liveChangelog'), value: String(live.changelogVersion ?? '—') }),
+                h(Metric, {
+                  label: t('liveAudit'),
+                  value:
+                    Array.isArray(live.auditHistory) && live.auditHistory.length > 0
+                      ? `${live.auditHistory[0].checked} 文件 / ${live.auditHistory[0].elapsedMs} ms`
+                      : '—',
+                }),
               ),
             ),
         h(

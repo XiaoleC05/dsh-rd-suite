@@ -21,6 +21,9 @@ import { collectRoots, pickHttpRoot, pickAgentRoot } from './lib/roots.js'
 import { createRequestGuard, rejectionPayload, REJECTION_HEADERS } from './lib/trust.js'
 import { buildStatePayload, buildStandardizePayload, summarizeForTool, errorPayload } from './lib/payload.js'
 
+import { homedir } from 'node:os'
+
+import { auditHistoryFile } from './lib/history.js'
 import { collectStatus } from './lib/status.js'
 
 const API_PREFIX = '/dsh-code-pipeline/api'
@@ -161,7 +164,11 @@ export function apply(ctx, config = {}) {
         try {
           const picked = pickHttpRoot(collectRoots(ctx), new URL(request.url).searchParams.get('root'))
           if (picked.root === null) return jsonResponse({ ok: true, warnings: [picked.error ?? 'no-workspace'] })
-          return jsonResponse({ ok: true, root: picked.root, ...collectStatus({ root: picked.root }) })
+          return jsonResponse({
+            ok: true,
+            root: picked.root,
+            ...collectStatus({ root: picked.root, historyFile: auditHistoryFile(homedir()) }),
+          })
         } catch (cause) {
           logger?.warn?.('code-pipeline: status handler failed: ' + (cause instanceof Error ? cause.message : String(cause)))
           return jsonResponse(errorPayload('internal'), 500)

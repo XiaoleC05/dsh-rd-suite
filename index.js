@@ -17,6 +17,8 @@ import * as github from './github/index.js'
 import * as memory from './memory/index.js'
 import { standardize } from './code-pipeline/lib/standardize.js'
 import { auditFiles } from './code-pipeline/lib/audit.js'
+import { appendAuditRecord, auditHistoryFile } from './code-pipeline/lib/history.js'
+import { homedir } from 'node:os'
 
 export const name = 'rd-suite'
 
@@ -115,6 +117,15 @@ export function apply(ctx, config) {
     if (files.length === 0) return null
     const audit = await auditFiles(files, { mode: 'fix' })
     touched.delete(key)
+    // 留一行历史：面板与交付报告都能回看「上次审了多少、花了多久」。
+    appendAuditRecord(auditHistoryFile(homedir()), {
+      checked: audit.checked,
+      needsFix: audit.needsFix,
+      fixed: audit.fixed,
+      remaining: audit.remaining,
+      elapsedMs: audit.elapsedMs,
+      slowest: audit.slowestGroup === undefined ? '' : String(audit.slowestGroup.root),
+    })
     return audit
   }
 
