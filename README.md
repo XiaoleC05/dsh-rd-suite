@@ -57,6 +57,23 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## git 凭据与网络
+
+如果每次 git 操作都弹窗要求选 GitHub 账户，或者 push 卡住，先跑：
+
+```
+node scripts/git-net-check.mjs --network
+```
+
+它检查四项配置并给出可直接粘贴的修复命令：
+
+| 症状 | 根因 | 修法 |
+|---|---|---|
+| 每次弹窗选账户 | 系统级 `credential.helper=manager`（GCM）在有多个账户时弹框 | `git config --global credential.https://github.com.helper "!gh auth git-credential"` |
+| 弹窗等待 | 缺凭据时 GCM 弹框而不是失败 | `git config --global credential.interactive false` |
+| `curl 56 / Connection was reset` | git 不走系统代理 | `git config --global http.https://github.com.proxy http://127.0.0.1:7890` |
+| `schannel: failed to receive handshake` | schannel 后端在代理下握手失败 | `git config --global http.sslBackend openssl` |
+
 ## 超限行为
 
 五项体积上限与超限后的行为（截断 / 拒绝 / 分页）逐项写在 [docs/OVERFLOW.md](docs/OVERFLOW.md)，与 `lib/limits.js` 的 `OVERFLOW_POLICY` 由测试校验一致。

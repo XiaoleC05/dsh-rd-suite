@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.60.1 — 2026-11-27
+
+- 新增 scripts/git-net-check.mjs：检查 github 凭据助手 / credential.interactive / 代理 / TLS 后端四项，
+  失败项给出可直接执行的修复命令；`--network` 再做 ls-remote 连通性测试。
+- 修复本机 git：github 凭据改用 gh（不再弹 GCM 账户选择框）、github 走 127.0.0.1:7890 代理、
+  后端由 schannel 换 openssl；fetch 与 push 均已实测通过，本地已对齐远端 56c5b3b。
+- README 增「git 凭据与网络」症状对照表。用例 418。
 ## 0.60.0 — 2026-11-27
 
 - 第 61–70 轮体检入账：用例到 412；技能体积榜首从 rd-retro 换成了 rd-ecosystem（2597 字符）；漂移与打包缺口仍为 0。
