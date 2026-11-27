@@ -82,6 +82,12 @@ export function scanText(text, options = {}) {
  * 列出暂存区里改动的文件。
  * @returns {string[]} 相对路径
  */
+/** 全部被 git 跟踪的文件。 */
+export function trackedFiles() {
+  const output = execFileSync('git', ['ls-files'], { encoding: 'utf8' })
+  return output.split(/\r?\n/u).filter((line) => line.trim() !== '')
+}
+
 function stagedFiles() {
   try {
     const output = execFileSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACMR'], {
@@ -102,7 +108,9 @@ function stagedFiles() {
 export function main(argv) {
   const json = argv.includes('--json')
   const staged = argv.includes('--staged')
-  const files = staged ? stagedFiles() : argv.filter((argument) => !argument.startsWith('--'))
+  const given = argv.filter((argument) => !argument.startsWith('--'))
+  // 不给文件也不是 --staged 时默认扫全仓跟踪文件：全面体检不该每次手动拼列表。
+  const files = staged ? stagedFiles() : given.length > 0 ? given : trackedFiles()
   if (files.length === 0) {
     if (staged) {
       process.stdout.write('暂存区没有改动，无需扫描\n')

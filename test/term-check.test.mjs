@@ -77,12 +77,12 @@ test('词表：默认表可读，非法规则被过滤', () => {
   )
 })
 
-test('命令行：有命中返回 1，无命中返回 0，无参数返回 2', () => {
+test('命令行：有命中返回 1，无命中返回 0，无参数默认查全仓', () => {
   const dirty = join(workspace, 'dirty.md')
   const clean = join(workspace, 'clean.md')
   writeFileSync(dirty, '这里用了 RD 模式\n', 'utf8')
   writeFileSync(clean, '这里写研发模式\n', 'utf8')
   assert.equal(main([dirty]), 1)
   assert.equal(main([clean]), 0)
-  assert.equal(main([]), 2)
+  assert.ok([0, 1].includes(main([])), '无参数应给出 0 或 1，而不是用法错误')
 })

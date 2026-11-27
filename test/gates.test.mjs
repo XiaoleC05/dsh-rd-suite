@@ -54,14 +54,15 @@ test('打码函数对短串全遮、长串保留首位', () => {
   assert.equal(mask(long), 'AKIA…TY')
 })
 
-test('命令行：命中的文件返回 1，干净文件返回 0，用法错误返回 2', () => {
+test('命令行：命中的文件返回 1，干净文件返回 0，无参数默认扫全仓', () => {
   const dirty = join(workspace, 'dirty.js')
   const clean = join(workspace, 'clean.js')
   writeFileSync(dirty, `token = "${'sk-'}${'a'.repeat(24)}"\n`, 'utf8')
   writeFileSync(clean, 'export const answer = 42\n', 'utf8')
   assert.equal(scanMain([dirty]), 1)
   assert.equal(scanMain([clean]), 0)
-  assert.equal(scanMain([]), 2)
+  // 无参数不再报用法错误：默认扫全仓跟踪文件，退出码只反映有没有命中。
+  assert.ok([0, 1].includes(scanMain([])), '无参数应给出 0 或 1，而不是用法错误')
   assert.equal(scanMain([clean, '--json']), 0)
 })
 

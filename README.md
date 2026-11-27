@@ -75,6 +75,10 @@
 
 | `scripts/rd-doctor.mjs` | 七项自检合一个入口：工具清单 / 技能版本 / 宪章重叠 / 引用完整 / git 网络 / CI 覆盖 / 交付门禁 |
 | `scripts/perf-budget.mjs` | 给自检入口与全量测试设耗时预算，专抓「悄悄慢一个数量级」 |
+## 仓库卫生
+
+换行由 `.gitattributes` 统一为 LF，`test/hygiene.test.mjs` 校验跟踪文件不混用换行、不带 BOM。三个检查脚本（`secret-scan` / `term-check` / `dup-check`）**不带参数时默认扫全仓**，全面体检不必手拼文件列表。
+
 ## 一个入口
 
 `node scripts/rd-doctor.mjs` 依次跑工具清单、技能版本、宪章重叠、引用完整、git 网络、CI 覆盖与交付门禁七项，逐项计时并给一行结论；`--json` 供脚本消费。交付前只跑这一条即可。

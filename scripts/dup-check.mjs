@@ -5,13 +5,30 @@
  * AIGC 分数只看单个文件的文风，管不了「同一段话在三个文档里各写一遍」。
  * 这里按空行把文档切段，跳过标题、列表、引用与代码块，再用归一化文本比对。
  *
- * 用法：
+/** 用法：
  *   node scripts/dup-check.mjs docs/*.md README.md
  *   node scripts/dup-check.mjs --min-length 60 --json docs/*.md
  */
 
-import { readFileSync } from 'node:fs'
-import { pathToFileURL } from 'node:url'
+import { readdirSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+
+const root = dirname(dirname(fileURLToPath(import.meta.url)))
+
+/** 无参数时的默认检查集：README、docs 下全部 .md、十个技能正文。 */
+export function defaultFiles() {
+  const files = ['README.md']
+  for (const name of readdirSync(join(root, 'docs'))) {
+    if (name.endsWith('.md')) files.push(`docs/${name}`)
+  }
+  for (const entry of readdirSync(join(root, 'skills'), { withFileTypes: true })) {
+    if (entry.isDirectory()) files.push(`skills/${entry.name}/SKILL.md`)
+  }
+  return files
+}
+
+
 
 /** 不属于正文段落的前缀：标题、列表、引用、表格、代码围栏、HTML 注释。 */
 const NON_PARAGRAPH = /^(?:#{1,6}\s|[-*+]\s|\d+[.)]\s|>|\||```|<!--)/u
@@ -105,12 +122,13 @@ export function main(argv) {
   const json = argv.includes('--json')
   const minIndex = argv.indexOf('--min-length')
   const minLength = minIndex >= 0 ? Number(argv[minIndex + 1]) : undefined
-  const files = argv.filter(
+  const given = argv.filter(
     (argument) =>
       !argument.startsWith('--') &&
       argument !== String(minLength ?? '') &&
       argument !== 'undefined',
   )
+  const files = given.length > 0 ? given : defaultFiles()
   if (files.length === 0) {
     process.stdout.write('用法: node scripts/dup-check.mjs <文件...> [--min-length N] [--json]\n')
     return 2

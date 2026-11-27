@@ -93,5 +93,6 @@ test('命令行：有重复返回 1，无重复返回 0', () => {
 
   writeFileSync(second, '完全不同的另一段话，长度也够，内容不一样，因此不该判重。\n', 'utf8')
   assert.equal(main([first, second, '--min-length', '20']), 0)
-  assert.equal(main([]), 2, '没有文件时给用法提示')
+  // 无参数现在默认比对全仓文档：退出码只反映有没有重复段落。
+  assert.ok([0, 1].includes(main([])), '无参数应给出 0 或 1，而不是用法错误')
 })

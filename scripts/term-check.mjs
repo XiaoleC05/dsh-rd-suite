@@ -6,16 +6,29 @@
  * 出现 variants 里的写法就报出来，并给出应改成的 canonical。
  * 表可以随项目长大，不必改脚本。
  *
- * 用法：
+/** 用法：
  *   node scripts/term-check.mjs README.md docs/DESIGN.md skills/rd-copy/SKILL.md
  *   node scripts/term-check.mjs --json README.md
  */
 
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
+
+/** 无参数时的默认检查集：README、docs 下全部 .md、十个技能正文。 */
+export function defaultFiles() {
+  const files = ['README.md']
+  for (const name of readdirSync(join(root, 'docs'))) {
+    if (name.endsWith('.md')) files.push(`docs/${name}`)
+  }
+  for (const entry of readdirSync(join(root, 'skills'), { withFileTypes: true })) {
+    if (entry.isDirectory()) files.push(`skills/${entry.name}/SKILL.md`)
+  }
+  return files
+}
+
 
 /**
  * 读取词表。
@@ -68,7 +81,8 @@ export function findVariants(files, rules) {
  * @returns {number} 退出码：0 无不一致、1 有不一致、2 用法错误
  */
 export function main(argv) {
-  const files = argv.filter((argument) => !argument.startsWith('--'))
+  const given = argv.filter((argument) => !argument.startsWith('--'))
+  const files = given.length > 0 ? given : defaultFiles()
   if (files.length === 0) {
     process.stdout.write('用法: node scripts/term-check.mjs <文件...> [--json]\n')
     return 2
