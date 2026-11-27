@@ -38,6 +38,22 @@
 | `scripts/doc-cmd-check.mjs` | 校验文档里的示例命令：脚本存在、参数有出处 |
 | `scripts/board.mjs` | 刷新 README 里的迭代进度块（标记之间替换，幂等） |
 | `scripts/release.mjs` | 版本推进：每 10 轮 minor，其余 patch，同时改清单与 CHANGELOG 骨架 |
+| `lib/` | 共享底座：错误码表、体积上限与超限策略、重试与降级判定、工具耗时统计 |
+| `locale/` | 面板文案的中英词条（按语言分文件） |
+| `icon.svg` | 插件图标源文件（面板内用的是内联 SVG，同一套线条） |
+| `README.md` | 本文件：安装、结构、门禁与迭代进度 |
+| `docs/` | 设计与明细文档：`DESIGN.md`、`DETAIL.md`、`OVERFLOW.md`、`REGISTRY.md`、`SKILL-VERSIONS.md` |
+| `scripts/charter-overlap.mjs` | 宪章与技能的行文重叠检查（12 字以上成句重复） |
+| `scripts/ci-parity.mjs` | CI 覆盖度：workflow 是否跑构建 / 测试 / 全量门禁 |
+| `scripts/claim-audit.mjs` | 无证据断言审查：结论句必须邻近有证据 |
+| `scripts/git-net-check.mjs` | git 凭据与网络自检（凭据助手 / 代理 / TLS 后端） |
+| `scripts/link-check.mjs` | 文档引用完整性：链接与仓库路径是否指向存在的文件 |
+| `scripts/release-notes.mjs` | 从 CHANGELOG 生成用户向发布说明草稿 |
+| `scripts/skill-cost.mjs` | 技能正文与 references 的体积与 token 粗估 |
+| `scripts/skill-hits.mjs` | 按轮次统计技能命中率（区分显式没用与漏记） |
+| `scripts/skill-usage.mjs` | 按可观测引用量给出技能合并 / 瘦身建议 |
+| `scripts/skill-version.mjs` | 技能版本号与版本表生成、校验 |
+| `scripts/tool-inventory.mjs` | 工具清单与文档对账 |
 | `scripts/rollback-drill.mjs` | 回滚演练：临时仓库里真跑 revert，验证树还原且历史保留 |
 | `scripts/round-report.mjs` | 单轮评估报告：证据四段（做了什么 / 验证数据 / 判据 / 结论） |
 | `scripts/ledger.mjs` | 账本维护：`--list` 查状态、`--mark` 改状态、`--append-round` 追加轮次 |

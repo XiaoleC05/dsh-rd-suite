@@ -1,5 +1,10 @@
 # 变更日志
 
+## 0.66.3 — 2026-11-27
+
+- 新增 test/readme-structure.test.mjs：README 结构表必须覆盖打包清单每一项与每个脚本，且不得指向不存在的文件。
+- 补齐结构表 16 行：`lib/`、`locale/`、`icon.svg`、`README.md`、`docs/`，以及第 73–95 轮新增的 11 个脚本。
+- 用例 531。
 ## 0.66.2 — 2026-11-27
 
 - 新增 scripts/release-notes.mjs：从 CHANGELOG 取版本块，按新增 / 修复 / 文档分桶，套用户向四段模板；
