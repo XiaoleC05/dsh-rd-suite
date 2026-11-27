@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.58.0 — 2026-11-27
+
+- 新增 skills/rd-ecosystem/references/subagent-templates.md：代码审查 / 资料侦察 / 独立复核三个模板，
+  每个含任务、输入、约束、返回四段；返回统一为结论 / 证据 / 未验证 / 建议四栏。
+- 写明「子代理不共享上下文，简报必须自包含」，并列出模板里不该出现的模糊词。
+- 新增 test/subagent-templates.test.mjs 校验四段与四栏齐全、模糊词黑名单生效。
+- 用例 397。
 ## 0.57.2 — 2026-11-27
 
 - 新增 OVERFLOW_POLICY 与 docs/OVERFLOW.md：五项上限各自说明超限后是截断 / 拒绝 / 分页，

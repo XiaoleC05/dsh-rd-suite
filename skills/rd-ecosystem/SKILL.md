@@ -33,6 +33,10 @@ description: 插件、MCP 与技能的发现、评估、试用、引入和沉淀
 
 `run_code` 怎么写、什么场景才值得用、反例长什么样：见 `references/run-code-examples.md`。示例的语法与工具名由 `test/run-code-examples.test.mjs` 校验，改了工具名记得同步例子。
 
+## 3.2 子代理简报
+
+交给子代理的活要写成自包含简报（任务 / 输入 / 约束 / 返回），返回统一四栏：见 `references/subagent-templates.md`。三个模板与四栏格式由 `test/subagent-templates.test.mjs` 校验。
+
 ## 4 引入流程（每一步执行前都要用户同意）
 1. 基线：记录当前 bundle 顺序（list_bundles 的结果）与本模式会话首轮的 prompt token。
 2. 试装：`plugin_manager` action=install_bundle，target=<绝对路径、npm 包名或 installTarget.spec>。严格按返回的 application 与 nextStep 处理：
