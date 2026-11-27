@@ -57,7 +57,10 @@ test('并行检查：非法名、重复名、Issue 复用都要报', () => {
   const plan = checkBranchPlan(['fix/27-a', 'fix/27-a', 'toolbar', 'feat/27-b'])
   assert.ok(plan.problems.some((problem) => problem.includes('不符合')))
   assert.ok(plan.problems.some((problem) => problem.includes('重复')))
-  assert.ok(plan.problems.some((problem) => problem.includes('Issue #27 被 3 个分支共用')), '重复名也算一次复用')
+  assert.ok(
+    plan.problems.some((problem) => problem.includes('Issue #27 被 3 个分支共用')),
+    '重复名也算一次复用',
+  )
 })
 
 test('并行检查：空计划不报错', () => {
