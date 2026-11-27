@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.62.2 — 2026-11-27
+
+- 新增 test/brand.test.mjs：图标固定 16×16 且 currentColor、aria-hidden；包名 / 预设 / 侧栏入口三级命名
+  各就各位；中英两侧不混用。
+- docs/DESIGN.md 增「品牌」一节，写明三级命名与用色规则。
+- 用例 447。
 ## 0.62.1 — 2026-11-27
 
 - 入口页把 `/status` 的 root 与 version 组成 `context` 随 pageProps 传给每个成员页面。
