@@ -129,3 +129,35 @@ test('注册：四个路由都挂在同一前缀下，且受信任闸门保护',
   const response = await list.resource(new Request('http://localhost/dsh-rd-memory/api/list'))
   assert.equal(response.status, 401, '未通过信任闸门时不得返回数据')
 })
+
+test('stats 带上限与用量，未配置上限时不出现', async () => {
+  const { createMemoryHandlers } = await import('../memory/lib/routes.js')
+  const { mkdtempSync, rmSync, writeFileSync: writeFixture } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'rd-mem-cap-'))
+  const file = join(dir, 'memory.json')
+  writeFixture(
+    file,
+    JSON.stringify({
+      version: 1,
+      entries: [
+        { id: 'a', type: 'fix', title: 'A', body: 'x'.repeat(20), tags: [], hits: 0, revisions: 0, createdAt: '2026-11-01T00:00:00.000Z', updatedAt: '2026-11-01T00:00:00.000Z' },
+        { id: 'b', type: 'fix', title: 'B', body: 'x'.repeat(20), tags: [], hits: 0, revisions: 0, createdAt: '2026-11-02T00:00:00.000Z', updatedAt: '2026-11-02T00:00:00.000Z' },
+      ],
+    }),
+    'utf8',
+  )
+
+  const capped = createMemoryHandlers({ file, maxEntries: 10 })
+  const body = await (await capped.stats()).json()
+  assert.equal(body.total, 2)
+  assert.equal(body.limit, 10)
+  assert.ok(Math.abs(body.usage - 0.2) < 1e-9)
+
+  const uncapped = createMemoryHandlers({ file })
+  const plain = await (await uncapped.stats()).json()
+  assert.equal(plain.limit, undefined)
+  assert.equal(plain.usage, undefined)
+  rmSync(dir, { recursive: true, force: true })
+})

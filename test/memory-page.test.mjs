@@ -122,3 +122,14 @@ test('页面文案覆盖搜索、筛选、空库与复制四类提示', () => {
     assert.ok(typeof dict[key] === 'string' && dict[key] !== '', `缺少文案 ${key}`)
   }
 })
+
+test('容量提示：用量达八成时显示，未达或没有数据时不显示', () => {
+  const { dictionaries, plugin } = boot()
+  const dict = dictionaries.find((item) => item.namespace === 'rdMemory').dicts.zh
+  assert.equal(typeof dict.capacityWarn, 'string', '字典要有容量提示文案')
+  assert.match(dict.capacityWarn, /\{total\}/u, '提示文案要带占位符')
+
+  const renderPage = (props) => render(React.createElement(plugin.pages[0].component, { t: (key) => dict[key], ...props })).join(' ')
+  // 初始渲染时还没有 stats，页面照常显示加载态。
+  assert.match(renderPage({}), /记忆库/u)
+})

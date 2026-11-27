@@ -86,7 +86,18 @@ export function createMemoryHandlers({ file, maxEntries }) {
         const stamp = String(entry.updatedAt ?? '')
         if (stamp > latest) latest = stamp
       }
-      return json({ ok: true, total: document.entries.length, byType, latest, file })
+      // 带上上限与用量：面板据此在接近上限时提醒，避免用户无声地丢掉旧条目。
+      const limit = Number.isFinite(maxEntries) && maxEntries > 0 ? Math.floor(maxEntries) : undefined
+      const usage = limit === undefined ? undefined : Math.min(1, document.entries.length / limit)
+      return json({
+        ok: true,
+        total: document.entries.length,
+        byType,
+        latest,
+        file,
+        ...(limit === undefined ? {} : { limit }),
+        ...(usage === undefined ? {} : { usage }),
+      })
     },
 
     exportAll() {

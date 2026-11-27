@@ -187,3 +187,4 @@
 | 第 28 轮 | #43 | engines-declaration | 声明 engines.dsh 并让校验必填 + 语义化版本比较；3 例测试 |
 | 第 29 轮 | #44 | smoke-install | 按 files[] 复制到临时副本并真加载，断言 9 工具 8 路由；4 例测试 |
 | 第 30 轮 | #45 | health-row | health --row 直出台账行 + roundWindow 推十轮区间；3 例测试；第三次横向体检 |
+| 第 31 轮 | #46 | memory-capacity | stats 带上限与用量，面板达八成时提示；2 例测试 |

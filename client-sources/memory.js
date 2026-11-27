@@ -34,6 +34,7 @@ window.__ModuleLoader__.load({
         hits: '被检索 {hits} 次',
         updated: '更新于 {time}',
         detailHint: '左侧选一条查看全文',
+        capacityWarn: '记忆库已用 {total}/{limit}，接近上限；再写入会按命中与时间淘汰旧条目。',
         close: '关闭',
       },
       en: {
@@ -56,6 +57,7 @@ window.__ModuleLoader__.load({
         hits: 'Retrieved {hits} times',
         updated: 'Updated {time}',
         detailHint: 'Pick an entry on the left',
+        capacityWarn: 'Memory store at {total}/{limit}; further writes evict older entries by hits and recency.',
         close: 'Close',
       },
     }
@@ -160,6 +162,15 @@ window.__ModuleLoader__.load({
         cursor: 'pointer',
         alignSelf: 'flex-start',
       },
+      warn: {
+        margin: '0 20px 8px',
+        padding: '8px 12px',
+        borderRadius: 8,
+        border: '0.5px solid var(--dsw-alias-state-warning-primary)',
+        color: 'var(--dsw-alias-label-primary)',
+        fontSize: 12,
+        lineHeight: '18px',
+      },
       empty: { padding: '24px 20px', fontSize: 13, color: 'var(--dsw-alias-label-secondary)' },
     }
 
@@ -190,6 +201,7 @@ window.__ModuleLoader__.load({
         error: null,
       })
       const [detail, setDetail] = React.useState(null)
+      const [capacity, setCapacity] = React.useState(null)
       const [copied, setCopied] = React.useState(null)
       const requestSeq = React.useRef(0)
 
@@ -218,6 +230,23 @@ window.__ModuleLoader__.load({
       React.useEffect(() => {
         void load()
       }, [load])
+
+      // 容量只读一次：接近上限时提示，避免用户无声丢条目。
+      React.useEffect(() => {
+        let cancelled = false
+        const readStats = async () => {
+          try {
+            const payload = await getJson('/stats')
+            if (!cancelled) setCapacity(payload)
+          } catch {
+            // 读不到就不提示。
+          }
+        }
+        void readStats()
+        return () => {
+          cancelled = true
+        }
+      }, [])
 
       const open = async (id) => {
         setCopied(null)
@@ -383,6 +412,13 @@ window.__ModuleLoader__.load({
             translate('subtitle'),
           ),
         ),
+        capacity !== null && typeof capacity.usage === 'number' && capacity.usage >= 0.8
+          ? h(
+              'p',
+              { style: ui.warn, role: 'status' },
+              fill(translate('capacityWarn'), { total: capacity.total, limit: capacity.limit }),
+            )
+          : null,
         toolbar,
         body,
       )
