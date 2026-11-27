@@ -76,4 +76,9 @@ export const RESULT_FIELDS = Object.freeze({
   commented: { type: 'boolean' },
   tag: { type: 'string' },
   releaseUrl: { type: 'string' },
+  codeAuditChecked: { type: 'integer' },
+  codeAuditFixed: { type: 'integer' },
+  codeAuditRemaining: { type: 'integer' },
+  codeAuditFiles: { type: 'array', items: { type: 'string' } },
+  codeAuditNote: { type: 'string' },
 })

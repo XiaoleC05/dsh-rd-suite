@@ -72,7 +72,7 @@ window.__ModuleLoader__.load({
         capTitle: '已装能力',
         caps: [
           'PTC 执行|run_code 把多次工具调用合并成一个程序：往返更少，上下文更短。',
-          '代码修正|「代码修正」标签页：写入后自动按项目规范格式化，面板里可随时复查。',
+          '代码修正|写入即按项目规范格式化，模块关闭时再整体审计一次；面板只用来复查。',
           'context7|直接检索库的最新官方文档，版本敏感的参数不靠记忆。',
           'GitHub 流程|设置 → 通用 里开关；开启后先建 Issue，再改代码，最后提交。',
           '定时任务|把巡检、回归、报表排成周期任务，不占当前会话。',
@@ -149,7 +149,7 @@ window.__ModuleLoader__.load({
         capTitle: 'Installed capabilities',
         caps: [
           'PTC execution|run_code folds several tool calls into one program: fewer round trips, shorter context.',
-          'Code fixes|The "Code fixes" tab: files are formatted to project conventions after each write, and the panel rechecks on demand.',
+          'Code fixes|Files are formatted on write and audited once when a module closes; the panel is for reviewing, not for running fixes.',
           'context7|Reads the latest official documentation for a library instead of relying on memory.',
           'GitHub workflow|Toggle in Settings → General; when on, the issue comes before the edit and the commit.',
           'Scheduled tasks|Run recurring checks, regressions, or reports without occupying this session.',

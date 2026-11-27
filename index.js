@@ -15,6 +15,7 @@ import z from '@deepseek-ai/schemastery'
 import * as codePipeline from './code-pipeline/index.js'
 import * as github from './github/index.js'
 import { standardize } from './code-pipeline/lib/standardize.js'
+import { auditFiles } from './code-pipeline/lib/audit.js'
 
 export const name = 'rd-suite'
 
@@ -22,9 +23,11 @@ export const name = 'rd-suite'
 export const inject = ['tools', 'webServer', 'systemPrompt', 'subprocess', 'workingDirectory']
 
 /**
- * 融合配置：GitHub 开关保持顶层键，让既有 profile 覆盖（按行 id）继续生效；
- * 代码工具使用自己的可选 section（缺省时成员内部用默认上限）；
- * autoCodeFix 控制写文件后的自动审查与修正。
+ * 融合配置。
+ *
+ * 格式审查与 GitHub 流程都是模式的固定流程，不再有开关；这两个字段只为兼容
+ * 既有 profile 覆盖（按行 id 传入的旧值）而保留，读入后不使用。
+ * 代码工具使用自己的可选 section，缺省时成员内部用默认上限。
  */
 export const Config = z.object({
   githubIssueFirstWorkflow: z.boolean().default(false),
@@ -86,27 +89,54 @@ async function autoFixFile(absolute) {
 export function apply(ctx, config) {
   const codeConfig = config?.codePipeline
   codePipeline.apply(ctx, codeConfig !== null && typeof codeConfig === 'object' ? codeConfig : {})
+
+  // 每个会话在本轮模块里写过的文件。写文件时即时格式化，模块关闭时再整体审计一次。
+  const touched = new Map()
+
+  /** 会话键：没有 agent/session 时落到同一个桶里。 */
+  function sessionKey(exec) {
+    const id = exec?.agent?.session?.id
+    return typeof id === 'string' && id !== '' ? id : 'session'
+  }
+
+  /**
+   * 模块关闭时的代码审计：报告后修正，并把结果交给 github_workflow 一起返回。
+   * @param exec - 当前工具调用
+   * @returns 审计摘要，或 null（本轮没有改过文件）
+   */
+  async function auditModule(exec) {
+    const key = sessionKey(exec)
+    const files = [...(touched.get(key) ?? [])]
+    if (files.length === 0) return null
+    const audit = await auditFiles(files, { mode: 'fix' })
+    touched.delete(key)
+    return audit
+  }
+
   // The GitHub flow is part of the mode: the member always registers its prompt
   // section and tool, and only keeps accepting the legacy setting for older
   // profile patches.
-  github.apply(ctx, { githubIssueFirstWorkflow: config?.githubIssueFirstWorkflow === true })
+  github.apply(ctx, {
+    githubIssueFirstWorkflow: config?.githubIssueFirstWorkflow === true,
+    auditModule,
+  })
 
-  if (config?.autoCodeFix !== false) {
-    // Every successful write/edit is followed by a format pass, so the manual
-    // "run standardization" step is no longer needed for normal editing.
-    ctx.on(
-      'tools/post-execute',
-      async (exec, result, next) => {
-        const decision = await next()
-        if (result === null || typeof result !== 'object' || result.isError === true)
-          return decision
-        const paths = touchedPaths(exec)
-        if (paths.length === 0) return decision
-        if (exec.signal !== undefined && exec.signal.aborted === true) return decision
-        for (const absolute of paths) await autoFixFile(absolute)
-        return decision
-      },
-      'rd-suite: auto code review',
-    )
-  }
+  // 写文件后的即时格式化始终启用：它保证文件落盘就是符合规范的，
+  // 代码修正面板因此只用于复查，不再是必经的手动步骤。
+  ctx.on(
+    'tools/post-execute',
+    async (exec, result, next) => {
+      const decision = await next()
+      if (result === null || typeof result !== 'object' || result.isError === true) return decision
+      const paths = touchedPaths(exec)
+      if (paths.length === 0) return decision
+      if (exec.signal !== undefined && exec.signal.aborted === true) return decision
+      const bucket = touched.get(sessionKey(exec))
+      if (bucket === undefined) touched.set(sessionKey(exec), new Set(paths))
+      else for (const absolute of paths) bucket.add(absolute)
+      for (const absolute of paths) await autoFixFile(absolute)
+      return decision
+    },
+    'rd-suite: auto code review',
+  )
 }

@@ -74,10 +74,13 @@ function sessionCwd(ctx, exec) {
 /**
  * Register the flow prompt section and the tool.
  * @param {object} ctx - Host plugin context.
- * @param {object} config - parsed plugin config; only the legacy field remains.
+ * @param {object} config - parsed plugin config plus the optional module audit.
+ * @param {(exec: object) => Promise<{ checked: number; fixed: number; remaining: number; files: string[] } | null>} [config.auditModule]
+ *   Runs the code audit for one finished module; the fusion root supplies it.
  */
 export function apply(ctx, config) {
   const run = createRunner(ctx)
+  const auditModule = typeof config?.auditModule === 'function' ? config.auditModule : null
 
   ctx.systemPrompt.section({
     name: WORKFLOW_SECTION,
@@ -260,13 +263,37 @@ export function apply(ctx, config) {
                 deleteBranch: args.delete_branch,
                 auto: args.auto,
               })
-            case 'close_issue':
-              return await closeIssue(run, {
+            case 'close_issue': {
+              const result = await closeIssue(run, {
                 ...options,
                 issue: args.issue,
                 comment: args.comment,
                 reason: args.reason,
               })
+              // A module is closing here: audit the files it touched and report the
+              // numbers inside the same result, so the delivery report never guesses.
+              if (auditModule === null || result.ok !== true) return result
+              let audit = null
+              try {
+                audit = await auditModule(exec)
+              } catch {
+                audit = null
+              }
+              if (audit === null) return result
+              return {
+                ...result,
+                codeAuditChecked: audit.checked,
+                codeAuditFixed: audit.fixed,
+                codeAuditRemaining: audit.remaining,
+                ...(audit.files.length === 0 ? {} : { codeAuditFiles: audit.files }),
+                codeAuditNote:
+                  audit.fixed > 0
+                    ? `已自动修正 ${String(audit.fixed)} 个文件的格式；若本轮已提交，用 git commit --amend --no-edit 带上这些修正。`
+                    : audit.remaining > 0
+                      ? '有文件未能格式化，按 codeAuditFiles 逐个确认后再交付。'
+                      : '格式检查通过，未改动文件。',
+              }
+            }
             case 'release':
               return await release(run, {
                 ...options,

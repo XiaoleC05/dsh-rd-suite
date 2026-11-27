@@ -88,6 +88,18 @@ test('no settings row ships: the flow belongs to the mode, not to a switch', () 
   assert.ok(host.includes('githubIssueFirstWorkflow: z.boolean()'), 'legacy field stays accepted')
 })
 
+test('the Host plugin reports the module code audit inside close_issue', () => {
+  const source = readText('index.js')
+  assert.match(source, /config\?\.auditModule/)
+  assert.match(source, /codeAuditChecked/)
+  assert.match(source, /codeAuditRemaining/)
+  assert.match(source, /codeAuditNote/)
+  assert.deepEqual(
+    Object.keys(RESULT_FIELDS).filter((key) => key.startsWith('codeAudit')),
+    ['codeAuditChecked', 'codeAuditFixed', 'codeAuditRemaining', 'codeAuditFiles', 'codeAuditNote'],
+  )
+})
+
 test('both locales carry localized plugin metadata', () => {
   const en = readJson('locale/en.json')
   const zh = readJson('locale/zh.json')

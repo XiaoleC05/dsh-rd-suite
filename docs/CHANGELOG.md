@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.5.0 — 2026-11-27
+
+- 代码修正从「手动面板」变成固定流程的两层自动行为：写文件即格式化；每个模块关闭时对本次改动整体审计，`checked/fixed/remaining/files` 直接进 `github_workflow` 的 close_issue 结果（#11）。
+- 新增 `code-pipeline/lib/audit.js`（report → fix → 幂等复查），`test/audit.test.mjs` 用真实临时文件验证改写、幂等、report 不写盘与空输入（#11）。
+- 去掉 `autoCodeFix` 开关的实际门控（字段保留仅为兼容旧 profile），宪章 S5 要求把审计数字抄进验收表，§7 的代码工具说明改为「面板只作复查」（#11）。
+
 ## 0.4.0 — 2026-11-27
 
 - GitHub 流程改为模式固定流程，不再是设置开关：删掉设置 → 通用里的开关行与成员包的 client 半，提示词与工具常驻（#9）。

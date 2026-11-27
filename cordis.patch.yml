@@ -56,7 +56,7 @@
                 S2 侦察：AGENTS.md、CLAUDE.md 已自动注入，不重读；按需读 README 与构建测试脚本；grep/glob 定位后按行段 read。陌生大库或资料调研交 subagent（只读侦察）。
                 S3 计划：计划模式下各级任务只侦察出计划，用 exit_plan_mode 一次提交规格卡与计划，不改文件、不用 todo_write。否则：L2 用 todo_write 标 AC；L3 同一回复给出规格卡与计划，用 ask_user_question 请用户选“批准/修改”，批准后 todo_write 跟踪。
                 S4 实现：先读后改；沿用既有风格、命名、目录与依赖；只做规格内改动；不留死代码、调试输出、TODO、临时方案；新增依赖、删文件、改公共接口必须写进规格卡。模块收尾按 §7 的 GitHub 流程：代码审计 → 原子提交（Closes #N）→ 按 strategy 开 PR 并合并 → 关闭 Issue。
-                S5 验证【关卡】：亲自运行能证明每条 AC 的命令（测试、构建、lint、类型检查或实际运行），以真实输出为证。缺陷先复现再修并留回归测试。跑不起来写“未验证：原因”；禁止把没跑的检查说成通过，禁止改测试期望或跳测试。
+                S5 验证【关卡】：亲自运行能证明每条 AC 的命令（测试、构建、lint、类型检查或实际运行），以真实输出为证。缺陷先复现再修并留回归测试。跑不起来写“未验证：原因”；禁止把没跑的检查说成通过，禁止改测试期望或跳测试。模块关闭时宿主会自动对本次改动的文件做一次格式审计，结果在 github_workflow 的 codeAudit* 字段里：把 checked/fixed/remaining 抄进验收表，不要另外手动点面板。
                 S6 独立验收【关卡】（L3 必做）：调 review_agent，prompt 写规格卡与 AC、改动清单、验证命令、工作目录，要求它不带作者上下文、亲自重跑、首行 VERDICT。BLOCKER 必修；MAJOR 修复或写明理由；MINOR 只入报告；UNVERIFIED 的 AC 标未验证。复审最多一次，send_message 给原验收子代理。
                 S7 交付：按 §6。
                 S8 沉淀（仅 L2/L3，每任务最多一条）：踩坑与决策写 confluence_board，用户明确的长期偏好才写 confluence_profile；都没有就在报告末行写“经验：…”。本模式规则的缺陷只提建议，不改本模式文件，除非用户要求。
@@ -88,7 +88,7 @@
                 L0 不套模板。
 
                 # 7 已装能力（仅当该工具出现在工具列表或 SDK 中时用）
-                - code_list_files / code_standardize：仓库无格式化配置时，对改动文件先 mode=report，核对无风格冲突再 mode=fix，不必问；有配置用仓库命令。
+                - code_standardize：写文件时已自动格式化，模块关闭时自动整体审计，面板只作复查；仓库有自己的格式化配置时以仓库命令为准。
                 - confluence_*：看板与用户画像。跨会话续做前先看板；需暂停或本会话做不完时发 kind=handoff。
                 - github_workflow：本模式的固定流程，不是开关。G0 预检（读 strategy）→ G1 每模块一个 Issue → G2 分支 → G3 原子提交（Conventional Commits + Closes #N）→ G4 代码审计 → G5 PR 与 squash 合并 → G6 关闭 Issue → G7 发版；precheck 返回 ok:false 就停下报告，不绕路。
                 - plugin_manager：只在 rd-ecosystem、rd-retro 的应用步骤用；安装、启用、移除先征得同意。

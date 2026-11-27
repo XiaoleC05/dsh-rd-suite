@@ -76,6 +76,14 @@ dsh-rd-suite bundle
 
 `strategy` 的决定方式：默认分支有生效的 ruleset 或经典分支保护 → `pr`；读取不到保护状态 → `direct` 但提示共享仓库优先走分支与 PR；不是 GitHub 远程仓库 → 流程不适用，按普通工程流程走并在报告里说明。工具结果只报它真正确认的状态：合并、关闭、发布都以 `gh` 的复查为准，失败按 `classifyGitHubDiagnostic` 给出可执行的下一步。
 
+### 5.1 模块级代码审计
+
+格式化分两层，都不需要手动触发：
+
+1. **写文件即格式化**：`write`/`edit` 成功后宿主立刻按项目预设校对该文件，变更写回并给出「自动审查：已修正 X」。
+2. **模块关闭整体审计**：`close_issue` 成功时，宿主对本次模块改动过的文件先跑 report 再跑 fix，把 `codeAuditChecked`、`codeAuditFixed`、`codeAuditRemaining`、`codeAuditFiles` 合并进工具结果。本轮没有改过文件就跳过。
+
+审计是幂等的：第二次跑同一批文件 `needsFix` 为 0；report 模式不写文件，供只读场合使用；无法格式化的文件计入 `codeAuditRemaining` 并在提示里要求逐个确认，不会静默通过。面板退化为复查入口。
 ## 6 Token 与成本杠杆
 
 | 杠杆 | 取值 | 依据 |
