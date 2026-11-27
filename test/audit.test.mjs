@@ -135,3 +135,31 @@ test('原因翻译：已知码给中文，未知码原样返回', async () => {
   assert.equal(describeSkipReason('something-new'), 'something-new')
   assert.ok(Object.keys(SKIP_REASONS).length >= 6)
 })
+
+test('耗时统计：给出总耗时与最慢分组', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync: writeFixture, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'rd-audit-time-'))
+  mkdirSync(join(dir, 'a'), { recursive: true })
+  mkdirSync(join(dir, 'b'), { recursive: true })
+  const first = join(dir, 'a', 'one.js')
+  const second = join(dir, 'b', 'two.js')
+  writeFixture(first, 'const  x = { y:1 };\n', 'utf8')
+  writeFixture(second, 'const  z = { w:2 };\n', 'utf8')
+
+  const audit = await auditFiles([first, second], { mode: 'report' })
+  assert.equal(typeof audit.elapsedMs, 'number')
+  assert.ok(audit.elapsedMs >= 0)
+  assert.ok(audit.slowestGroup !== undefined, '两个目录时应有最慢分组')
+  assert.ok(['a', 'b'].some((name) => String(audit.slowestGroup.root).includes(name)))
+  assert.equal(typeof audit.slowestGroup.ms, 'number')
+  rmSync(dir, { recursive: true, force: true })
+})
+
+test('耗时汇总：空输入不报错', async () => {
+  const { timingSummary } = await import('../code-pipeline/lib/audit.js')
+  const summary = timingSummary([], performance.now())
+  assert.ok(summary.elapsedMs >= 0)
+  assert.equal(summary.slowestGroup, undefined)
+})

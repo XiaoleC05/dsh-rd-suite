@@ -51,8 +51,10 @@ async function runPass(groups, mode) {
   const changed = []
   const failed = []
   const skippedFiles = []
+  const timing = []
   let checked = 0
   for (const [root, paths] of groups) {
+    const startedAt = performance.now()
     let result
     try {
       result = await standardize({ root, paths, mode })
@@ -74,8 +76,10 @@ async function runPass(groups, mode) {
       // standardize 回的已经是绝对路径，别再拼 root，否则会变成双前缀。
       skippedFiles.push({ path: String(entry?.path ?? ''), reason: String(entry?.reason ?? 'unknown') })
     }
+    // 按目录计时：慢在哪要能指到具体目录，而不是只给一个总数。
+    timing.push({ root, files: files.length + skipped.length, ms: Math.round(performance.now() - startedAt) })
   }
-  return { changed, failed, checked, skipped: skippedFiles }
+  return { changed, failed, checked, skipped: skippedFiles, timing }
 }
 
 /**
@@ -84,6 +88,25 @@ async function runPass(groups, mode) {
  * @param {readonly string[]} paths - 参与审计的绝对路径
  * @returns {{ language: string; checked: number; fixed: number; needsFix: number }[]} 分组结果，按语言名排序
  */
+/**
+ * 汇总计时：总耗时与最慢的目录分组。
+ * @param {{ root: string; files: number; ms: number }[]} timing - 每组耗时
+ * @param {number} startedAt - 起始时间戳
+ * @returns {{ elapsedMs: number; slowestGroup?: { root: string; files: number; ms: number } }} 摘要
+ */
+export function timingSummary(timing, startedAt) {
+  const groups = Array.isArray(timing) ? timing : []
+  const slowest = groups.reduce(
+    (slow, item) => (slow === null || item.ms > slow.ms ? item : slow),
+    null,
+  )
+  return {
+    // startedAt 必须来自 performance.now()；异常输入也不让耗时变成负数。
+    elapsedMs: Math.max(0, Math.round(performance.now() - startedAt)),
+    ...(slowest === null ? {} : { slowestGroup: slowest }),
+  }
+}
+
 export function groupByLanguage(audit, paths) {
   const groups = new Map()
   const fixedSet = new Set(Array.isArray(audit.files) ? audit.files : [])
@@ -306,6 +329,7 @@ function rememberVerdicts(files, audit) {
  * @returns {Promise<{ checked: number; needsFix: number; fixed: number; remaining: number; files: string[] }>} audit summary.
  */
 export async function auditFiles(files, options = {}) {
+  const auditStartedAt = performance.now()
   const mode = options.mode === 'report' ? 'report' : 'fix'
   const requested = files.filter((file) => typeof file === 'string' && file !== '')
   // 未变化的文件直接跳过：只有上次判定干净、且 mtime 与 size 都没变才算命中。
@@ -351,6 +375,7 @@ export async function auditFiles(files, options = {}) {
         groupByLanguage(summary, fresh),
         groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
       ),
+      ...timingSummary(report.timing, auditStartedAt),
     }
   }
   if (report.changed.length === 0) {
@@ -371,6 +396,7 @@ export async function auditFiles(files, options = {}) {
         groupByLanguage(summary, fresh),
         groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
       ),
+      ...timingSummary(report.timing, auditStartedAt),
     }
   }
 
@@ -394,5 +420,7 @@ export async function auditFiles(files, options = {}) {
       groupByLanguage(summary, fresh),
       groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
     ),
+    // 总耗时要含写入那一趟，否则「改文件慢」看不出来。
+    ...timingSummary([...(report.timing ?? []), ...(applied.timing ?? [])], auditStartedAt),
   }
 }
