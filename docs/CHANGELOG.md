@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.42.0 — 2026-11-27
+
+- 新增 lib/error-codes.js：41 个错误码集中登记，每条给中文说明、retryable 标记与处理建议；
+  附 describeErrorCode / retryableCodes / knownCodes 三个查询接口。
+- 新增 test/error-codes.test.mjs：扫源码抽取错误码并断言全部登记（扫描当场补出 15 个漏登的码）。
+- README 增「错误码」一节。测试 +5，全量 278 条。
 ## 0.41.1 — 2026-11-27
 
 - 第四次横向体检（第 31–40 轮）入台账：宪章 4964 字符、273 个用例、最大技能 rd-retro 2461、

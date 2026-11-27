@@ -46,6 +46,12 @@
 | `cordis.patch.yml` | 上面 3 行的完整声明，头部有相对官方 `ptc` 预设的差异表 |
 | `docs/` | `DESIGN.md`（设计与成本模型）、`DETAIL.md`（插件详情页）、`CHANGELOG.md` |
 
+## 错误码
+
+四个成员返回的 code 集中登记在 `lib/error-codes.js`：每条有中文说明、是否可重试、遇到该做什么。`test/error-codes.test.mjs` 会扫源码，出现未登记的码直接失败——新加码必须同时写下它的含义。
+
+可重试的只有真正的瞬时失败（超时、推送被拒、限流、Issue/PR 读取偶发失败）；参数错误、权限不足、仓库状态不对都不在其中。
+
 ## 安装
 
 最低 DSH 版本：`0.2.2-rc.5`（`package.json` 的 `engines.dsh`）。低于该版本会在运行期才暴露问题，`node scripts/verify-package.mjs` 会在仓库里直接拦下。
