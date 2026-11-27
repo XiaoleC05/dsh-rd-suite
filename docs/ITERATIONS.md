@@ -47,7 +47,7 @@
 
 | 编号 | 目标 | 状态 | 提交 |
 |---|---|---|---|
-| 031 | precheck 增加最近提交与保护细节 | 待做 | |
+| 031 | precheck 增加最近提交与保护细节 | 完成 | #27 |
 | 032 | open_pr 支持关联多个 Issue | 待做 | |
 | 033 | pr_status 输出失败检查项名单 | 完成 | #25 |
 | 034 | merge_pr 的 auto 与失败重试 | 待做 | |
@@ -168,3 +168,4 @@
 | 第 9 轮 | #24 | memory-workflow | 宪章 S8/§7/§4 与 rd-retro、rd-spec 接上 memory_*；新增 1 例接线测试 |
 | 第 10 轮 | #25 | pr-checks | pr_status 给出 failingChecks / pendingChecks 名单并在 guidance 点名；2 例测试 |
 | 第 11 轮 | #26 | health-check | scripts/health.mjs 六项指标 + docs/CHECKLIST.md 四项人工项；首跑修掉 5 处术语漂移；4 例测试 |
+| 第 12 轮 | #27 | precheck-details | precheck 增加 requiredReviews / requiredChecks / recentCommits；1 例测试 |

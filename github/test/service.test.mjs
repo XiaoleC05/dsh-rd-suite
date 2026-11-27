@@ -55,6 +55,7 @@ function makeRun(overrides = {}) {
     remoteList: () => ok(GITHUB_REMOTE),
     branch: () => ok('fix/login-retry\n'),
     status: () => ok(''),
+    log: () => ok('a1b2c3d fix(toolbar): 修复窄屏溢出 (#12)\n9f8e7d6 feat(memory): 记忆骨架 (#17)\n'),
     authStatus: () => ok('Logged in to github.com account octocat (keyring)\n'),
     repoView: () =>
       ok(
@@ -117,6 +118,7 @@ function makeRun(overrides = {}) {
     if (/ remote -v/.test(command)) return handlers.remoteList(argv, options)
     if (/branch --show-current/.test(command)) return handlers.branch(argv, options)
     if (/status --porcelain/.test(command)) return handlers.status(argv, options)
+    if (/ log -5 --pretty=/.test(command)) return handlers.log(argv, options)
     if (/gh auth status/.test(command)) return handlers.authStatus(argv, options)
     if (/gh repo view/.test(command)) return handlers.repoView(argv, options)
     if (/gh api repos\/[^ ]+\/rulesets/.test(command)) return handlers.rulesets(argv, options)
@@ -691,4 +693,26 @@ test('pr_status 点名失败的检查项，全部通过时不给名单', async (
   assert.equal(clean.failingChecks, undefined)
   assert.equal(clean.pendingChecks, undefined)
   assert.match(clean.guidance, /Ready to merge/u)
+})
+
+test('precheck 带上最近提交与保护细节', async () => {
+  const plain = makeRun()
+  const checked = await precheck(plain.run, { path: targetFile })
+  assert.deepEqual(checked.recentCommits, [
+    'a1b2c3d fix(toolbar): 修复窄屏溢出 (#12)',
+    '9f8e7d6 feat(memory): 记忆骨架 (#17)',
+  ])
+  assert.equal(checked.requiredReviews, undefined, '未保护时不给审批数')
+
+  const guardedRun = makeRun({
+    branchProtection: () => ok(JSON.stringify({
+      required_pull_request_reviews: { required_approving_review_count: 2 },
+      required_status_checks: { contexts: ['ci/test', 'ci/lint'] },
+    })),
+  })
+  const guarded = await precheck(guardedRun.run, { path: targetFile })
+  assert.equal(guarded.protection, 'required')
+  assert.equal(guarded.requiredReviews, 2)
+  assert.deepEqual(guarded.requiredChecks, ['ci/test', 'ci/lint'])
+  assert.equal(guarded.strategy, 'pr')
 })

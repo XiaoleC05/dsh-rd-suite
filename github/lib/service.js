@@ -490,7 +490,21 @@ async function resolveProtection(run, slug, branch, cwd, signal) {
       cwd,
       signal,
     )
-    if (classic.exitCode === 0) return { protection: 'required', rulesets: rulesets.names }
+    if (classic.exitCode === 0) {
+      let requiredReviews
+      let requiredChecks
+      try {
+        const info = JSON.parse(classic.stdout)
+        const reviews = info?.required_pull_request_reviews?.required_approving_review_count
+        if (typeof reviews === 'number' && reviews >= 0) requiredReviews = reviews
+        const contexts = info?.required_status_checks?.contexts
+        if (Array.isArray(contexts) && contexts.length > 0)
+          requiredChecks = contexts.slice(0, 10).map(String)
+      } catch {
+        // 老版本 gh 只回 "Branch protected"，没有结构化字段：保持 undefined。
+      }
+      return { protection: 'required', rulesets: rulesets.names, requiredReviews, requiredChecks }
+    }
     const diagnostic = `${classic.stderr}\n${classic.stdout}`
     if (rulesets.known && /Branch not protected|Not Found|404/iu.test(diagnostic)) {
       return { protection: 'none', rulesets: rulesets.names }
@@ -697,7 +711,7 @@ export async function precheck(run, options = {}) {
       })
     }
 
-    const [branchResult, statusResult] = await Promise.all([
+    const [branchResult, statusResult, logResult] = await Promise.all([
       runGit(
         run,
         ['-C', repositoryRoot, 'branch', '--show-current'],
@@ -710,7 +724,22 @@ export async function precheck(run, options = {}) {
         repositoryRoot,
         options.signal,
       ),
+      runGit(
+        run,
+        ['-C', repositoryRoot, 'log', '-5', '--pretty=%h %s'],
+        repositoryRoot,
+        options.signal,
+      ),
     ])
+    // 最近提交：让模型先看到提交风格与是否已有同类改动，少跑两三次命令。
+    const recentCommits =
+      logResult.exitCode === 0
+        ? logResult.stdout
+            .split(/\r?\n/u)
+            .map((line) => line.trim())
+            .filter((line) => line !== '')
+            .slice(0, 5)
+        : []
     const branch = branchResult.exitCode === 0 ? branchResult.stdout.trim() : ''
     const changedFileCount =
       statusResult.exitCode === 0
@@ -893,6 +922,11 @@ export async function precheck(run, options = {}) {
       strategy,
       protection: guarded.protection,
       ...(guarded.rulesets.length === 0 ? {} : { rulesets: guarded.rulesets }),
+      ...(guarded.requiredReviews === undefined
+        ? {}
+        : { requiredReviews: guarded.requiredReviews }),
+      ...(guarded.requiredChecks === undefined ? {} : { requiredChecks: guarded.requiredChecks }),
+      ...(recentCommits.length === 0 ? {} : { recentCommits }),
       workingTreeClean: statusResult.exitCode === 0 ? changedFileCount === 0 : false,
       changedFileCount,
       ghInstalled: true,
@@ -1596,7 +1630,9 @@ export async function prStatus(run, options = {}) {
       checksFailed: counts.failed,
       checksPending: counts.pending,
       ...(counts.failing.length === 0 ? {} : { failingChecks: counts.failing.slice(0, 10) }),
-      ...(counts.pendingNames.length === 0 ? {} : { pendingChecks: counts.pendingNames.slice(0, 10) }),
+      ...(counts.pendingNames.length === 0
+        ? {}
+        : { pendingChecks: counts.pendingNames.slice(0, 10) }),
       message: `Pull request ${String(info.number ?? target)} is ${String(state ?? 'unknown')}; checks: ${counts.passed} passed, ${counts.failed} failed, ${counts.pending} pending.`,
       guidance: blocked
         ? `Resolve the failing checks or conflicts before merging.${counts.failing.length > 0 ? ` Failing: ${counts.failing.slice(0, 5).join(', ')}.` : ''} Report what the branch still needs instead of merging anyway.`
