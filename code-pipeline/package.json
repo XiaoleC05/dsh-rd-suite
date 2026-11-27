@@ -12,13 +12,11 @@
   "main": "./index.js",
   "exports": {
     ".": "./index.js",
-    "./client": "./client.js",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
   "files": [
     "index.js",
-    "client.js",
     "lib/*.js",
     "lib/engines/*.js",
     "presets/*.json",
@@ -32,7 +30,7 @@
     "dsh": ">=0.2.2-rc.1"
   },
   "scripts": {
-    "test": "node --test test/pipeline.test.mjs test/policy.test.mjs test/routes.test.mjs test/client-sim.test.mjs",
+    "test": "node --test test/pipeline.test.mjs test/policy.test.mjs test/routes.test.mjs",
     "smoke": "node scripts/smoke.mjs",
     "gen:presets": "node scripts/gen-presets.mjs",
     "security:probe": "node scripts/security-probe.mjs"
@@ -49,15 +47,6 @@
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
-    },
-    "client": {
-      "platform": "web",
-      "immediately": true,
-      "inject": [
-        "@deepseek-ai/dsh-client-ui-sidebar",
-        "@deepseek-ai/dsh-client-ui-layout",
-        "@deepseek-ai/dsh-client-locale"
-      ]
     }
   },
   "dependencies": {

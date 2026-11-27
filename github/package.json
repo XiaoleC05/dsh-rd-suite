@@ -8,13 +8,11 @@
   "main": "./index.js",
   "exports": {
     ".": "./index.js",
-    "./client": "./client.js",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
   "files": [
     "index.js",
-    "client.js",
     "lib/*.js",
     "cordis.patch.yml",
     "locale/*.json",
@@ -31,7 +29,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check index.js && node --check client.js && node --check lib/github-remote.js && node --check lib/process.js && node --check lib/result-schema.js && node --check lib/service.js && node --check lib/workflow-prompt.js && node --test"
+    "check": "node --check index.js && node --check lib/github-remote.js && node --check lib/process.js && node --check lib/result-schema.js && node --check lib/service.js && node --check lib/workflow-prompt.js && node --test"
   },
   "keywords": [
     "deepseek-harness",
@@ -46,15 +44,6 @@
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
-    },
-    "client": {
-      "platform": "web",
-      "immediately": true,
-      "inject": [
-        "@deepseek-ai/dsh-client-ui-settings",
-        "@deepseek-ai/dsh-client-ui-settings-general",
-        "@deepseek-ai/dsh-client-locale"
-      ]
     }
   }
 }
