@@ -24,10 +24,15 @@
 1. 重试一次，确认不是瞬时抖动。
 2. `node scripts/push-via-api.mjs --dry-run` 看要上传多少文件、是否会与远端分叉。
 3. `node scripts/push-via-api.mjs` 走 Git Data API 推送（快进校验通不过就停下 rebase）。
-4. `git fetch origin && git reset --hard origin/<branch>` 对齐历史：内容一致，提交号换成 API 建的那个。
+4. `git fetch origin` 成功之后再 `git reset --hard origin/<branch>` 对齐历史：内容一致，提交号换成 API 建的那个。**fetch 失败时绝不能 reset**，否则会把本地提交清掉（本轮踩过，靠 reflog 恢复）。
 5. 在当轮 Issue 里写明「API 回退推送」与实际提交号，别写成本地号。
 
 API 推送的提交作者是 token 用户、时间为当时，只作回退；能走 `git push` 时仍用 `git push`。
+
+### 两条硬规则
+
+- **推送之后不要再 amend**：会造成本地与远端分叉；要改就新开一个提交，API 回退时用 `--parent <远端 sha>` 接在后面。
+- **临时文件不进提交**：`.tmp-commit.txt` 这类文件先写、用完删，再 `git add`；否则会混进提交（本轮踩过，已 amend 去掉）。
 ## 什么算「正向」
 
 一轮只有同时满足下列条件才计入迭代次数：

@@ -11,6 +11,7 @@ import { join } from 'node:path'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import z from '@deepseek-ai/schemastery'
 
+import { findEntry, recordHits, searchEntries } from './lib/search.js'
 import {
   MEMORY_TYPES,
   listEntries,
@@ -239,6 +240,161 @@ export function apply(ctx, config) {
             listed.total === 0
               ? `记忆库还是空的（${file}）`
               : `共 ${listed.total} 条，返回 ${listed.entries.length} 条`,
+        }
+      },
+    }),
+  )
+
+  ctx.tools.register(
+    defineTool({
+      name: 'memory_search',
+      description:
+        'Search long-term memory by keyword, type, or tag. Chinese queries match titles, tags, and bodies through whole-phrase and bigram matching; ' +
+        'results carry a score and a snippet, and every returned entry counts as one hit.',
+      parameters: {
+        query: { type: 'string', description: '关键词，可以是中文短语；留空表示按更新时间列出。' },
+        type: { type: 'string', enum: MEMORY_TYPES, description: '只看某一类。' },
+        tag: { type: 'string', description: '只看带这个标签的条目。' },
+        limit: { type: 'integer', description: '返回条数，默认 10，上限 200。' },
+        offset: { type: 'integer', description: '跳过多少条。' },
+      },
+      output: {
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            ok: { type: 'boolean', required: true },
+            message: { type: 'string', required: true },
+            total: { type: 'integer' },
+            entries: {
+              type: 'array',
+              items: {
+                type: 'object',
+                additionalProperties: false,
+                properties: {
+                  id: { type: 'string' },
+                  type: { type: 'string' },
+                  title: { type: 'string' },
+                  tags: { type: 'array', items: { type: 'string' } },
+                  scope: { type: 'string' },
+                  updatedAt: { type: 'string' },
+                  hits: { type: 'integer' },
+                  score: { type: 'integer' },
+                  snippet: { type: 'string' },
+                },
+              },
+            },
+            file: { type: 'string' },
+          },
+        },
+        render: (_args, value) => [
+          {
+            type: 'text',
+            text:
+              value.entries.length === 0
+                ? value.message
+                : `${value.message}\n${value.entries.map((entry) => `- [${entry.type}] ${entry.title}（${entry.score} 分）\n  ${entry.snippet}`).join('\n')}`,
+          },
+        ],
+      },
+      presentCall: (args) => ({
+        card: 'generic',
+        title: 'memory_search',
+        kind: 'other',
+        rawInput: args,
+      }),
+      async execute(args) {
+        const store = openStore(file, maxEntries)
+        const found = searchEntries(store.document, {
+          query: args.query,
+          type: args.type,
+          tag: args.tag,
+          limit: Number.isFinite(args.limit) ? args.limit : 10,
+          offset: args.offset,
+        })
+        if (found.entries.length > 0) {
+          recordHits(
+            store.document,
+            found.entries.map((entry) => entry.id),
+          )
+          store.flush()
+        }
+        // 返回值反映累加后的命中次数，而不是检索当时的快照。
+        const hitsById = new Map(
+          store.document.entries.map((entry) => [entry.id, Number(entry.hits) || 0]),
+        )
+        return {
+          ok: true,
+          total: found.total,
+          entries: found.entries.map((entry) => ({
+            ...entry,
+            hits: hitsById.get(entry.id) ?? entry.hits,
+          })),
+          file,
+          message:
+            found.total === 0
+              ? `没有匹配的记忆（查询「${String(args.query ?? '')}」）`
+              : `命中 ${found.total} 条，返回 ${found.entries.length} 条`,
+        }
+      },
+    }),
+  )
+
+  ctx.tools.register(
+    defineTool({
+      name: 'memory_read',
+      description: 'Read one long-term memory entry in full by id, and count it as one hit.',
+      parameters: {
+        id: {
+          type: 'string',
+          required: true,
+          description: 'memory_search 或 memory_list 返回的 id。',
+        },
+      },
+      output: {
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            ok: { type: 'boolean', required: true },
+            message: { type: 'string', required: true },
+            id: { type: 'string' },
+            type: { type: 'string' },
+            title: { type: 'string' },
+            body: { type: 'string' },
+            tags: { type: 'array', items: { type: 'string' } },
+            scope: { type: 'string' },
+            source: { type: 'string' },
+            updatedAt: { type: 'string' },
+            hits: { type: 'integer' },
+          },
+        },
+        render: (_args, value) => [{ type: 'text', text: value.ok ? value.body : value.message }],
+      },
+      presentCall: (args) => ({
+        card: 'generic',
+        title: 'memory_read',
+        kind: 'other',
+        rawInput: args,
+      }),
+      async execute(args) {
+        const store = openStore(file, maxEntries)
+        const entry = findEntry(store.document, args.id)
+        if (entry === null) return { ok: false, message: `没有 id 为 ${args.id} 的记忆` }
+        recordHits(store.document, [args.id])
+        store.flush()
+        return {
+          ok: true,
+          message: `${entry.title}（${entry.type}）`,
+          id: entry.id,
+          type: entry.type,
+          title: entry.title,
+          body: entry.body,
+          tags: Array.isArray(entry.tags) ? entry.tags : [],
+          scope: entry.scope,
+          source: entry.source,
+          updatedAt: entry.updatedAt,
+          hits: (Number(entry.hits) || 0) + 1,
         }
       },
     }),

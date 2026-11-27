@@ -140,7 +140,12 @@ test('工具注册：memory_save 与 memory_list 都挂上了，参数契约完�
   const ctx = { tools: { register: (definition) => registered.push(definition) } }
   const toolsDir = mkdtempSync(join(tmpdir(), 'rd-memory-tools-'))
   apply(ctx, { directory: toolsDir, maxEntries: 50 })
-  assert.deepEqual(registered.map((tool) => tool.name).sort(), ['memory_list', 'memory_save'])
+  assert.deepEqual(registered.map((tool) => tool.name).sort(), [
+    'memory_list',
+    'memory_read',
+    'memory_save',
+    'memory_search',
+  ])
   const save = registered.find((tool) => tool.name === 'memory_save')
   const properties = save.parameters.properties
   assert.deepEqual([...properties.type.enum], ['template', 'pitfall', 'fix', 'strategy'])
