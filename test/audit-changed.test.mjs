@@ -47,8 +47,15 @@ test('changedPaths 保留可标准化的后缀，丢掉纯文本', () => {
   const run = () => [' M src/a.js', '?? src/notes.txt', 'M  docs/guide.md'].join('\n')
   const paths = changedPaths({ root: workspace, run }).map((path) => path.split('\\').join('/'))
   assert.ok(paths.some((path) => path.endsWith('src/a.js')))
-  assert.ok(paths.some((path) => path.endsWith('docs/guide.md')), 'markdown 有预设，照样审')
-  assert.equal(paths.some((path) => path.endsWith('.txt')), false, '纯文本不进审计')
+  assert.ok(
+    paths.some((path) => path.endsWith('docs/guide.md')),
+    'markdown 有预设，照样审',
+  )
+  assert.equal(
+    paths.some((path) => path.endsWith('.txt')),
+    false,
+    '纯文本不进审计',
+  )
 })
 
 test('auditChanged 只审改动文件，未改动文件不出现', async () => {
