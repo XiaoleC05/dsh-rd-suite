@@ -69,6 +69,11 @@
 | `cordis.patch.yml` | 上面 3 行的完整声明，头部有相对官方 `ptc` 预设的差异表 |
 | `docs/` | `DESIGN.md`（设计与成本模型）、`DETAIL.md`（插件详情页）、`CHANGELOG.md` |
 
+| `scripts/rd-doctor.mjs` | 七项自检合一个入口：工具清单 / 技能版本 / 宪章重叠 / 引用完整 / git 网络 / CI 覆盖 / 交付门禁 |
+## 一个入口
+
+`node scripts/rd-doctor.mjs` 依次跑工具清单、技能版本、宪章重叠、引用完整、git 网络、CI 覆盖与交付门禁七项，逐项计时并给一行结论；`--json` 供脚本消费。交付前只跑这一条即可。
+
 ## 持续集成
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
