@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.29.0 — 2026-11-27
+
+- 新增 scripts/verify-package.mjs 四项校验：files[] 是否覆盖随包目录与文件、每个技能是否有
+  name/description frontmatter、cordis.patch.yml 引用的成员目录是否存在、client.js 是否比源码新。
+- 自用结果：本仓库通过（1 条提示：没有声明 engines.dsh）。
+- 新增 6 例测试；全量 236/236。
 ## 0.28.0 — 2026-11-27
 
 - 新增 `/dsh-code-pipeline/api/status`：读工作区的 package.json 版本、docs/ITERATIONS.md 的
