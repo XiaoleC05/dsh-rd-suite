@@ -59,6 +59,12 @@ node scripts/aigc-check.mjs <文件...> --banned path/to/banned-words.txt
 `
 
 自定义词与内置表合并、自动去重；命中同样计入「套话」并按次数扣分。词表放在项目里随仓库走，不要写进本技能。
+## 3.2 英文文案的信号
+
+自检对英文也生效，重点看这几类：It's not just X, it's Y 的对举、In today's fast-paced world 式开场、Let's dive in 的过渡、Here's the thing 与 at the end of the day 的口头禅，以及一行里两个以上破折号。
+
+改法只有一条：把形容词换成具体动词与数字。a robust, seamless platform 不如 p95 latency 0.6s under 42 concurrent runs。
+
 ## 4 降重
 
 同一段内容要换个说法时，按这个顺序改，不要只换同义词：

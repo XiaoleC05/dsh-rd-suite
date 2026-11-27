@@ -180,3 +180,4 @@
 | 第 21 轮 | #36 | charter-audit-line | 报告模板加审计行 + test/charter.test.mjs 六项结构守卫 |
 | 第 22 轮 | #37 | copy-banned-words | analyze 支持 extraCliches，CLI 加 --banned（换行或 JSON 词表）；2 例测试 |
 | 第 23 轮 | #38 | panel-error-boundary | 每个 pane 包一层 PanelBoundary（getDerivedStateFromError + 重试），无 Component 时退化；2 例测试 |
+| 第 24 轮 | #39 | copy-english-rules | 六条英文 AI 腔规则（含破折号密度）+ rd-copy 英文小节；2 例测试 |

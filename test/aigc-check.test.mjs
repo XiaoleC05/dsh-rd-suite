@@ -138,3 +138,31 @@ test('词表文件：换行与 JSON 数组两种格式都支持', async () => {
   assert.equal(main([article, '--banned', lines, '--min-score', '0']), 0)
   rmSync(dir, { recursive: true, force: true })
 })
+
+test('英文 AI 腔能被检出，正常英文与中文不受影响', () => {
+  const boilerplate = [
+    "In today's fast-paced world, teams need tools that work.",
+    '',
+    "It's not just a dashboard, it's a platform — a robust, seamless platform — that empowers you.",
+    '',
+    "Let's dive in. Here's the thing: at the end of the day, you just need clear numbers.",
+  ].join('\n')
+  const flagged = analyze(boilerplate)
+  const ids = flagged.hits.patterns.map((hit) => hit.id)
+  for (const id of ['not-just-but', 'fast-paced-opener', 'dive-in', 'heres-the-thing']) {
+    assert.ok(ids.includes(id), `英文套话 ${id} 应当被检出`)
+    assert.ok(flagged.hits.patterns.find((hit) => hit.id === id).firstLine > 0, `${id} 要能定位行号`)
+  }
+  assert.ok(flagged.score < 50, `套话段落分数应明显偏低，实际 ${flagged.score}`)
+
+  const plain = 'The retry loop capped at three attempts after 2026-11-20.\n\nWe measured 42 runs; tail latency fell from 1.9s to 0.6s.'
+  assert.equal(analyze(plain).score, 100, '正常英文不应被扣分')
+
+  const chinese = '审计跑完之后，待修为零。宪章 4,964 字符，测试 216 例通过。'
+  assert.equal(analyze(chinese).score, 100, '中文文本不受英文条目影响')
+})
+
+test('破折号密度：一行两个以上才算', () => {
+  assert.equal(analyze('a — b').hits.patterns.some((hit) => hit.id === 'em-dash-density'), false)
+  assert.equal(analyze('a — b — c').hits.patterns.some((hit) => hit.id === 'em-dash-density'), true)
+})

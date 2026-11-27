@@ -156,6 +156,53 @@ function repeatedGrams(text, size = 8) {
  * 是句子与段落的写法问题，换同义词消不掉。
  */
 const PATTERNS = [
+  // 英文文案的典型 AI 腔。只作用于英文表达，中文文本不会命中。
+  {
+    id: 'not-just-but',
+    label: "It's not just X, it's Y",
+    test: /\bnot (?:just|only) [^.!?\n]{1,40}[,;]? (?:it'?s|but) /giu,
+    penalty: 8,
+    hint: '直接说结论，别用对举制造声势',
+  },
+  {
+    id: 'fast-paced-opener',
+    label: "In today's fast-paced world 式开场",
+    test: /\b(?:in today'?s|in this)\s+(?:fast-paced|ever-changing|rapidly evolving|digital)[^.!?\n]{0,30}\b(?:world|landscape|era|age)\b/giu,
+    penalty: 10,
+    hint: '删掉背景铺垫，从读者的问题开始',
+  },
+  {
+    id: 'dive-in',
+    label: "Let's dive in 式过渡",
+    test: /\b(?:let'?s|let us)\s+(?:dive|jump|delve)\s+(?:in|into)\b|\bdive (?:deep )?into\b/giu,
+    penalty: 6,
+    hint: '过渡句可以直接省掉',
+  },
+  {
+    id: 'heres-the-thing',
+    label: "Here's the thing 式口头禅",
+    test: /\bhere'?s the thing\b|\bthe thing is\b|\bat the end of the day\b/giu,
+    penalty: 6,
+    hint: '口头禅不承载信息',
+  },
+  {
+    id: 'hype-words',
+    label: '营销形容词堆叠（弱信号）',
+    test: /\b(?:seamless(?:ly)?|robust|leverage|unlock|elevate|empower|cutting-edge|game-chang\w+|revolutioni[sz]\w+)\b/giu,
+    penalty: 2,
+    max: 8,
+    hint: '换成具体动词与数字',
+  },
+  {
+    id: 'em-dash-density',
+    label: '一行里破折号过多',
+    test: /—/gu,
+    penalty: 3,
+    max: 6,
+    perLine: true,
+    minPerLine: 2,
+    hint: '一句话里超过一个破折号通常可以拆句',
+  },
   {
     id: 'not-x-but-y',
     label: '不是 X 而是 Y 的对举',
@@ -216,7 +263,8 @@ function findPatterns(text) {
       for (const [index, line] of body.split(/\r?\n/u).entries()) {
         if (LIST_LINE.test(line)) continue
         const hits = [...line.matchAll(pattern.test)].length
-        if (hits === 0) continue
+        // minPerLine：一行里出现次数不到阈值就不算（用于破折号这类密度信号）。
+        if (hits === 0 || (pattern.minPerLine !== undefined && hits < pattern.minPerLine)) continue
         count += hits
         if (firstLine === 0) firstLine = index + 1
       }
