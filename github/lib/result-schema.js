@@ -68,6 +68,8 @@ export const RESULT_FIELDS = Object.freeze({
   checksPassed: { type: 'integer' },
   checksFailed: { type: 'integer' },
   checksPending: { type: 'integer' },
+  failingChecks: { type: 'array', items: { type: 'string' } },
+  pendingChecks: { type: 'array', items: { type: 'string' } },
   merged: { type: 'boolean' },
   mergeMethod: { type: 'string', enum: ['squash', 'merge', 'rebase'] },
   branchDeleted: { type: 'boolean' },

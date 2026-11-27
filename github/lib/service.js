@@ -1207,27 +1207,33 @@ export async function closeIssue(run, options = {}) {
  * @returns {{ passed: number; failed: number; pending: number }} check counts.
  */
 function summarizeChecks(rollup) {
-  const counts = { passed: 0, failed: 0, pending: 0 }
+  const counts = { passed: 0, failed: 0, pending: 0, failing: [], pendingNames: [] }
   if (!Array.isArray(rollup)) return counts
-  for (const entry of rollup) {
+  const FAILED_STATES = new Set([
+    'FAILURE',
+    'ERROR',
+    'CANCELLED',
+    'TIMED_OUT',
+    'ACTION_REQUIRED',
+    'STARTUP_FAILURE',
+    'STALE',
+  ])
+  for (const [index, entry] of rollup.entries()) {
     if (entry === null || typeof entry !== 'object') continue
     const state = String(entry.conclusion ?? entry.state ?? '').toUpperCase()
+    // 检查项的名字可能在 name / context 上，取不到就用序号，至少能定位到第几项。
+    const label = String(entry.name ?? entry.context ?? entry.title ?? `check-${index + 1}`)
     if (state === '') {
       counts.pending += 1
+      counts.pendingNames.push(label)
     } else if (state === 'SUCCESS' || state === 'NEUTRAL' || state === 'SKIPPED') {
       counts.passed += 1
-    } else if (
-      state === 'FAILURE' ||
-      state === 'ERROR' ||
-      state === 'CANCELLED' ||
-      state === 'TIMED_OUT' ||
-      state === 'ACTION_REQUIRED' ||
-      state === 'STARTUP_FAILURE' ||
-      state === 'STALE'
-    ) {
+    } else if (FAILED_STATES.has(state)) {
       counts.failed += 1
+      counts.failing.push(label)
     } else {
       counts.pending += 1
+      counts.pendingNames.push(label)
     }
   }
   return counts
@@ -1589,9 +1595,11 @@ export async function prStatus(run, options = {}) {
       checksPassed: counts.passed,
       checksFailed: counts.failed,
       checksPending: counts.pending,
+      ...(counts.failing.length === 0 ? {} : { failingChecks: counts.failing.slice(0, 10) }),
+      ...(counts.pendingNames.length === 0 ? {} : { pendingChecks: counts.pendingNames.slice(0, 10) }),
       message: `Pull request ${String(info.number ?? target)} is ${String(state ?? 'unknown')}; checks: ${counts.passed} passed, ${counts.failed} failed, ${counts.pending} pending.`,
       guidance: blocked
-        ? 'Resolve the failing checks or conflicts before merging. Report what the branch still needs instead of merging anyway.'
+        ? `Resolve the failing checks or conflicts before merging.${counts.failing.length > 0 ? ` Failing: ${counts.failing.slice(0, 5).join(', ')}.` : ''} Report what the branch still needs instead of merging anyway.`
         : counts.pending > 0
           ? 'Checks are still running. Wait for them or use merge_pr with auto=true, and do not claim a merge before it happens.'
           : 'Ready to merge: call merge_pr (squash, delete branch).',

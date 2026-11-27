@@ -49,7 +49,7 @@
 |---|---|---|---|
 | 031 | precheck 增加最近提交与保护细节 | 待做 | |
 | 032 | open_pr 支持关联多个 Issue | 待做 | |
-| 033 | pr_status 输出失败检查项名单 | 待做 | |
+| 033 | pr_status 输出失败检查项名单 | 完成 | #25 |
 | 034 | merge_pr 的 auto 与失败重试 | 待做 | |
 | 035 | release 校验 tag 与 CHANGELOG 一致 | 待做 | |
 | 036 | Issue 模板与标签约定（bug/feature/chore） | 待做 | |
@@ -166,3 +166,4 @@
 | 第 7 轮 | #22 | memory-import | merge（取较新正文、标签并集、hits 取大、revisions 累加）与 replace 两种导入、导出工具；6 例测试 |
 | 第 8 轮 | #23 | memory-evict | 保留分 = hits×10 + 30 天内加成 + revisions；超限按分数淘汰、同分先丢更早的；6 例测试 |
 | 第 9 轮 | #24 | memory-workflow | 宪章 S8/§7/§4 与 rd-retro、rd-spec 接上 memory_*；新增 1 例接线测试 |
+| 第 10 轮 | #25 | pr-checks | pr_status 给出 failingChecks / pendingChecks 名单并在 guidance 点名；2 例测试 |

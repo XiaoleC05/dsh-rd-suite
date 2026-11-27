@@ -646,3 +646,49 @@ test('release rejects a tag that is not semantic versioning', async () => {
   assert.equal(result.code, 'INVALID_ARGUMENTS')
   assert.equal(calls.length, 0)
 })
+
+test('pr_status 点名失败的检查项，全部通过时不给名单', async () => {
+  const failing = makeRun({
+    prView: () => ok(JSON.stringify({
+      number: 43,
+      url: 'https://github.com/acme/widgets/pull/43',
+      state: 'OPEN',
+      isDraft: false,
+      mergeable: 'MERGEABLE',
+      reviewDecision: 'APPROVED',
+      statusCheckRollup: [
+        { name: 'unit', conclusion: 'SUCCESS' },
+        { name: 'lint', conclusion: 'FAILURE' },
+        { name: 'e2e', status: 'IN_PROGRESS' },
+      ],
+      baseRefName: 'main',
+      headRefName: 'fix/9-toolbar-overflow',
+    })),
+  })
+  const withFailures = await prStatus(failing.run, { path: targetFile, pr: '43' })
+  assert.deepEqual(withFailures.failingChecks, ['lint'])
+  assert.deepEqual(withFailures.pendingChecks, ['e2e'])
+  assert.equal(withFailures.checksFailed, 1)
+  assert.match(withFailures.guidance, /Failing: lint/u)
+
+  const green = makeRun({
+    prView: () => ok(JSON.stringify({
+      number: 43,
+      url: 'https://github.com/acme/widgets/pull/43',
+      state: 'OPEN',
+      isDraft: false,
+      mergeable: 'MERGEABLE',
+      reviewDecision: 'APPROVED',
+      statusCheckRollup: [
+        { name: 'unit', conclusion: 'SUCCESS' },
+        { name: 'lint', conclusion: 'SUCCESS' },
+      ],
+      baseRefName: 'main',
+      headRefName: 'fix/9-toolbar-overflow',
+    })),
+  })
+  const clean = await prStatus(green.run, { path: targetFile, pr: '43' })
+  assert.equal(clean.failingChecks, undefined)
+  assert.equal(clean.pendingChecks, undefined)
+  assert.match(clean.guidance, /Ready to merge/u)
+})
