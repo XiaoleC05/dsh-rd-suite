@@ -11,6 +11,7 @@
 import { readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 
+import { checkBranchPlan, parseBranchName } from './branch-name.js'
 import { checkReleaseConsistency, readReleaseFacts } from './release-check.js'
 import {
   buildIssueBody,
@@ -1403,6 +1404,9 @@ export async function prepareBranch(run, options = {}) {
         ...repositoryIdentity(check),
         branch,
         ...(check.defaultBranch === undefined ? {} : { baseBranch: check.defaultBranch }),
+        ...(parseBranchName(branch) === null
+          ? { warnings: [`分支名 ${branch} 不符合 <type>/<issue>-<slug>；建议改名后再推送`] }
+          : {}),
         branchCreated: false,
         branchReused: true,
         message: `Switched to the existing branch ${branch}.`,
@@ -1447,12 +1451,20 @@ export async function prepareBranch(run, options = {}) {
         },
       )
     }
+    // 命名不合约定时只提醒不阻断：并行多模块时分支名是唯一能看出归属的地方。
+    const namingWarnings =
+      parseBranchName(branch) === null
+        ? [
+            `分支名 ${branch} 不符合 <type>/<issue>-<slug>；建议写成 fix/${String(options.issue ?? 1)}-<短描述>`,
+          ]
+        : []
     return compact({
       ok: true,
       action,
       ...repositoryIdentity(check),
       branch,
       baseBranch: base,
+      ...(namingWarnings.length === 0 ? {} : { warnings: namingWarnings }),
       branchCreated: true,
       message: `Created branch ${branch} from ${startPoint}.`,
       guidance:
