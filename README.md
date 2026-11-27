@@ -35,6 +35,7 @@
 | `scripts/audit-changed.mjs` | 只审 git 改动过的代码文件（交付前的轻量复查） |
 | `scripts/flow-drill.mjs` | 全流程演练：假 git/gh 跑通建单、分支、PR、合并、关闭七步 |
 | `scripts/memory-recall.mjs` | 记忆召回基准：top1 准确率与 MRR，低于阈值即失败 |
+| `scripts/doc-cmd-check.mjs` | 校验文档里的示例命令：脚本存在、参数有出处 |
 | `scripts/board.mjs` | 刷新 README 里的迭代进度块（标记之间替换，幂等） |
 | `scripts/release.mjs` | 版本推进：每 10 轮 minor，其余 patch，同时改清单与 CHANGELOG 骨架 |
 | `scripts/rollback-drill.mjs` | 回滚演练：临时仓库里真跑 revert，验证树还原且历史保留 |
@@ -61,13 +62,13 @@
 ## 迭代进度
 
 <!-- rd-board:start -->
-**进度**：52/100 轮 · 用例 332 · 版本 0.50.1 · 门禁 六项全过
+**进度**：53/100 轮 · 用例 338 · 版本 0.51.0 · 门禁 六项全过
 
 | 最近三轮 | 做了什么 |
 |---|---|
-| 第 50 轮 | 第五次体检：宪章 4964、用例 324、README 81→88、升 0.49.0 |
 | 第 51 轮 | open_pr 在 Issue 上回链 PR（可关闭）；2 例测试 |
 | 第 52 轮 | 解析 gh 版本并在过低时提示缺字段；5+1 例测试 |
+| 第 53 轮 | 文档示例命令校验并并入 preflight 第七道门禁；6 例测试 |
 <!-- rd-board:end -->
 
 ## 安装

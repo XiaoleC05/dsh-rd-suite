@@ -20,6 +20,8 @@ import { findVariants, loadGlossary } from './term-check.mjs'
 import { verifyPackage } from './verify-package.mjs'
 import { smokeInstall } from './smoke-install.mjs'
 import { runDrill } from './flow-drill.mjs'
+import { DOCUMENTS as CMD_DOCUMENTS, checkDocuments } from './doc-cmd-check.mjs'
+import { existsSync } from 'node:fs'
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
 
@@ -111,6 +113,24 @@ async function smokeGate() {
   }
 }
 
+/** 文档示例门禁：示例命令里的脚本与参数都要真实存在。 */
+function docCommandGate() {
+  const fs = {
+    exists: (path) => existsSync(join(root, path)),
+    readSource: (path) => readFileSync(join(root, path), 'utf8'),
+  }
+  const documents = CMD_DOCUMENTS.filter((path) => existsSync(join(root, path))).map((path) => ({
+    path,
+    text: readFileSync(join(root, path), 'utf8'),
+  }))
+  const { results, problems } = checkDocuments(documents, fs)
+  return {
+    name: '文档示例',
+    ok: problems.length === 0,
+    detail: problems.length === 0 ? `${results.length} 条命令都有效` : `${problems.length} 条失效：${problems[0].command}`,
+  }
+}
+
 /** 流程演练门禁：七步走通才算过。 */
 async function drillGate() {
   const { steps, problem } = await runDrill()
@@ -130,7 +150,7 @@ async function drillGate() {
  * @returns {Promise<{ gates: { name: string; ok: boolean; detail: string }[]; summary: { ok: boolean; passed: number; failed: string[] } }>} 结果
  */
 export async function runPreflight() {
-  const gates = [docsGate(), duplicateGate(), termGate(), packageGate(), await smokeGate(), await drillGate()]
+  const gates = [docsGate(), duplicateGate(), termGate(), packageGate(), await smokeGate(), await drillGate(), docCommandGate()]
   return { gates, summary: summarizeGates(gates) }
 }
 
