@@ -35,6 +35,7 @@
 | `scripts/audit-changed.mjs` | 只审 git 改动过的代码文件（交付前最后一道便宜检查） |
 | `scripts/flow-drill.mjs` | 全流程演练：假 git/gh 跑通建单→分支→PR→合并→关闭七步 |
 | `scripts/memory-recall.mjs` | 记忆召回基准：top1 准确率与 MRR，低于阈值即失败 |
+| `scripts/board.mjs` | 刷新 README 里的迭代进度块（标记之间替换，幂等） |
 | `scripts/release.mjs` | 版本推进：每 10 轮 minor，其余 patch，同时改清单与 CHANGELOG 骨架 |
 | `scripts/rollback-drill.mjs` | 回滚演练：临时仓库里真跑 revert，验证树还原且历史保留 |
 | `scripts/round-report.mjs` | 单轮评估报告：证据四段（做了什么 / 验证数据 / 判据 / 结论） |
@@ -56,6 +57,18 @@
 四个成员返回的 code 集中登记在 `lib/error-codes.js`：每条有中文说明、是否可重试、遇到该做什么。`test/error-codes.test.mjs` 会扫源码，出现未登记的码直接失败——新加码必须同时写下它的含义。
 
 可重试的只有真正的瞬时失败（超时、推送被拒、限流、Issue/PR 读取偶发失败）；参数错误、权限不足、仓库状态不对都不在其中。
+
+## 迭代进度
+
+<!-- rd-board:start -->
+**进度**：49/100 轮 · 用例 324 · 版本 0.48.2 · 门禁 六项全过
+
+| 最近三轮 | 做了什么 |
+|---|---|
+| 第 47 轮 | 临时仓库真跑 revert 并断言树还原/历史保留；3 例测试 |
+| 第 48 轮 | 版本推进脚本（每 10 轮 minor）+ CHANGELOG 骨架；8 例测试 |
+| 第 49 轮 | README 进度块自动刷新（标记替换幂等）；6 例测试 |
+<!-- rd-board:end -->
 
 ## 安装
 
