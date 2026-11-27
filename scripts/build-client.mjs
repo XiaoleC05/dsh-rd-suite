@@ -31,6 +31,7 @@ const packageName = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 const SOURCES = [
   'client-sources/cards.js',
   'client-sources/code-pipeline.js',
+  'client-sources/memory.js',
   'client-sources/hub-rd.js',
 ]
 

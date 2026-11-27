@@ -1,0 +1,404 @@
+/**
+ * 记忆库页面：研发工作台的「记忆库」标页。
+ *
+ * 数据来自 /dsh-rd-memory/api/{list,entry,stats}（只读）。面板只做三件事：搜索筛选、
+ * 看详情、复制正文。写入仍然由模型在会话里用 memory_save 完成。
+ */
+
+window.__ModuleLoader__.load({
+  id: '@local/rd-memory-page',
+  factory(require) {
+    const React = require('react')
+    const h = React.createElement
+    const NS = 'rdMemory'
+    const PANEL_ID = 'rd-memory'
+    const API = '/dsh-rd-memory/api'
+
+    const STRINGS = {
+      zh: {
+        panelName: '记忆库',
+        subtitle: '技术模板、踩坑、bug 修复方案、策略模式：跨会话复用的长期记忆。',
+        search: '搜索标题、标签或正文',
+        all: '全部',
+        types: ['技术模板', '踩坑', 'bug 修复', '策略'],
+        typeNames: { template: '技术模板', pitfall: '踩坑', fix: 'bug 修复', strategy: '策略' },
+        total: '共 {total} 条',
+        loading: '正在读取记忆库…',
+        empty: '还没有记忆。让模型在任务里用 memory_save 记下可复用的做法。',
+        emptyFiltered: '这个条件下没有条目。',
+        failed: '读取失败：{message}',
+        unauthorized: '未通过本机信任校验，请从侧栏打开面板。',
+        copy: '复制正文',
+        copied: '已复制',
+        copyFailed: '复制失败，可手动选中',
+        hits: '被检索 {hits} 次',
+        updated: '更新于 {time}',
+        detailHint: '左侧选一条查看全文',
+        close: '关闭',
+      },
+      en: {
+        panelName: 'Memory',
+        subtitle:
+          'Technique templates, pitfalls, bug-fix recipes, and strategy patterns reused across sessions.',
+        search: 'Search title, tags, or body',
+        all: 'All',
+        types: ['Templates', 'Pitfalls', 'Fixes', 'Strategies'],
+        typeNames: { template: 'Template', pitfall: 'Pitfall', fix: 'Fix', strategy: 'Strategy' },
+        total: '{total} entries',
+        loading: 'Reading the memory store…',
+        empty: 'No memory yet. Ask the model to record reusable findings with memory_save.',
+        emptyFiltered: 'Nothing matches this filter.',
+        failed: 'Could not read the memory store: {message}',
+        unauthorized: 'Local trust check failed; open the panel from the sidebar.',
+        copy: 'Copy body',
+        copied: 'Copied',
+        copyFailed: 'Copy failed; select the text manually',
+        hits: 'Retrieved {hits} times',
+        updated: 'Updated {time}',
+        detailHint: 'Pick an entry on the left',
+        close: 'Close',
+      },
+    }
+
+    const TYPE_ORDER = ['', 'template', 'pitfall', 'fix', 'strategy']
+
+    const ui = {
+      page: {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+        background: 'var(--dsw-alias-bg-base)',
+      },
+      bar: {
+        display: 'flex',
+        gap: 8,
+        alignItems: 'center',
+        padding: '12px 20px',
+        borderBottom: '1px solid var(--dsw-alias-border-l1)',
+        flexWrap: 'wrap',
+      },
+      input: {
+        flex: 1,
+        minWidth: 180,
+        font: 'inherit',
+        fontSize: 13,
+        padding: '6px 10px',
+        borderRadius: 8,
+        border: '0.5px solid var(--dsw-alias-border-l2)',
+        background: 'var(--dsw-alias-bg-layer-1)',
+        color: 'var(--dsw-alias-label-primary)',
+      },
+      chip: {
+        font: 'inherit',
+        fontSize: 12,
+        padding: '4px 10px',
+        borderRadius: 999,
+        border: '0.5px solid var(--dsw-alias-border-l2)',
+        background: 'transparent',
+        color: 'var(--dsw-alias-label-secondary)',
+        cursor: 'pointer',
+      },
+      chipActive: {
+        background: 'var(--dsw-alias-bg-layer-2)',
+        color: 'var(--dsw-alias-label-primary)',
+        fontWeight: 600,
+      },
+      count: { fontSize: 12, color: 'var(--dsw-alias-label-secondary)' },
+      body: {
+        flex: 1,
+        minHeight: 0,
+        display: 'grid',
+        gridTemplateColumns: 'minmax(240px, 34%) 1fr',
+        gap: 0,
+      },
+      list: {
+        margin: 0,
+        padding: 0,
+        listStyle: 'none',
+        overflow: 'auto',
+        borderRight: '1px solid var(--dsw-alias-border-l1)',
+      },
+      item: {
+        padding: '10px 16px',
+        borderBottom: '0.5px solid var(--dsw-alias-border-l1)',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+      },
+      itemActive: { background: 'var(--dsw-alias-bg-layer-2)' },
+      itemTitle: { fontSize: 13, lineHeight: '20px', color: 'var(--dsw-alias-label-primary)' },
+      meta: { fontSize: 12, lineHeight: '18px', color: 'var(--dsw-alias-label-secondary)' },
+      detail: {
+        padding: '16px 20px',
+        overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+      },
+      pre: {
+        margin: 0,
+        padding: '12px 14px',
+        borderRadius: 10,
+        border: '0.5px solid var(--dsw-alias-border-l2)',
+        background: 'var(--dsw-alias-bg-layer-1)',
+        color: 'var(--dsw-alias-label-primary)',
+        fontSize: 13,
+        lineHeight: '21px',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+      },
+      button: {
+        font: 'inherit',
+        fontSize: 12,
+        padding: '4px 10px',
+        borderRadius: 6,
+        border: '0.5px solid var(--dsw-alias-border-l2)',
+        background: 'var(--dsw-alias-bg-layer-2)',
+        color: 'var(--dsw-alias-label-primary)',
+        cursor: 'pointer',
+        alignSelf: 'flex-start',
+      },
+      empty: { padding: '24px 20px', fontSize: 13, color: 'var(--dsw-alias-label-secondary)' },
+    }
+
+    /** 取 JSON；非 2xx 抛错并保留状态码。 */
+    async function getJson(path) {
+      const response = await fetch(API + path, { headers: { accept: 'application/json' } })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok || payload.ok === false) {
+        const error = new Error(payload.message ?? `HTTP ${response.status}`)
+        error.status = response.status
+        throw error
+      }
+      return payload
+    }
+
+    function fill(template, values) {
+      return String(template).replace(/\{(\w+)\}/g, (_match, key) => String(values[key] ?? ''))
+    }
+
+    function MemoryPage({ t }) {
+      const translate = typeof t === 'function' ? t : (key) => key
+      const [query, setQuery] = React.useState('')
+      const [type, setType] = React.useState('')
+      const [list, setList] = React.useState({
+        status: 'loading',
+        entries: [],
+        total: 0,
+        error: null,
+      })
+      const [detail, setDetail] = React.useState(null)
+      const [copied, setCopied] = React.useState(null)
+      const requestSeq = React.useRef(0)
+
+      const load = React.useCallback(async () => {
+        const seq = requestSeq.current + 1
+        requestSeq.current = seq
+        setList((previous) => ({ ...previous, status: 'loading' }))
+        const params = new URLSearchParams()
+        if (query.trim() !== '') params.set('q', query.trim())
+        if (type !== '') params.set('type', type)
+        params.set('limit', '100')
+        try {
+          const payload = await getJson(`/list?${params.toString()}`)
+          if (requestSeq.current !== seq) return
+          setList({ status: 'ready', entries: payload.entries, total: payload.total, error: null })
+        } catch (error) {
+          if (requestSeq.current !== seq) return
+          const message =
+            error.status === 401 || error.status === 403
+              ? translate('unauthorized')
+              : fill(translate('failed'), { message: error.message })
+          setList({ status: 'error', entries: [], total: 0, error: message })
+        }
+      }, [query, type, translate])
+
+      React.useEffect(() => {
+        void load()
+      }, [load])
+
+      const open = async (id) => {
+        setCopied(null)
+        try {
+          const payload = await getJson(`/entry?id=${encodeURIComponent(id)}`)
+          setDetail(payload.entry)
+        } catch (error) {
+          setDetail({
+            title: '…',
+            body: fill(translate('failed'), { message: error.message }),
+            tags: [],
+          })
+        }
+      }
+
+      const copy = async () => {
+        if (detail === null) return
+        try {
+          await navigator.clipboard.writeText(String(detail.body ?? ''))
+          setCopied('ok')
+        } catch {
+          setCopied('failed')
+        }
+      }
+
+      const typeName = (value) => translate('typeNames')[value] ?? value
+
+      const toolbar = h(
+        'div',
+        { style: ui.bar },
+        h('input', {
+          style: ui.input,
+          type: 'search',
+          value: query,
+          placeholder: translate('search'),
+          'aria-label': translate('search'),
+          onChange: (event) => setQuery(event.target.value),
+        }),
+        TYPE_ORDER.map((value) =>
+          h(
+            'button',
+            {
+              key: value === '' ? 'all' : value,
+              type: 'button',
+              style: value === type ? { ...ui.chip, ...ui.chipActive } : ui.chip,
+              'aria-pressed': value === type,
+              onClick: () => setType(value),
+            },
+            value === '' ? translate('all') : typeName(value),
+          ),
+        ),
+        h('span', { style: ui.count }, fill(translate('total'), { total: list.total })),
+      )
+
+      let body
+      if (list.status === 'loading' && list.entries.length === 0) {
+        body = h('p', { style: ui.empty }, translate('loading'))
+      } else if (list.status === 'error') {
+        body = h(
+          'p',
+          { style: { ...ui.empty, color: 'var(--dsw-alias-state-error-primary)' }, role: 'alert' },
+          list.error,
+        )
+      } else if (list.entries.length === 0) {
+        body = h(
+          'p',
+          { style: ui.empty },
+          query.trim() === '' && type === '' ? translate('empty') : translate('emptyFiltered'),
+        )
+      } else {
+        body = h(
+          'div',
+          { style: ui.body },
+          h(
+            'ul',
+            { style: ui.list },
+            list.entries.map((entry) =>
+              h(
+                'li',
+                { key: entry.id },
+                h(
+                  'div',
+                  {
+                    style: detail?.id === entry.id ? { ...ui.item, ...ui.itemActive } : ui.item,
+                    role: 'button',
+                    tabIndex: 0,
+                    onClick: () => open(entry.id),
+                    onKeyDown: (event) => {
+                      if (event.key === 'Enter' || event.key === ' ') open(entry.id)
+                    },
+                  },
+                  h('span', { style: ui.itemTitle }, entry.title),
+                  h(
+                    'span',
+                    { style: ui.meta },
+                    `${typeName(entry.type)} · ${fill(translate('hits'), { hits: entry.hits ?? 0 })}`,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          h(
+            'div',
+            { style: ui.detail },
+            detail === null
+              ? h('p', { style: ui.empty }, translate('detailHint'))
+              : h(
+                  React.Fragment,
+                  null,
+                  h('h3', { style: ui.itemTitle }, detail.title),
+                  h(
+                    'span',
+                    { style: ui.meta },
+                    `${typeName(detail.type)} · ${String(detail.updatedAt ?? '')}`,
+                  ),
+                  h('pre', { style: ui.pre }, String(detail.body ?? '')),
+                  h(
+                    'div',
+                    { style: { display: 'flex', gap: 8, alignItems: 'center' } },
+                    h(
+                      'button',
+                      { type: 'button', style: ui.button, onClick: copy },
+                      translate('copy'),
+                    ),
+                    copied === 'ok' ? h('span', { style: ui.meta }, translate('copied')) : null,
+                    copied === 'failed'
+                      ? h('span', { style: ui.meta }, translate('copyFailed'))
+                      : null,
+                  ),
+                ),
+          ),
+        )
+      }
+
+      return h(
+        'div',
+        { style: ui.page },
+        h(
+          'header',
+          { style: { padding: '16px 20px 8px', display: 'flex', flexDirection: 'column', gap: 4 } },
+          h(
+            'h2',
+            {
+              style: {
+                margin: 0,
+                fontSize: 15,
+                lineHeight: '22px',
+                color: 'var(--dsw-alias-label-primary)',
+              },
+            },
+            translate('panelName'),
+          ),
+          h(
+            'p',
+            {
+              style: {
+                margin: 0,
+                fontSize: 12,
+                lineHeight: '18px',
+                color: 'var(--dsw-alias-label-secondary)',
+              },
+            },
+            translate('subtitle'),
+          ),
+        ),
+        toolbar,
+        body,
+      )
+    }
+
+    const pages = []
+
+    return {
+      inject: ['slots', 'locale'],
+      pages,
+      apply(ctx) {
+        const slots = ctx && ctx.slots
+        if (!slots || typeof slots.inject !== 'function') return undefined
+        ctx.effect(() => ctx.locale.register(NS, STRINGS), 'memory-page: dictionaries')
+        pages.push({ id: PANEL_ID, labelKey: 'panelName', locale: NS, component: MemoryPage })
+      },
+    }
+  },
+})
