@@ -186,3 +186,4 @@
 | 第 27 轮 | #42 | verify-package | files/技能 frontmatter/成员目录/client 新鲜度四项校验；6 例测试 |
 | 第 28 轮 | #43 | engines-declaration | 声明 engines.dsh 并让校验必填 + 语义化版本比较；3 例测试 |
 | 第 29 轮 | #44 | smoke-install | 按 files[] 复制到临时副本并真加载，断言 9 工具 8 路由；4 例测试 |
+| 第 30 轮 | #45 | health-row | health --row 直出台账行 + roundWindow 推十轮区间；3 例测试；第三次横向体检 |

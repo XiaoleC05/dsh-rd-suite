@@ -4,6 +4,7 @@
 
 ```
 node scripts/health.mjs --fail-on-drift
+node scripts/health.mjs --row    # 直接输出下面表格的新行
 ```
 
 只要出现术语漂移或打包缺口就返回 1，可以直接当门禁用。
@@ -37,4 +38,4 @@ node scripts/health.mjs --fail-on-drift
 |---|---|---|---|---|---|
 | 1–10 | 4872 | 178 | rd-retro 2461 | 0 | 无 |
 | 11–20 | 4872 | 206 | rd-retro 2461 | 0 | 无 |
-| 21–30 |  |  |  |  |  |
+| 21–30 | 4964 | 246 | rd-retro 2461 | 0 | 无 |

@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { charterChars, countTests, findLegacyTerms } from '../scripts/health.mjs'
+import { charterChars, countTests, findLegacyTerms, formatRow, roundWindow } from '../scripts/health.mjs'
 
 const PATCH = [
   '        plugins:',
@@ -52,4 +52,41 @@ test('术语漂移：命中给出文件、词与建议，历史记录豁免', ()
 test('术语漂移：同一文件出现多次要计次', () => {
   const found = findLegacyTerms([{ path: 'README.md', text: '代码修正页 与 代码修正页' }])
   assert.equal(found[0].count, 2)
+})
+
+test('台账行：列数与 CHECKLIST 表格一致', () => {
+  const row = formatRow(
+    {
+      charter: 4964,
+      tests: { cases: 243 },
+      skills: { largest: { name: 'rd-retro', chars: 2461 } },
+      drifted: [],
+      packagingGaps: [],
+    },
+    { from: 21, to: 30 },
+  )
+  assert.equal(row, '| 21–30 | 4964 | 243 | rd-retro 2461 | 0 | 无 |')
+  assert.equal(row.split('|').length, 8, '六列表格行应有 8 个竖线分段')
+})
+
+test('台账行：漂移与打包缺口如实写出', () => {
+  const row = formatRow(
+    {
+      charter: 100,
+      tests: { cases: 1 },
+      skills: { largest: null },
+      drifted: [{ path: 'a', term: 'x' }],
+      packagingGaps: ['memory', 'scripts'],
+    },
+    { from: 1, to: 10 },
+  )
+  assert.equal(row, '| 1–10 | 100 | 1 | 无 | 1 | memory、scripts |')
+})
+
+test('十轮区间：从账本最大轮次推导', () => {
+  assert.deepEqual(roundWindow('| 第 1 轮 | a |\n| 第 7 轮 | b |'), { from: 1, to: 10, lastRound: 7 })
+  assert.deepEqual(roundWindow('| 第 25 轮 | a |'), { from: 21, to: 30, lastRound: 25 })
+  assert.deepEqual(roundWindow('| 第 30 轮 | a |'), { from: 21, to: 30, lastRound: 30 })
+  assert.deepEqual(roundWindow('| 第 31 轮 | a |'), { from: 31, to: 40, lastRound: 31 })
+  assert.deepEqual(roundWindow('没有账本'), { from: 1, to: 10, lastRound: 0 })
 })

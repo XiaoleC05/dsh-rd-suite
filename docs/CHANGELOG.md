@@ -1,5 +1,10 @@
 # 变更日志
 
+## 0.32.0 — 2026-11-27
+
+- 体检脚本新增 `--row`：直接输出可粘贴进 docs/CHECKLIST.md 的台账行，轮次区间由账本最大轮次推导。
+- 第 21–30 行已按实测填入：宪章 4964、用例 243、最大技能 rd-retro 2461、无漂移、无打包缺口。
+- 本轮用例 +3，累计 246。
 ## 0.31.0 — 2026-11-27
 
 - 新增 scripts/smoke-install.mjs：按 package.json files[] 把包内容复制到仓库内临时副本，
@@ -7,19 +12,19 @@
   同时校验 cordis.patch.yml 引用的成员在副本里存在，跑完清理副本。
 - 冒烟顺带记录了插件真正依赖的宿主能力：subprocess、systemPrompt.section、events、workingDirectory。
 - 实测：104 个文件、9 个工具、8 条路由，通过。
-- 新增 4 例测试；全量 243/243。
+- 测试新增 4 条，总数 243。
 ## 0.30.0 — 2026-11-27
 
 - 声明 `engines.dsh: >=0.2.2-rc.5`；打包校验把缺失 engines 从提示升级为问题，并新增范围匹配校验。
 - 新增语义化版本比较（预发布小于同版本正式版）与范围解析（`>=` `>` `=` `^` `~` 与裸版本）。
 - 实测抓到自己的错：初版写成 `>=0.2.2`，而当前安装是 `0.2.2-rc.5`，校验直接判不满足。
-- 新增 3 例测试；全量 239/239。
+- 用例 3 条进账，现 239 条。
 ## 0.29.0 — 2026-11-27
 
 - 新增 scripts/verify-package.mjs 四项校验：files[] 是否覆盖随包目录与文件、每个技能是否有
   name/description frontmatter、cordis.patch.yml 引用的成员目录是否存在、client.js 是否比源码新。
 - 自用结果：本仓库通过（1 条提示：没有声明 engines.dsh）。
-- 新增 6 例测试；全量 236/236。
+- 补了 6 个用例，全量 236。
 ## 0.28.0 — 2026-11-27
 
 - 新增 `/dsh-code-pipeline/api/status`：读工作区的 package.json 版本、docs/ITERATIONS.md 的
@@ -33,7 +38,7 @@
   同一段落出现在两处即报，输出所在文件与行号；有重复时退出码 1。
 - rd-copy 的降重一节接上脚本用法；README 工具表补一行。
 - 自用结果：README + DESIGN + DETAIL 三份文档无重复段落。
-- 新增 6 例测试；全量 224/224。
+- 本轮用例 +6，累计 224。
 ## 0.26.0 — 2026-11-27
 
 - AIGC 自检补六条英文规则：not-just-but、fast-paced 开场、dive-in、heres-the-thing、
@@ -52,7 +57,7 @@
 - AIGC 自检支持项目自定义禁用词：`analyze(text, { extraCliches })` 与命令行 `--banned <文件>`
   （每行一个词、`#` 注释，或 JSON 数组），与内置表合并去重后同样计入扣分。
 - rd-copy 增加「项目自定义禁用词」小节，说明词表随项目走而不写进技能。
-- 新增 2 例测试；全量 214/214。
+- 测试新增 2 条，总数 214。
 ## 0.23.0 — 2026-11-27
 
 - 宪章交付报告模板新增「**审计**」一行：抄 `codeAuditChecked / Fixed / Remaining` 与按语言摘要，
@@ -79,7 +84,7 @@
 - 审计结果按语言分组：`auditFiles` 返回 `byLanguage`（复用 languages.js 的 classify，无法判定的落 non-code），
   `close_issue` 结果新增 `codeAuditByLanguage`（如「javascript 3 检 1 修；python 1 检 0 修」）。
 - 用途：判断是不是某一种语言的预设有问题，报告里也能说清改的是哪类文件。
-- 新增 3 例测试；全量 197/197。
+- 用例 3 条进账，现 197 条。
 ## 0.19.1 — 2026-11-27
 
 - `precheck` 用 `git rev-list --left-right --count HEAD...origin/<branch>` 给出 `ahead` / `behind` / `diverged`；
@@ -99,25 +104,25 @@
   缺的段落给「待补充」占位而不是空标题；`create_issue` 新增 `repro` 与 `acceptance` 参数。
 - 标签兜底：创建 Issue 前对每个标签跑 `gh label create --force`，建失败的标签不再传给
   `issue create`（避免整条命令失败），结果里给 `labelsEnsured` 与 `warnings`。
-- 新增 3 例测试；全量 185/185。
+- 补了 3 个用例，全量 185。
 ## 0.17.1 — 2026-11-27
 
 - `merge_pr` 对瞬时失败（超时、连接重置、5xx、限流）重试一次，永久失败不重试；
   重试过会在 guidance 里注明。
 - `auto` 模式用 `gh pr view --json autoMergeRequest` 确认是否真的排队，结果带 `autoQueued`。
-- result-schema 增加 `autoQueued`；新增 2 例测试；全量 182/182。
+- result-schema 增加 `autoQueued`；本轮用例 +2，累计 182。
 ## 0.17.0 — 2026-11-27
 
 - `open_pr` 新增 `issues` 数组：一个 PR 收口多个模块时，为每个编号补一行 `Closes #N`，
   正文里已有的不重复补，重复编号只写一次（支持数字与 issue URL）。
-- 工具定义同步加 `issues` 参数；新增 1 例测试；全量 180/180。
+- 工具定义同步加 `issues` 参数；测试新增 1 条，总数 180。
 ## 0.16.1 — 2026-11-27
 
 - `precheck` 增加三项：`recentCommits`（最近 5 条 `短sha 标题`）、
   `requiredReviews`（必需审批数）、`requiredChecks`（必需通过的检查名，最多 10 个）；
   后两项只在保护开启且 gh 返回结构化字段时出现。
 - 用途：模型不必再为「要几个审批、哪些检查必须绿、最近有没有同类改动」多跑命令。
-- result-schema 声明三个字段；新增 1 例测试；全量 179/179。
+- result-schema 声明三个字段；用例 1 条进账，现 179 条。
 ## 0.16.0 — 2026-11-27
 
 - 新增 `scripts/health.mjs`：宪章字符数、技能数量与最大体积、测试文件与用例数、
@@ -132,7 +137,7 @@
 - `pr_status` 除计数外给出 `failingChecks` 与 `pendingChecks` 名单（各最多 10 条），
   guidance 里直接点名失败的检查；全部通过时不返回这两个字段。
 - 检查项名字取 name / context / title，取不到用 `check-N` 兜底。
-- 新增 2 例测试；全量 174/174。
+- 补了 2 个用例，全量 174。
 ## 0.15.0 — 2026-11-27
 
 - 宪章接上长期记忆：S8 沉淀改为先 `memory_save`（四类 + 现象/根因/做法/验证/边界），

@@ -91,6 +91,31 @@ function walk(directory, extension, found = []) {
 }
 
 /**
+ * 把体检结果压成一行台账（列与 docs/CHECKLIST.md 一致）。
+ * @param {{ charter: number; tests: { cases: number }; skills: { largest: { name: string; chars: number } | null }; drifted: unknown[]; packagingGaps: string[] }} health - 体检结果
+ * @param {{ from: number; to: number }} window - 轮次区间
+ * @returns {string} 表格行
+ */
+export function formatRow(health, window) {
+  const largest = health.skills.largest === null ? '无' : `${health.skills.largest.name} ${health.skills.largest.chars}`
+  const drift = health.drifted.length === 0 ? '0' : String(health.drifted.length)
+  const gaps = health.packagingGaps.length === 0 ? '无' : health.packagingGaps.join('、')
+  return `| ${window.from}–${window.to} | ${health.charter} | ${health.tests.cases} | ${largest} | ${drift} | ${gaps} |`
+}
+
+/**
+ * 从账本推出现在处于哪个十轮区间。
+ * @param {string} ledgerText - docs/ITERATIONS.md 内容
+ * @returns {{ from: number; to: number; lastRound: number }} 区间
+ */
+export function roundWindow(ledgerText) {
+  const rounds = [...String(ledgerText ?? '').matchAll(/^\|\s*第\s*(\d+)\s*轮\s*\|/gmu)].map((match) => Number(match[1]))
+  const lastRound = rounds.length === 0 ? 0 : Math.max(...rounds)
+  const from = lastRound === 0 ? 1 : Math.floor((lastRound - 1) / 10) * 10 + 1
+  return { from, to: from + 9, lastRound }
+}
+
+/**
  * 收集体检数据。
  * @returns {object} 结果
  */
@@ -159,6 +184,11 @@ export function main(argv) {
   const json = argv.includes('--json')
   const failOnDrift = argv.includes('--fail-on-drift')
   const health = collectHealth()
+  if (argv.includes('--row')) {
+    const window = roundWindow(readFileSync(join(root, 'docs', 'ITERATIONS.md'), 'utf8'))
+    process.stdout.write(`${formatRow(health, window)}\n`)
+    return health.drifted.length > 0 || health.packagingGaps.length > 0 ? 1 : 0
+  }
   if (json) {
     process.stdout.write(`${JSON.stringify(health, null, 2)}\n`)
   } else {
