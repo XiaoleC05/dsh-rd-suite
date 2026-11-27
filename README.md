@@ -57,6 +57,10 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## CI 覆盖
+
+`node scripts/ci-parity.mjs --strict` 从 `.github/workflows` 抽出所有 `run:` 命令，逐项核对构建、测试与全量门禁是否被 CI 覆盖；缺项时退出码 1。preflight 的第八道门禁就用它，所以「CI 与本地同一套」不再依赖手写断言。
+
 ## 审计模式
 
 插件配置 `auditMode` 决定模块关闭时的审计会不会改文件：
@@ -98,13 +102,13 @@ node scripts/git-net-check.mjs --network
 ## 迭代进度
 
 <!-- rd-board:start -->
-进度：72/100 轮 · 用例 421 · 版本 0.61.0 · 门禁 六项全过
+进度：73/100 轮 · 用例 426 · 版本 0.61.1 · 门禁 六项全过
 
 | 最近三轮 | 做了什么 |
 |---|---|
-| 第 70 轮 | 第七次体检：用例 412、最大技能 rd-ecosystem 2597、升 0.60.0 |
 | 第 71 轮 | 消除 GCM 账户弹窗 + 代理与 TLS 后端修复，脚本自检四项；6 例测试 |
 | 第 72 轮 | auditMode 配置（fix/report）+ 归一化与 warning；3 例测试 |
+| 第 73 轮 | CI run 命令抽取 + 三项覆盖判定，接入 preflight 第八道门禁；5 例测试 |
 <!-- rd-board:end -->
 
 ## 安装

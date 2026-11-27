@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.61.1 — 2026-11-27
+
+- 新增 scripts/ci-parity.mjs：从 workflow 抽 run 命令（三种写法都认），核对构建 / 测试 / 全量门禁三项覆盖，
+  --strict 缺项退出码 1。
+- preflight 增加第八道门禁「CI 覆盖」，交付时就能发现 workflow 漏跑。
+- 用例 426。
 ## 0.61.0 — 2026-11-27
 
 - 新增插件配置 `auditMode`（fix | report）：report 时模块关闭只查不改，结果标 reportOnly。

@@ -21,6 +21,7 @@ import { verifyPackage } from './verify-package.mjs'
 import { smokeInstall } from './smoke-install.mjs'
 import { runDrill } from './flow-drill.mjs'
 import { DOCUMENTS as CMD_DOCUMENTS, checkDocuments } from './doc-cmd-check.mjs'
+import { compareCoverage, extractRunCommands, readWorkflows } from './ci-parity.mjs'
 import { existsSync } from 'node:fs'
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
@@ -113,6 +114,20 @@ async function smokeGate() {
   }
 }
 
+/** CI 覆盖门禁：workflow 必须跑构建、测试与全量门禁。 */
+function ciCoverageGate() {
+  const workflows = readWorkflows()
+  if (workflows.length === 0) return { name: 'CI 覆盖', ok: true, detail: '没有 workflow，跳过' }
+  const commands = workflows.flatMap((workflow) => extractRunCommands(workflow.text))
+  const coverage = compareCoverage(commands)
+  const missing = coverage.filter((item) => !item.covered)
+  return {
+    name: 'CI 覆盖',
+    ok: missing.length === 0,
+    detail: missing.length === 0 ? `${coverage.length} 项都覆盖` : `缺：${missing.map((item) => item.key).join('、')}`,
+  }
+}
+
 /** 文档示例门禁：示例命令里的脚本与参数都要真实存在。 */
 function docCommandGate() {
   const fs = {
@@ -150,7 +165,7 @@ async function drillGate() {
  * @returns {Promise<{ gates: { name: string; ok: boolean; detail: string }[]; summary: { ok: boolean; passed: number; failed: string[] } }>} 结果
  */
 export async function runPreflight() {
-  const gates = [docsGate(), duplicateGate(), termGate(), packageGate(), await smokeGate(), await drillGate(), docCommandGate()]
+  const gates = [docsGate(), duplicateGate(), termGate(), packageGate(), await smokeGate(), await drillGate(), docCommandGate(), ciCoverageGate()]
   return { gates, summary: summarizeGates(gates) }
 }
 
