@@ -208,6 +208,46 @@ export function listEntries(document, options = {}) {
   }
 }
 
+/** 保留分：命中次数为主，更新时间为辅（每天加 1 分，最多 30 分）。 */
+export function retentionScore(entry, now = new Date()) {
+  const hits = Number(entry?.hits) || 0
+  const stamp = Date.parse(String(entry?.updatedAt ?? ''))
+  const days = Number.isFinite(stamp) ? Math.max(0, (now.getTime() - stamp) / 86_400_000) : 999
+  const recency = Math.max(0, 30 - days)
+  const revisions = Number(entry?.revisions) || 0
+  return hits * 10 + recency + revisions
+}
+
+/**
+ * 按保留分淘汰，直到条目数不超过上限。
+ * 同分时先丢更新更早的；分数完全相同时按 id 稳定排序，保证可复现。
+ * @param {{ entries: object[] }} document - 文档（就地修改）
+ * @param {number} maxEntries - 上限
+ * @param {Date} [now] - 当前时间
+ * @returns {{ kept: number; evicted: number }} 结果
+ */
+export function evictEntries(document, maxEntries, now = new Date()) {
+  const limit = Number.isFinite(maxEntries) && maxEntries > 0 ? Math.floor(maxEntries) : Number.POSITIVE_INFINITY
+  const entries = Array.isArray(document.entries) ? document.entries : []
+  if (entries.length <= limit) return { kept: entries.length, evicted: 0 }
+
+  const scored = entries.map((entry) => ({
+    entry,
+    score: retentionScore(entry, now),
+    updated: String(entry.updatedAt ?? ''),
+    id: String(entry.id ?? ''),
+  }))
+  scored.sort((left, right) => {
+    if (right.score !== left.score) return right.score - left.score
+    if (right.updated !== left.updated) return right.updated.localeCompare(left.updated)
+    return left.id.localeCompare(right.id)
+  })
+  const kept = scored.slice(0, limit).map((item) => item.entry)
+  const evicted = entries.length - kept.length
+  document.entries = kept
+  return { kept: kept.length, evicted }
+}
+
 /**
  * 记忆库文件路径。
  * @param {string} [directory] - 目录，默认 ~/.dsh/rd-suite

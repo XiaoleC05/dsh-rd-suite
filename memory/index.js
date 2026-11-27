@@ -21,6 +21,7 @@ import {
   memoryFile,
   normalizeEntry,
   readMemory,
+  evictEntries,
   upsertEntry,
   writeMemory,
 } from './lib/store.js'
@@ -46,14 +47,7 @@ export const Config = z.object({
 function openStore(file, maxEntries) {
   const { document, notice } = readMemory(file)
   const flush = () => {
-    if (document.entries.length > maxEntries) {
-      // 超出上限时先丢最久未更新的：命中次数作为第二排序依据，保住被反复用到的条目。
-      document.entries.sort((left, right) => {
-        const byHit = (Number(right.hits) || 0) - (Number(left.hits) || 0)
-        return byHit !== 0 ? byHit : String(right.updatedAt).localeCompare(String(left.updatedAt))
-      })
-      document.entries = document.entries.slice(0, maxEntries)
-    }
+    evictEntries(document, maxEntries)
     writeMemory(file, document)
   }
   return {

@@ -1,5 +1,12 @@
 # 变更日志
 
+## 0.14.1 — 2026-11-27
+
+- 容量上限改为可解释的淘汰：`retentionScore = hits×10 + 最近 30 天加成 + revisions`，
+  超限时按分数淘汰、同分先丢更早更新的、再按 id 稳定排序；
+  原来只按 hits 排序截断，hits 都为 0 时等于随机丢弃。
+- `evictEntries` 抽成纯函数并接到 `openStore.flush`；非法上限按「不淘汰」处理。
+- 新增 `test/memory-evict.test.mjs`（6 例）；全量 172/172。
 ## 0.14.0 — 2026-11-27
 
 - 新增 `memory_export`（整库导出到 JSON）与 `memory_import`（从文件或内联数组导入）。
