@@ -74,6 +74,7 @@
 | `docs/` | `DESIGN.md`（设计与成本模型）、`DETAIL.md`（插件详情页）、`CHANGELOG.md` |
 
 | `scripts/rd-doctor.mjs` | 七项自检合一个入口：工具清单 / 技能版本 / 宪章重叠 / 引用完整 / git 网络 / CI 覆盖 / 交付门禁 |
+| `scripts/perf-budget.mjs` | 给自检入口与全量测试设耗时预算，专抓「悄悄慢一个数量级」 |
 ## 一个入口
 
 `node scripts/rd-doctor.mjs` 依次跑工具清单、技能版本、宪章重叠、引用完整、git 网络、CI 覆盖与交付门禁七项，逐项计时并给一行结论；`--json` 供脚本消费。交付前只跑这一条即可。
