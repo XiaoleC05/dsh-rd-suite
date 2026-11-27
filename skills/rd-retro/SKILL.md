@@ -13,6 +13,7 @@ description: 研发模式的复盘与进化：汇总会话与交付数据、诊�
    - 会话列表里的用量显示（上下文、缓存命中、输出、请求数）：按会话挑最大与最异常的几条；
    - 本仓库 `git log --oneline --since=<日期>` 与最近几次交付报告；
    - `confluence_board` 里本周 kind 为 gotcha 或 decision 的记录；
+   - 先用 `memory_search` / `memory_list` 过一遍长期记忆：已有的踩坑与策略不重复提案，只补充证据；
    - 用户直接反馈（消息、`confluence_profile` 里的长期偏好）。
    没有可统计的会话时，说明“本期样本为 0”，只做代码与文档层面的巡检，不提 KPI 提案。
 2. 读取 `docs/proposals/` 中上一期提案（文件名日期最近的一份，不含本期）与 `docs/CHANGELOG.md` 最近 3 条记录；没有就跳过并注明。

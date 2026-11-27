@@ -27,6 +27,11 @@ specs/<NNN>-<slug>/
 
 模板在 `references/spec.md`、`references/plan.md`、`references/tasks.md`，直接复制再改，不要另起格式。
 
+## 2.1 先找现成做法
+
+写 plan 前先 `memory_search`（`type=template` 或直接搜关键词）看长期记忆里有没有同类骨架；
+命中的模板直接改，不要另起一套。踩坑（pitfall）与修复（fix）同理：命中就先照着规避。
+
 ## 3 四个动作
 
 1. **clarify（前）**：把只能由用户决定的事一次问清，最多 3 问，每问带推荐项。能靠读代码、跑命令查明的自己查，不要问。

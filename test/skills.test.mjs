@@ -76,3 +76,14 @@ test('文案技能覆盖去 AI 味、AIGC 自检与降重三段', () => {
     assert.ok(text.includes(required), `rd-copy 缺少 ${required}`)
   }
 })
+
+test('记忆与流程接上了：技能与宪章都说清何时读写记忆', () => {
+  const read = (relative) => readFileSync(join(root, relative), 'utf8')
+  const retro = read('skills/rd-retro/SKILL.md')
+  const spec = read('skills/rd-spec/SKILL.md')
+  const charter = read('cordis.patch.yml')
+  assert.match(retro, /memory_search/u, '复盘要先查记忆')
+  assert.match(spec, /memory_search/u, '写方案前要先找现成模板')
+  assert.match(charter, /memory_save/u, '宪章的沉淀要写进长期记忆')
+  assert.match(charter, /memory_search/u, '开工前要能查到历史做法')
+})

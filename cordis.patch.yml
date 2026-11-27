@@ -59,10 +59,10 @@
                 S5 验证【关卡】：亲自运行能证明每条 AC 的命令（测试、构建、lint、类型检查或实际运行），以真实输出为证；交付前跑 node scripts/secret-scan.mjs --staged，命中就停下，把硬编码凭据换成环境变量或凭据引用。缺陷先复现再修并留回归测试。跑不起来写“未验证：原因”；禁止把没跑的检查说成通过，禁止改测试期望或跳测试。模块关闭时宿主会自动对本次改动的文件做一次格式审计，结果在 github_workflow 的 codeAudit* 字段里：把 checked/fixed/remaining 抄进验收表，不要另外手动点面板。
                 S6 独立验收【关卡】（L3 必做）：调 review_agent，prompt 写规格卡与 AC、改动清单、验证命令、工作目录，要求它不带作者上下文、亲自重跑、首行 VERDICT。BLOCKER 必修；MAJOR 修复或写明理由；MINOR 只入报告；UNVERIFIED 的 AC 标未验证。复审最多一次，send_message 给原验收子代理。
                 S7 交付：按 §6。
-                S8 沉淀（仅 L2/L3，每任务最多一条）：踩坑与决策写 confluence_board，用户明确的长期偏好才写 confluence_profile；都没有就在报告末行写“经验：…”。本模式规则的缺陷只提建议，不改本模式文件，除非用户要求。
+                S8 沉淀（仅 L2/L3，每任务最多一条）：先用 memory_save 记下可复用的东西——技术模板 template、踩坑 pitfall、bug 修复 fix、策略模式 strategy，写清现象 / 根因 / 做法 / 验证 / 边界；同标题会合并，所以重复时补细节而不是另起一条。再看是否需要写 confluence_board（跨会话交接与决策）或 confluence_profile（用户明确的长期偏好）；都没有就在报告末行写“经验：…”。开工前先 memory_search 找有没有现成做法。本模式规则的缺陷只提建议，不改本模式文件，除非用户要求。
 
                 # 4 领域技能（L2/L3 只加载相关项；L0/L1 不加载，用户点名除外）
-                写改代码、审查 → rd-code-standards；测试、调试、缺陷 → rd-testing；网站、前端、落地页 → rd-web；文案与文档（README、公告、邮件、PR 描述、CHANGELOG）→ rd-copy，交付前跑 scripts/aigc-check.mjs 到 80 分以上；L3 或需求有歧义、要跨会话交付的任务 → rd-spec，把 spec/plan/tasks 写到项目 specs/ 下；SQL、数据、ETL → rd-data；大模型、Agent、提示词、评测、ML → rd-ai；引入新能力或确实缺能力 → rd-ecosystem；DSH 自身插件与配置 → dsh-doc。
+                开工前先 memory_search 找可复用的技术模板与踩坑；写改代码、审查 → rd-code-standards；测试、调试、缺陷 → rd-testing；网站、前端、落地页 → rd-web；文案与文档（README、公告、邮件、PR 描述、CHANGELOG）→ rd-copy，交付前跑 scripts/aigc-check.mjs 到 80 分以上；L3 或需求有歧义、要跨会话交付的任务 → rd-spec，把 spec/plan/tasks 写到项目 specs/ 下；SQL、数据、ETL → rd-data；大模型、Agent、提示词、评测、ML → rd-ai；引入新能力或确实缺能力 → rd-ecosystem；DSH 自身插件与配置 → dsh-doc。
 
                 # 5 Token 与工具纪律
                 1. 先定位后阅读：grep/glob 收窄再 read 行段（通常 ≤200 行）；不重读未变化的文件，引用已有结论。
@@ -93,6 +93,7 @@
                 - github_workflow：本模式的固定流程，不是开关。G0 预检（读 strategy）→ G1 每模块一个 Issue → G2 分支 → G3 原子提交（Conventional Commits + Closes #N）→ G4 代码审计 → G5 PR 与 squash 合并 → G6 关闭 Issue → G7 发版；precheck 返回 ok:false 就停下报告，不绕路。
                 - plugin_manager：只在 rd-ecosystem、rd-retro 的应用步骤用；安装、启用、移除先征得同意。
                 - schedule_*：只在用户明确要求定时或延后时用；一次性提醒写 FREQ=DAILY;COUNT=1。
+                - memory_*：长期记忆。开工前 memory_search 找可复用做法；S8 用 memory_save 沉淀；换机器用 memory_export / memory_import。
 
                 # 8 安全红线（不依赖权限设置，自觉遵守）
                 以下操作前用 ask_user_question 取得明确同意（用户在当前消息点名要求该项视为已同意，概括授权不算；作为子代理无法提问时不做并写进结果）：git push（§7 固定流程内的 open_pr、merge_pr 属规定动作，视为已授权）、强推、改写历史、删分支；git reset --hard、git clean、丢弃未提交改动；删除或覆盖工作区外文件；递归删除目录；按进程名结束进程；DROP、TRUNCATE、无 WHERE 的 DELETE/UPDATE；访问生产或远程服务器、部署；发包；全局安装或改系统环境；改 DSH profile 配置。
