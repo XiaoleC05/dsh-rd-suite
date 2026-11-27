@@ -152,6 +152,94 @@ function repeatedGrams(text, size = 8) {
 }
 
 /**
+ * 结构型痕迹，规则取自 blader/humanizer（README 的 A 段）：这些不是用词问题，
+ * 是句子与段落的写法问题，换同义词消不掉。
+ */
+const PATTERNS = [
+  {
+    id: 'not-x-but-y',
+    label: '不是 X 而是 Y 的对举',
+    test: /不是[^，。；\n]{1,20}(?:，)?而是|不仅仅?是[^。\n]{0,20}[，,]?(?:更是|而且)|与其说[^。\n]{1,20}不如说/gu,
+    penalty: 8,
+    hint: '直接说结论；对比只在读者真的持有相反看法时才留',
+  },
+  {
+    id: 'forced-triad',
+    label: '并列铺陈（弱信号）',
+    test: /(?:[^，。；\n]{3,10}、){2,}[^，。；\n]{3,10}/gu,
+    penalty: 2,
+    max: 6,
+    perLine: true,
+    hint: '三项里通常两项可删；列表与表格里的顿号不算',
+  },
+  {
+    id: 'bold-label',
+    label: '行首加粗标签',
+    test: /^\s*\*\*[^*\n]{1,20}\*\*\s*[:：]/gmu,
+    penalty: 5,
+    hint: '加粗标记的是结论，不是每条都要贴标签',
+  },
+  {
+    id: 'chat-residue',
+    label: '聊天残留',
+    test: /希望(?:这|以上|本文)|如有(?:其他|任何)问题|需要我(?:进一步)?(?:说明|补充)|欢迎(?:随时)?(?:告诉|联系)/gu,
+    penalty: 6,
+    hint: '交付物里不写客套收尾，删掉整句',
+  },
+  {
+    id: 'inflated-closer',
+    label: '拔高收尾',
+    test: /(?:这一切都|而这些都|正因如此|归根结底|总而言之|综上)/gu,
+    penalty: 5,
+    hint: '最后一段给事实或下一步，不给总结陈词',
+  },
+]
+
+/** 破折号密度阈值：每千字超过这个数就算滥用。 */
+const DASH_PER_THOUSAND = 2
+
+/** 这些行是列表、表格、引用或代码，顿号在这里属于正常排版。 */
+const LIST_LINE = /^\s*(?:[-*+>|]|\d+[.、)]|\||#{1,6}\s)/u
+
+/**
+ * 统计结构型痕迹。
+ * @param {string} text - 正文
+ * @returns {{ id: string; label: string; count: number; firstLine: number; hint: string }[]} 命中项
+ */
+function findPatterns(text) {
+  const body = String(text)
+  const found = []
+  for (const pattern of PATTERNS) {
+    let count = 0
+    let firstLine = 0
+    if (pattern.perLine === true) {
+      for (const [index, line] of body.split(/\r?\n/u).entries()) {
+        if (LIST_LINE.test(line)) continue
+        const hits = [...line.matchAll(pattern.test)].length
+        if (hits === 0) continue
+        count += hits
+        if (firstLine === 0) firstLine = index + 1
+      }
+    } else {
+      const matches = [...body.matchAll(pattern.test)]
+      count = matches.length
+      if (count > 0) firstLine = body.slice(0, matches[0].index ?? 0).split('\n').length
+    }
+    if (count === 0) continue
+    found.push({
+      id: pattern.id,
+      label: pattern.label,
+      count,
+      firstLine,
+      hint: pattern.hint,
+      penalty: pattern.penalty,
+      max: pattern.max ?? 12,
+    })
+  }
+  return found
+}
+
+/**
  * 统计某个词在正文中的命中位置。
  * @param {string} text - 正文
  * @param {string[]} words - 词表
@@ -180,8 +268,13 @@ function findWords(text, words) {
  * @returns {{ score: number; metrics: Record<string, unknown>; hits: Record<string, unknown> }} 分析结果
  */
 export function analyze(text) {
-  const body = String(text ?? '')
-  const sentences = splitSentences(body)
+  const raw = String(text ?? '')
+  // 文件开头带 `aigc-check: allow-file` 说明它本身就在讲这些规则（词表、句式示例），
+  // 只给指标、不做词表与句式判定；行尾带 `aigc-check: allow` 则豁免单行。
+  const optOut = /aigc-check:\s*allow-file/u.test(raw.slice(0, 500))
+  const body = optOut ? '' : raw.replace(/^.*aigc-check:\s*allow.*$/gmu, '')
+  const metricsSource = raw
+  const sentences = splitSentences(metricsSource)
   const lengths = sentences.map((sentence) => sentence.length)
   const cv = coefficientOfVariation(lengths)
 
@@ -193,7 +286,10 @@ export function analyze(text) {
     return pattern.test(body)
   })
   const duplicates = repeatedGrams(body)
-  const perThousand = (count) => (body.length === 0 ? 0 : (count / body.length) * 1000)
+  const patterns = findPatterns(body)
+  const dashCount = (body.match(/——|—/gu) ?? []).length
+  const perThousand = (count) =>
+    metricsSource.length === 0 ? 0 : (count / metricsSource.length) * 1000
   const exclamations = (body.match(/[！!]/gu) ?? []).length
 
   let score = 100
@@ -205,12 +301,15 @@ export function analyze(text) {
   if (sentences.length >= 12 && cv < 0.28) score -= 10
   if (duplicates.length > 0) score -= Math.min(20, duplicates.length * 4)
   if (exclamations > 0 && perThousand(exclamations) > 0.5) score -= 5
+  for (const pattern of patterns)
+    score -= Math.min(pattern.max, pattern.count * pattern.penalty + 2)
+  if (perThousand(dashCount) > DASH_PER_THOUSAND) score -= 5
   const clean = Math.max(0, Math.min(100, Math.round(score)))
 
   return {
     score: clean,
     metrics: {
-      characters: body.length,
+      characters: metricsSource.length,
       sentences: sentences.length,
       meanSentenceLength:
         sentences.length === 0
@@ -218,6 +317,7 @@ export function analyze(text) {
           : Math.round(lengths.reduce((a, b) => a + b, 0) / lengths.length),
       sentenceLengthCv: Number(cv.toFixed(3)),
       exclamationsPerThousand: Number(perThousand(exclamations).toFixed(2)),
+      dashesPerThousand: Number(perThousand(dashCount).toFixed(2)),
     },
     hits: {
       cliches: cliches.slice(0, 8),
@@ -225,6 +325,7 @@ export function analyze(text) {
       englishBuzzwords: buzzwords.slice(0, 6),
       templateOpeners: openerHits,
       repeatedPhrases: duplicates,
+      patterns,
     },
   }
 }
@@ -293,6 +394,13 @@ export function main(argv) {
         lines.push(
           `  重复片段: ${hits.repeatedPhrases.map((hit) => `${hit.phrase}×${hit.count}`).join('、')}`,
         )
+      }
+      if (hits.patterns.length > 0) {
+        for (const pattern of hits.patterns) {
+          lines.push(
+            `  结构痕迹 ${pattern.label}×${pattern.count}（第 ${pattern.firstLine} 行）：${pattern.hint}`,
+          )
+        }
       }
       if (metrics.sentences >= 12 && metrics.sentenceLengthCv < 0.28) {
         lines.push('  句长过于均匀：拆开长句、插入短句，让节奏有起伏')

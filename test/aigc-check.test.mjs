@@ -70,3 +70,39 @@ test('命令行：达到阈值返回 0，低于阈值返回 1，并可输出 JSO
   assert.equal(main([good, bad, '--json', '--min-score', '0']), 0)
   assert.equal(main([]), 2)
 })
+
+test('结构型痕迹：对举、加粗标签、拔高收尾、聊天残留都能抓到', () => {
+  const text = [
+    '这不是速度问题，而是流程问题。',
+    '**范围**：只改一个文件。',
+    '**验收**：命令通过。',
+    '归根结底，这是一次结构性升级。',
+    '希望这对你有帮助。',
+  ].join('\n')
+  const ids = analyze(text).hits.patterns.map((pattern) => pattern.id)
+  assert.ok(ids.includes('not-x-but-y'), '不是X而是Y 应当命中')
+  assert.ok(ids.includes('bold-label'), '行首加粗标签应当命中')
+  assert.ok(ids.includes('inflated-closer'), '拔高收尾应当命中')
+  assert.ok(ids.includes('chat-residue'), '聊天残留应当命中')
+})
+
+test('列表里的顿号不算并列铺陈', () => {
+  const text = '- 文件、目录、符号\n- 预算、深度、JSON\n'
+  const ids = analyze(text).hits.patterns.map((pattern) => pattern.id)
+  assert.equal(ids.includes('forced-triad'), false, '列表项不应被判为并列铺陈')
+})
+
+test('结构痕迹的扣分有上限，描述性文字仍能拿到高分', () => {
+  const text = '改了三个文件：登录、重试、超时。'
+  const result = analyze(text)
+  assert.ok(result.score >= 90, `单处弱信号不应把分数打到 90 以下，实际 ${result.score}`)
+})
+
+test('分析器自身的豁免：行尾 allow 只跳一行，文件头 allow-file 跳过全部检出', () => {
+  const oneLine = '这不是速度问题，而是流程问题。aigc-check: allow'
+  assert.equal(analyze(oneLine).hits.patterns.length, 0)
+  const fileLevel = '<!-- aigc-check: allow-file -->\n这不是速度问题，而是流程问题。'
+  const result = analyze(fileLevel)
+  assert.equal(result.hits.patterns.length, 0)
+  assert.ok(result.metrics.characters > 0, '指标仍按原文统计')
+})
