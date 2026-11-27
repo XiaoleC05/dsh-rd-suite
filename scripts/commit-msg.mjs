@@ -201,7 +201,9 @@ export function main(argv) {
   }
   const result = checkCommitMessage(message)
   // --issue：确认这条提交关闭的正是目标 Issue，避免关错单。
-  const issueIndex = argv.findIndex((argument) => argument === '--issue' || argument.startsWith('--issue='))
+  const issueIndex = argv.findIndex(
+    (argument) => argument === '--issue' || argument.startsWith('--issue='),
+  )
   const issueValue =
     issueIndex < 0
       ? undefined
