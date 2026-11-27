@@ -35,6 +35,7 @@
 | `scripts/audit-changed.mjs` | 只审 git 改动过的代码文件（交付前最后一道便宜检查） |
 | `scripts/flow-drill.mjs` | 全流程演练：假 git/gh 跑通建单→分支→PR→合并→关闭七步 |
 | `scripts/memory-recall.mjs` | 记忆召回基准：top1 准确率与 MRR，低于阈值即失败 |
+| `scripts/resume.mjs` | 中断恢复摘要：已做轮次、漏记检测、下一条待做 |
 | `scripts/preflight.mjs` | 交付门禁：文档分数、重复、术语、打包、冒烟、流程演练六合一 |
 | `scripts/term-check.mjs` | 术语一致性：按 docs/glossary.json 查同义词变体 |
 | `scripts/health.mjs` | 横向体检：宪章体积、技能、测试、文档分数、打包缺口、术语漂移六项 |
