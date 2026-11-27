@@ -31,6 +31,7 @@
 | `scripts/secret-scan.mjs` | 提交前密钥扫描：厂商前缀、私钥块、键名 + 高熵值，命中打码输出 |
 | `scripts/commit-msg.mjs` | 提交信息校验：类型白名单、header 70+、footnote，并推导 semver 与 CHANGELOG 条目 |
 | `docs/REFERENCES.md` | 参考项目调研：取用了哪些高星项目、哪些没取用及理由 |
+| `docs/ITERATION.md` · `docs/ITERATIONS.md` | 100 轮迭代协议与账本：九阶段流程、正向判定、逐轮状态 |
 | `cordis.patch.yml` | 上面 3 行的完整声明，头部有相对官方 `ptc` 预设的差异表 |
 | `docs/` | `DESIGN.md`（设计与成本模型）、`DETAIL.md`（插件详情页）、`CHANGELOG.md` |
 
