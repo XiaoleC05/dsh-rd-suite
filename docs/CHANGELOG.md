@@ -1,5 +1,11 @@
 # 变更日志
 
+## 0.64.2 — 2026-11-27
+
+- 新增 scripts/link-check.mjs：校验 README、docs 与技能正文里的链接与路径，跳过外链与纯锚点，
+  技能内 `references/…` 相对技能目录解析；--strict 有断链退出码 1。
+- 新增 docs/REGISTRY.md 能力登记簿（工具 / 技能 / 面板路由三张表），补上 rd-ecosystem 引用的文件。
+- 修掉 DESIGN 里指向不存在预设文件的表述。用例 483。
 ## 0.64.1 — 2026-11-27
 
 - 十个 SKILL.md 的 frontmatter 加 `version`（rd-copy 本轮改过内容，1.1.0；其余 1.0.0），

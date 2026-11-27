@@ -57,6 +57,10 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## 引用完整性
+
+`node scripts/link-check.mjs --strict` 校验 README、docs 与技能正文里的链接和路径：只认带目录的仓库路径，外链与纯锚点跳过，技能正文里的 `references/…` 相对技能目录解析。能力清单记在 [docs/REGISTRY.md](docs/REGISTRY.md)。
+
 ## 技能使用频率
 
 `node scripts/skill-usage.mjs` 统计技能名在各证据面（迭代账本、变更日志、README、宪章、其它技能正文、记忆样例）的引用量，结合正文体积给出「合并候选 / 保持 / 留意」建议。**口径说明**：统计的是可观测引用，不是真实调用次数——客户端不上报，这是能拿到的最强代理指标。

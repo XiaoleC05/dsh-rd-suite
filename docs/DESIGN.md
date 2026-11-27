@@ -4,7 +4,7 @@
 |---|---|
 | 适用 | DeepSeek Harness Desktop 0.2.2-rc.5+（Windows x64 为主） |
 | 载体 | 本仓库 `cordis.patch.yml` 的 `preset-rd` 一行 |
-| 基线 | 官方 `presets/standard.patch.yml`，并取 `presets/ptc.patch.yml` 的全部能力 |
+| 基线 | 官方 standard 预设，并取 PTC 预设的全部能力（三者都是宿主内置，本包不复制其文件） |
 | 版本 | 见 `package.json` 与 `docs/CHANGELOG.md` |
 
 ## 品牌
