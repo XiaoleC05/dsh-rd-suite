@@ -80,3 +80,36 @@ export function splitChanges(changes) {
   }
   return { uploads, deletes }
 }
+
+/**
+ * 比较两棵树的递归清单，得出要上传与要删除的路径。
+ * 不依赖 git diff（远端提交对象可能不在本地）。
+ * @param {Map<string, string>} local - 本地 path → blob sha
+ * @param {Map<string, string>} remote - 远端 path → blob sha
+ * @returns {{ uploads: { path: string; sha: string }[]; deletes: string[] }} 差分
+ */
+export function diffTrees(local, remote) {
+  const uploads = []
+  const deletes = []
+  for (const [path, sha] of local) {
+    if (remote.get(path) !== sha) uploads.push({ path, sha })
+  }
+  for (const path of remote.keys()) {
+    if (!local.has(path)) deletes.push(path)
+  }
+  return { uploads, deletes }
+}
+
+/**
+ * 把 ls-tree / API 的树清单解析成 path → sha。
+ * @param {string} text - `git ls-tree -r` 输出
+ * @returns {Map<string, string>} 清单
+ */
+export function parseLsTree(text) {
+  const map = new Map()
+  for (const line of String(text ?? '').split(/\r?\n/u)) {
+    const match = /^\d+\s+\w+\s+([0-9a-f]+)\t(.+)$/u.exec(line)
+    if (match !== null) map.set(match[2], match[1])
+  }
+  return map
+}

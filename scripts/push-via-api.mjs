@@ -15,12 +15,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
-import {
-  assertFastForward,
-  buildTreeEntries,
-  parseNameStatus,
-  splitChanges,
-} from './lib/push-plan.mjs'
+import { assertFastForward, buildTreeEntries, diffTrees, parseLsTree } from './lib/push-plan.mjs'
 
 /**
  * 跑一条命令并返回 stdout。
@@ -85,7 +80,10 @@ function remoteHead(slug, branch) {
  */
 function isAncestor(remoteSha, localSha, slug) {
   if (remoteSha === '') return true
-  const parents = run('git', ['rev-list', '--parents', '-n', '1', localSha]).trim().split(/\s+/u).slice(1)
+  const parents = run('git', ['rev-list', '--parents', '-n', '1', localSha])
+    .trim()
+    .split(/\s+/u)
+    .slice(1)
   try {
     run('git', ['cat-file', '-e', remoteSha])
     run('git', ['merge-base', '--is-ancestor', remoteSha, localSha])
@@ -147,36 +145,45 @@ export function main(argv) {
     return 0
   }
 
-  if (explicitParent === '') assertFastForward({ remoteSha, localSha, isAncestor: isAncestor(remoteSha, localSha, slug) })
+  if (explicitParent === '')
+    assertFastForward({ remoteSha, localSha, isAncestor: isAncestor(remoteSha, localSha, slug) })
 
-  const changes = parseNameStatus(
-    run('git', [
-      'diff',
-      '--name-status',
-      '--diff-filter=ACMRD',
-      `${remoteSha || 'HEAD~1'}..${localSha}`,
-    ]),
-  )
-  const { uploads } = splitChanges(changes)
+  // 树差分：远端提交对象可能不在本地，因此不依赖 git diff。
+  const localTree = parseLsTree(run('git', ['ls-tree', '-r', localSha]))
+  let remoteTree = new Map()
+  if (remoteSha !== '') {
+    const remoteCommit = gh([`repos/${slug}/git/commits/${remoteSha}`])
+    const remoteTreeSha = remoteCommit.tree.sha
+    const listed = gh([`repos/${slug}/git/trees/${remoteTreeSha}?recursive=1`])
+    const entries = Array.isArray(listed.tree) ? listed.tree : []
+    remoteTree = new Map(
+      entries.filter((entry) => entry.type === 'blob').map((entry) => [entry.path, entry.sha]),
+    )
+  }
+  const delta = diffTrees(localTree, remoteTree)
+  const changes = [
+    ...delta.uploads.map((item) => ({ status: 'M', path: item.path })),
+    ...delta.deletes.map((path) => ({ status: 'D', path })),
+  ]
   report.changes = changes.length
-  report.uploads = uploads.length
+  report.uploads = delta.uploads.length
   if (dryRun) {
     process.stdout.write(
       json
         ? `${JSON.stringify(report, null, 2)}\n`
-        : `将上传 ${uploads.length} 个文件、删除 ${changes.length - uploads.length} 个，目标 ${slug}@${branch}\n`,
+        : `将上传 ${delta.uploads.length} 个、删除 ${delta.deletes.length} 个，目标 ${slug}@${branch}\n`,
     )
     return 0
   }
 
   const blobs = new Map()
-  for (const path of uploads) {
-    const content = execFileSync('git', ['show', `${localSha}:${path}`], {
+  for (const item of delta.uploads) {
+    const content = execFileSync('git', ['cat-file', 'blob', item.sha], {
       maxBuffer: 64 * 1024 * 1024,
     })
     const body = JSON.stringify({ content: content.toString('base64'), encoding: 'base64' })
     const created = gh(['-X', 'POST', `repos/${slug}/git/blobs`, '--input', '-'], body)
-    blobs.set(path, created.sha)
+    blobs.set(item.path, created.sha)
   }
 
   const remoteCommit = gh([`repos/${slug}/git/commits/${remoteSha || localSha}`])
@@ -215,7 +222,7 @@ export function main(argv) {
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
   } else {
     process.stdout.write(
-      `已通过 API 推送：${slug}@${branch} → ${commit.sha.slice(0, 7)}（上传 ${uploads.length} 个文件）\n`,
+      `已通过 API 推送：${slug}@${branch} → ${commit.sha.slice(0, 7)}（上传 ${delta.uploads.length} 个、删除 ${delta.deletes.length} 个）\n`,
     )
     process.stdout.write(
       '本地与远端现在内容一致但提交号不同，执行 git fetch origin && git reset --hard origin/' +
