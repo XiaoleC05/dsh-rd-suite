@@ -3,6 +3,10 @@
   "version": "0.2.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "node scripts/build-client.mjs",
+    "test": "node --test \"test/**/*.test.mjs\" \"code-pipeline/test/*.test.mjs\" \"github/test/*.test.mjs\""
+  },
   "description": "研发工作台：一个模式覆盖完整研发流程（分级 → 侦察 → 实现 → 验证 → 独立验收 → 交付），集成模式详情页、代码标准化、context7 文档检索与 GitHub Issue 优先流程。一个仓库、一个安装项。",
   "icon": "icon.svg",
   "main": "./index.js",

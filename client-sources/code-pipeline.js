@@ -728,7 +728,8 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { style: S.header },
-          h('span', { style: S.title }, t('panel.name')),
+          // 内嵌在工作台标签里时标题由工作台给出，这里只保留工具条，避免两条标题堆叠。
+          props?.embedded === true ? null : h('span', { style: S.title }, t('panel.name')),
           (state?.roots ?? []).length > 1
             ? h(
                 'select',
