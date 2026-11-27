@@ -79,7 +79,7 @@
 |---|---|---|---|
 | 051 | 词表可配置（项目自定义禁用词） | 完成 | #37 |
 | 052 | 英文文案专用规则 | 待做 | |
-| 053 | 跨文件重复检测 | 待做 | |
+| 053 | 跨文件重复检测 | 完成 | #40 |
 | 054 | 多文件分数汇总报告 | 待做 | |
 | 055 | 与 rd-web 的文案分工细化 | 待做 | |
 | 056 | `--fix-suggest` 给出改写建议 | 待做 | |
@@ -181,3 +181,4 @@
 | 第 22 轮 | #37 | copy-banned-words | analyze 支持 extraCliches，CLI 加 --banned（换行或 JSON 词表）；2 例测试 |
 | 第 23 轮 | #38 | panel-error-boundary | 每个 pane 包一层 PanelBoundary（getDerivedStateFromError + 重试），无 Component 时退化；2 例测试 |
 | 第 24 轮 | #39 | copy-english-rules | 六条英文 AI 腔规则（含破折号密度）+ rd-copy 英文小节；2 例测试 |
+| 第 25 轮 | #40 | dup-check | splitParagraphs / normalizeParagraph / findDuplicates + 命令行；6 例测试 |
