@@ -201,3 +201,4 @@
 | 第 42 轮 | #57 | resume | 进度摘要脚本 + 账本漂移校正（20 行由「待做」改「完成」）；6 例测试 |
 | 第 43 轮 | #58 | ledger-cli | 账本维护三命令（list/mark/append-round）+ 自用回填 022；6 例测试 |
 | 第 44 轮 | #59 | round-report | 证据四段报告生成器（真跑门禁）；6 例测试 |
+| 第 45 轮 | #60 | commit-issue-check | commit-msg --issue 校验关联；4 例测试 |

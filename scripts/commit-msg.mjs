@@ -69,6 +69,35 @@ const HEADER_PATTERN =
  * @param {string} message - 提交信息全文
  * @returns {{ ok: boolean; errors: string[]; warnings: string[]; type: string | null; scope: string | null; subject: string; semver: string | null; entry: string }} 结果
  */
+/** 关闭关键词：与 GitHub 的 close/fix/resolve 三族一致。 */
+const CLOSING = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)/giu
+
+/**
+ * 校验提交信息与目标 Issue 的关联。
+ * @param {string} message - 提交信息
+ * @param {number | string} issueNumber - 期望关闭的 Issue 编号
+ * @returns {{ ok: boolean; errors: string[]; linked: number[] }} 结论
+ */
+export function checkIssueLink(message, issueNumber) {
+  const expected = Number(issueNumber)
+  const linked = [...String(message ?? '').matchAll(CLOSING)].map((match) => Number(match[1]))
+  if (!Number.isInteger(expected) || expected <= 0) {
+    return { ok: false, errors: ['--issue 需要一个正整数编号'], linked }
+  }
+  if (linked.length === 0) {
+    return { ok: false, errors: [`提交信息没有关闭任何 Issue，期望关闭 #${expected}`], linked }
+  }
+  if (!linked.includes(expected)) {
+    const wrong = linked.map((number) => `#${number}`).join('、')
+    return {
+      ok: false,
+      errors: [`提交信息关闭的是 ${wrong}，与期望的 #${expected} 不一致`],
+      linked,
+    }
+  }
+  return { ok: true, errors: [], linked }
+}
+
 export function checkCommitMessage(message) {
   const text = String(message ?? '')
     .replace(/\r\n/gu, '\n')
@@ -171,6 +200,23 @@ export function main(argv) {
     message = input
   }
   const result = checkCommitMessage(message)
+  // --issue：确认这条提交关闭的正是目标 Issue，避免关错单。
+  const issueIndex = argv.findIndex((argument) => argument === '--issue' || argument.startsWith('--issue='))
+  const issueValue =
+    issueIndex < 0
+      ? undefined
+      : argv[issueIndex].includes('=')
+        ? argv[issueIndex].split('=')[1]
+        : argv[issueIndex + 1]
+  if (issueValue !== undefined) {
+    const link = checkIssueLink(message, issueValue)
+    if (!link.ok) {
+      result.errors.push(...link.errors)
+      result.ok = false
+    } else {
+      result.warnings.push(`已确认关闭 #${Number(issueValue)}`)
+    }
+  }
   if (json) {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
   } else {

@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, before, test } from 'node:test'
 
-import { checkCommitMessage, draftChangelog } from '../scripts/commit-msg.mjs'
+import { checkCommitMessage, checkIssueLink, draftChangelog } from '../scripts/commit-msg.mjs'
 import { main as scanMain, mask, scanText } from '../scripts/secret-scan.mjs'
 
 let workspace
@@ -106,4 +106,30 @@ test('CHANGELOG 草稿按类型分组并给出级别', () => {
   assert.deepEqual(draft.sections['新增'], ['- 增加密钥扫描（gates）'])
   assert.deepEqual(draft.sections['修复'], ['- 修正打码边界（gates）'])
   assert.deepEqual(draft.sections['文档'], ['- 补说明'])
+})
+
+test('Issue 关联校验：编号一致才放行', () => {
+  const message = ['feat(x): 做完某事 (#60)', '', '正文说明。', '', 'Closes #60'].join('\n')
+  assert.deepEqual(checkIssueLink(message, 60), { ok: true, errors: [], linked: [60] })
+  assert.equal(checkIssueLink(message, '60').ok, true, '字符串编号也认')
+})
+
+test('Issue 关联校验：关错了要报出实际关闭的是哪个', () => {
+  const message = ['feat(x): 做完某事 (#60)', '', '正文说明。', '', 'Closes #60'].join('\n')
+  const wrong = checkIssueLink(message, 61)
+  assert.equal(wrong.ok, false)
+  assert.match(wrong.errors[0], /#60.*#61/u)
+})
+
+test('Issue 关联校验：没有关闭关键词、编号非法都要报', () => {
+  assert.equal(checkIssueLink('feat(x): 没有关闭关键词', 60).ok, false)
+  assert.match(String(checkIssueLink('feat(x): 没有关闭关键词', 60).errors[0]), /没有关闭任何 Issue/u)
+  assert.equal(checkIssueLink('Closes #1', 0).ok, false)
+  assert.equal(checkIssueLink('Closes #1', 'abc').ok, false)
+})
+
+test('Issue 关联校验：多个编号里包含目标即可', () => {
+  const link = checkIssueLink('Closes #1, fixes #60', 60)
+  assert.equal(link.ok, true)
+  assert.deepEqual(link.linked, [1, 60])
 })
