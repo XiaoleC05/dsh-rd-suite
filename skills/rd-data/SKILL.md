@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: rd-data
 description: 数据工程与大数据研发标准：数据契约、正确性与幂等、SQL 规范、pandas/polars/Spark 用法、数据质量校验、可复现与隐私。写 SQL、处理或分析数据、构建 ETL 或数据管道时加载。
 ---

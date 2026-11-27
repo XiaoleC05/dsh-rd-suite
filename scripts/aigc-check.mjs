@@ -358,11 +358,26 @@ export function readBannedWords(file) {
       return []
     }
   }
-  return trimmed
-    .split(/\r?\n/u)
-    .map((line) => line.trim())
-    // 注释行先排除再处理，否则「# 项目禁用词」会被当成一个词。
-    .filter((line) => line !== '' && !line.startsWith('#') && !line.startsWith('//'))
+  return (
+    trimmed
+      .split(/\r?\n/u)
+      .map((line) => line.trim())
+      // 注释行先排除再处理，否则「# 项目禁用词」会被当成一个词。
+      .filter((line) => line !== '' && !line.startsWith('#') && !line.startsWith('//'))
+  )
+}
+
+/**
+ * 把代码片段遮成空格：正文里的 `反引号` 与 ``` 围栏是引用，不是行文。
+ * 遮成等长空格而不是删除，行号与列位置才不会错位。
+ * @param {string} text - 原文
+ * @returns {string} 遮罩后的文本
+ */
+export function maskCode(text) {
+  const blank = (chunk) => chunk.replace(/[^\n]/gu, ' ')
+  return String(text ?? '')
+    .replace(/```[\s\S]*?```/gu, blank)
+    .replace(/`[^`\n]*`/gu, blank)
 }
 
 export function analyze(text, options = {}) {
@@ -370,7 +385,8 @@ export function analyze(text, options = {}) {
   // 文件开头带 `aigc-check: allow-file` 说明它本身就在讲这些规则（词表、句式示例），
   // 只给指标、不做词表与句式判定；行尾带 `aigc-check: allow` 则豁免单行。
   const optOut = /aigc-check:\s*allow-file/u.test(raw.slice(0, 500))
-  const body = optOut ? '' : raw.replace(/^.*aigc-check:\s*allow.*$/gmu, '')
+  const prose = maskCode(raw)
+  const body = optOut ? '' : prose.replace(/^.*aigc-check:\s*allow.*$/gmu, '')
   const metricsSource = raw
   const sentences = splitSentences(metricsSource)
   const lengths = sentences.map((sentence) => sentence.length)
@@ -529,7 +545,11 @@ export function suggestFixes(result) {
 export function summarizeScores(results, options = {}) {
   const threshold = Number.isFinite(options.threshold) ? options.threshold : 60
   const scored = (Array.isArray(results) ? results : []).filter(
-    (result) => result !== null && typeof result === 'object' && typeof result.score === 'number' && result.error === undefined,
+    (result) =>
+      result !== null &&
+      typeof result === 'object' &&
+      typeof result.score === 'number' &&
+      result.error === undefined,
   )
   if (scored.length === 0) return { count: 0, mean: 0, lowest: null, below: [] }
   const total = scored.reduce((sum, result) => sum + result.score, 0)
@@ -538,7 +558,9 @@ export function summarizeScores(results, options = {}) {
     count: scored.length,
     mean: Math.round((total / scored.length) * 10) / 10,
     lowest: { file: sorted[0].file, score: sorted[0].score },
-    below: sorted.filter((result) => result.score < threshold).map((result) => ({ file: result.file, score: result.score })),
+    below: sorted
+      .filter((result) => result.score < threshold)
+      .map((result) => ({ file: result.file, score: result.score })),
   }
 }
 
@@ -551,7 +573,8 @@ export function main(argv) {
   const minScoreValue = minScoreIndex >= 0 ? argv[minScoreIndex + 1] : undefined
   const minScore = minScoreValue === undefined ? 60 : Number(minScoreValue)
   const files = argv.filter(
-    (argument) => !argument.startsWith('--') && argument !== minScoreValue && argument !== bannedFile,
+    (argument) =>
+      !argument.startsWith('--') && argument !== minScoreValue && argument !== bannedFile,
   )
   if (files.length === 0) {
     process.stderr.write('用法: node scripts/aigc-check.mjs <文件...> [--json] [--min-score N]\n')
@@ -577,7 +600,9 @@ export function main(argv) {
   if (json) {
     process.stdout.write(`${JSON.stringify(results, null, 2)}\n`)
   } else if (argv.includes('--fix-suggest')) {
-    const suggestions = results.flatMap((result) => (result.error === undefined ? suggestFixes(result) : []))
+    const suggestions = results.flatMap((result) =>
+      result.error === undefined ? suggestFixes(result) : [],
+    )
     if (suggestions.length === 0) {
       process.stdout.write('没有需要改写的地方\n')
     } else {
@@ -591,7 +616,9 @@ export function main(argv) {
     // 批量场景只要一张表和一行结论：文件太多时逐份明细没人看。
     const summary = summarizeScores(results, { threshold: minScore })
     for (const result of results) {
-      process.stdout.write(`${result.error === undefined ? String(result.score).padStart(3, ' ') : '  -'}  ${result.file}\n`)
+      process.stdout.write(
+        `${result.error === undefined ? String(result.score).padStart(3, ' ') : '  -'}  ${result.file}\n`,
+      )
     }
     process.stdout.write(
       `${summary.count} 份 · 均分 ${summary.mean} · 最低 ${summary.lowest?.file ?? '无'} ${summary.lowest?.score ?? ''} · 低于 ${minScore} 分 ${summary.below.length} 份\n`,

@@ -242,3 +242,13 @@ test('改写建议：干净文本返回空数组', () => {
   const result = analyze('重试上限三次。实测 42 次运行，尾延迟从 1.9 秒降到 0.6 秒。')
   assert.deepEqual(suggestFixes({ file: 'c.md', hits: result.hits }), [])
 })
+
+test('代码片段被遮罩：反引号里的套话不算行文', () => {
+  const inCode = analyze('把「`赋能`」这个词加进词表，并在文档里演示 `一站式` 的替换。')
+  assert.deepEqual(inCode.hits.cliches, [], '反引号内的词属于引用，不该计入')
+  const inProse = analyze('我们提供一站式的赋能方案。')
+  assert.ok(inProse.hits.cliches.length >= 2, '正文里的同类词仍要计入')
+  const fenced = analyze('规则示例：\n\n```\n赋能 / 一站式 / 极致\n```\n\n正文到此为止。')
+  assert.deepEqual(fenced.hits.cliches, [], '围栏代码块内的内容不计入')
+})
+

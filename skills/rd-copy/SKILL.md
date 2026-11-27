@@ -1,4 +1,5 @@
 ---
+version: 1.1.0
 name: rd-copy
 description: 写文案与文档时的文风与查重规则：去 AI 味、AIGC 自检、降重。要写 README、文档、公告、邮件、PR 描述、CHANGELOG 或任何对外文案时加载。
 ---

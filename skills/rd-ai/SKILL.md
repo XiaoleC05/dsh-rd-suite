@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: rd-ai
 description: AI、大模型与 Agent 研发标准：评测驱动开发、提示词与工具设计、上下文与成本控制、RAG、Agent 安全与可观测性、机器学习实验可复现。开发 LLM 应用、Agent、提示词、评测集或机器学习代码时加载。
 ---

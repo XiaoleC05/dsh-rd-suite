@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: rd-spec
 description: 把需求落成可追溯的规格产物：spec、plan、tasks 三件套，配 clarify / analyze / checklist / converge 四个动作。L3 任务或需求有歧义、要跨会话交付时加载。
 ---

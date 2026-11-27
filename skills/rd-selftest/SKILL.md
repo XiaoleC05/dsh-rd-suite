@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: rd-selftest
 description: 研发模式安装或升级后的自检。用户输入 /rd-selftest 时执行。
 disable-model-invocation: true
