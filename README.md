@@ -57,6 +57,10 @@
 
 `.github/workflows/checks.yml` 在 push 与 PR 上跑同一套门禁：构建产物、测试、`preflight` 七项。命令写死在 workflow 里会漂移，所以 `test/ci-workflow.test.mjs` 断言它逐字等于 `package.json` 的 `test` 脚本，并对齐 Node 22。
 
+## 技能命中率
+
+`node scripts/skill-hits.mjs --window 20` 从迭代账本读最近若干轮，区分「引用了技能」「显式没用」「漏记」三类并给出命中率。协议要求每轮记账行写明所用技能，否则算漏记。
+
 ## 宪章与技能分工
 
 `node scripts/charter-overlap.mjs --strict` 比较宪章与十个技能的**行文**（先剔掉命令、代码、表格与英文标识符），12 字以上的成句重复会被点名——同一句话两边都写，改一处忘一处必然互相矛盾。

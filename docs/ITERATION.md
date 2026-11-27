@@ -18,6 +18,8 @@ node scripts/round-report.mjs <轮次>
 
 ## 记账
 
+每轮的记账行末尾要写清这一轮用了哪个技能：`技能：rd-copy`，确实没用就写 `技能：无`。两者都不写的算漏记——`node scripts/skill-hits.mjs` 会按轮次统计命中率，漏记的轮次会单独列出来。
+
 账本别手改，用命令：
 
 ```
