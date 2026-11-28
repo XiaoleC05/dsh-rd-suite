@@ -1068,8 +1068,8 @@ window.__ModuleLoader__.load({
         ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'code-pipeline: dictionaries')
         t = ctx.locale.bind(NS)
 
-        // Tabs inside the hub: the page content, its locale and its label key.
-        pages.push({ id: PANEL_ID, labelKey: 'panel.name', locale: NS, component: PipelinePage })
+        // 代码修正已在流程里自动进行（写入即格式化、模块关闭即审计），不再占用工作台页签。
+        void PANEL_ID
       },
     }
   },
