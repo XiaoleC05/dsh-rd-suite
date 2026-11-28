@@ -192,7 +192,7 @@ export function main(argv) {
   if (json) {
     process.stdout.write(`${JSON.stringify(health, null, 2)}\n`)
   } else {
-    process.stdout.write(`宪章 ${health.charter} 字符（目标 ≤ 5000）\n`)
+    process.stdout.write(`宪章 ${health.charter} 字符（无硬上限；超过 12000 视为该下沉到技能）\n`)
     process.stdout.write(
       `技能 ${health.skills.count} 个，最大 ${health.skills.largest?.name} ${health.skills.largest?.chars} 字符\n`,
     )
