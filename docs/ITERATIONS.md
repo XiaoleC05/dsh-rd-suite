@@ -290,3 +290,4 @@
 - 长期记忆闭环：四个记忆工具 + 侧栏面板 + 脚本文档（踩坑模板、子代理简报、发布说明、文案对照）；
 - 100 条 Issue 全部按 Conventional Commits 关闭，可逐条追溯。
 | 全面检查 | #116 | hygiene | 加 .gitattributes、4 个文件换行归一、三个脚本默认全仓；4 例测试 |
+| 降重接入 | #119 | dedup-pipeline | jscpd 源码重复（0.7%→0.5%）+ SimHash 近似重复；抽 lib/doc-set.js 消重复；14 例测试 |

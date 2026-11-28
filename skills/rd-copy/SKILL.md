@@ -12,9 +12,14 @@ description: 写文案与文档时的文风与查重规则：去 AI 味、AIGC �
 
 面向用户的发布说明四段（一句话变化 / 你会遇到什么不同 / 需要你做什么 / 已知问题）：见 `references/release-notes.md`。草稿用 `node scripts/release-notes.mjs` 从 CHANGELOG 生成，占位段落需要人补。
 
+## 降重五层
+
+文本四层 + 源码一层，逐层命令、阈值、出处与实测边界见 `references/dedup-pipeline.md`。
+两条带阈值的：`near-dup.mjs --strict`（相似度 ≥ 0.55）、`code-dup.mjs --strict`（重复行 > 3%）。
+
 ## 对照示例
 
-六组 before/after（README 简介 / 变更日志 / PR 描述 / 错误提示 / 提交信息 / 对外公告）：见 `references/before-after.md`。每组「改后」都由 `scripts/aigc-check.mjs` 校验过零套话且 90 分以上，测试会重跑一遍。
+六组 before/after 见 `references/before-after.md`：每组「改后」都由 `aigc-check` 校验过零套话且 90 分以上，测试会重跑。
 
 ## 1 何时用
 

@@ -10,23 +10,13 @@
  *   node scripts/dup-check.mjs --min-length 60 --json docs/*.md
  */
 
-import { readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-const root = dirname(dirname(fileURLToPath(import.meta.url)))
+import { defaultDocuments } from '../lib/doc-set.js'
 
-/** 无参数时的默认检查集：README、docs 下全部 .md、十个技能正文。 */
-export function defaultFiles() {
-  const files = ['README.md']
-  for (const name of readdirSync(join(root, 'docs'))) {
-    if (name.endsWith('.md')) files.push(`docs/${name}`)
-  }
-  for (const entry of readdirSync(join(root, 'skills'), { withFileTypes: true })) {
-    if (entry.isDirectory()) files.push(`skills/${entry.name}/SKILL.md`)
-  }
-  return files
-}
+const root = dirname(dirname(fileURLToPath(import.meta.url)))
 
 
 
@@ -128,7 +118,7 @@ export function main(argv) {
       argument !== String(minLength ?? '') &&
       argument !== 'undefined',
   )
-  const files = given.length > 0 ? given : defaultFiles()
+  const files = given.length > 0 ? given : defaultDocuments()
   if (files.length === 0) {
     process.stdout.write('用法: node scripts/dup-check.mjs <文件...> [--min-length N] [--json]\n')
     return 2

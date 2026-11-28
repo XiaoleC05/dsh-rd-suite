@@ -75,6 +75,21 @@
 
 | `scripts/rd-doctor.mjs` | 七项自检合一个入口：工具清单 / 技能版本 / 宪章重叠 / 引用完整 / git 网络 / CI 覆盖 / 交付门禁 |
 | `scripts/perf-budget.mjs` | 给自检入口与全量测试设耗时预算，专抓「悄悄慢一个数量级」 |
+| `lib/doc-set.js` | 降重检查共用的默认文档集（README + docs + 技能正文） |
+| `scripts/code-dup.mjs` | 源码重复检测（jscpd 包装，重复行占比超 3% 报错） |
+| `scripts/near-dup.mjs` | 近似重复检测（SimHash 预筛 + bigram Jaccard，抓机械改写） |
+## 降重五层
+
+文本四层（文风 / 术语 / 段落重复 / 机械改写）+ 源码一层（jscpd）。命令与判定口径见 `skills/rd-copy/SKILL.md`；近似与源码两层带 `--strict`。
+
+| 层 | 命令 | 阈值 |
+|---|---|---|
+| 段落重复 | `node scripts/dup-check.mjs` | 完全相同即报 |
+| 机械改写 | `node scripts/near-dup.mjs --strict` | bigram 相似度 ≥ 0.55 |
+| 源码重复 | `node scripts/code-dup.mjs --strict` | 重复行占比 > 3% |
+
+深度同义改写（整句换说法）字面算法抓不到——实测改写后相似度只有 0.318，那一层只能人工复核。
+
 ## 仓库卫生
 
 换行由 `.gitattributes` 统一为 LF，`test/hygiene.test.mjs` 校验跟踪文件不混用换行、不带 BOM。三个检查脚本（`secret-scan` / `term-check` / `dup-check`）**不带参数时默认扫全仓**，全面体检不必手拼文件列表。
@@ -164,7 +179,7 @@ node scripts/git-net-check.mjs --network
 ## 迭代进度
 
 <!-- rd-board:start -->
-进度：100/100 轮 · 用例 545 · 版本 1.0.0 · 门禁 六项全过
+进度：100/100 轮 · 用例 563 · 版本 1.1.0 · 门禁 六项全过
 
 | 最近三轮 | 做了什么 |
 |---|---|
