@@ -75,8 +75,12 @@ test('占位符只允许 model，且不出现花括号残留', () => {
   assert.deepEqual(placeholders, ['model'])
 })
 
-test('体积在预算内', () => {
-  assert.ok(text.length <= 5000, `宪章 ${text.length} 字符，超过 5000 预算`)
+test('体积只记录、不设硬上限', () => {
+  // 上限已按用户要求取消：宪章会随能力增长。这里只保证它是"一段能读完的规则"，
+  // 而不是把整本手册塞进每轮上下文——超过 12000 字符时失败，提醒拆分。
+  assert.ok(text.length > 2000, `宪章只有 ${text.length} 字符，疑似内容丢失`)
+  assert.ok(text.length <= 12000, `宪章 ${text.length} 字符，已超过 12000：把细节下沉到技能`)
+  console.log(`宪章当前 ${text.length} 字符`)
 })
 
 test('降重段写清四类重复与四条命令', () => {
