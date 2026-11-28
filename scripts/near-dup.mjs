@@ -4,6 +4,8 @@
  *
  * 做法：SimHash 快速筛（64 位指纹 + 汉明距离），再用 bigram 集合的 Jaccard 相似度判定。
  *
+ * 用法：node scripts/near-dup.mjs [--root <项目目录>] [--strict]
+ *
  * 能力边界（实测）：抓得到机械改写（换标点、调语序、增删少量词）；
  * 抓不到深度同义改写——实测「推送失败时先用…」改成「推送失败的时候先…」bigram Jaccard 只有 0.318。
  * 深度改写靠人工与 aigc-check 的水平，字面算法给不了保证。
@@ -19,7 +21,8 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import { defaultDocuments, repositoryRoot } from '../lib/doc-set.js'
+import { defaultDocuments } from '../lib/doc-set.js'
+import { documentsUnder, relativeTo, resolveRoot } from './lib/scan-root.mjs'
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
 
@@ -194,9 +197,16 @@ export function findNearDuplicates(documents, options = {}) {
  * @returns {number} 退出码：0 没有近似重复、1 有（--strict 时）
  */
 export function main(argv) {
-  const files = argv.filter((argument) => !argument.startsWith('--'))
-  const targets = files.length > 0 ? files : defaultDocuments()
-  const documents = targets.map((path) => ({ path, text: readFileSync(join(root, path), 'utf8') }))
+  const { root: scanRoot, rest } = resolveRoot(argv, root)
+  const external = scanRoot !== root
+  const given = rest.filter((argument) => !argument.startsWith('--'))
+  // 指向外部项目时，默认扫那个项目的文档；本仓库维持原行为。
+  const targets = given.length > 0
+    ? given.map((path) => (path.includes(':') || path.startsWith('/') ? path : join(scanRoot, path)))
+    : external
+      ? documentsUnder(scanRoot)
+      : defaultDocuments().map((path) => join(root, path))
+  const documents = targets.map((path) => ({ path: relativeTo(scanRoot, path), text: readFileSync(path, 'utf8') }))
   const pairs = findNearDuplicates(documents)
   process.stdout.write(`近似重复：比对 ${documents.length} 份文件，${pairs.length} 对\n`)
   for (const pair of pairs.slice(0, 10)) {

@@ -24,6 +24,21 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)))
 const NON_PARAGRAPH = /^(?:#{1,6}\s|[-*+]\s|\d+[.)]\s|>|\||```|<!--)/u
 
 /**
+ * 模板提示语：文档站常见 `:read-more{to="..."}` 这类行，属于正常复用，不算重复。
+ * 判定条件：短（< 60 字）且含 {...} 模板语法。
+ * @param {string} text - 段落文本
+ * @returns {boolean} 是否跳过
+ */
+export function isTemplateHint(text) {
+  const flat = String(text ?? '').trim()
+  // 组件调用行（:read-more{...}）无论多长都不是正文，直接跳过。
+  if (/^:[-\w]+/u.test(flat)) return true
+  // 其余只有「短且带模板占位」才算提示语，避免放过真正的短段重复。
+  if (flat.length >= 60) return false
+  return /\{[^}]*\}/u.test(flat)
+}
+
+/**
  * 把文档切成候选段落。
  * @param {string} text - 文档内容
  * @returns {{ line: number; text: string }[]} 段落与起始行号
@@ -37,7 +52,7 @@ export function splitParagraphs(text) {
   const flush = () => {
     if (buffer.length === 0) return
     const body = buffer.join(' ').trim()
-    if (body !== '' && !NON_PARAGRAPH.test(body)) paragraphs.push({ line: startLine, text: body })
+    if (body !== '' && !NON_PARAGRAPH.test(body) && !isTemplateHint(body)) paragraphs.push({ line: startLine, text: body })
     buffer = []
   }
 

@@ -2,19 +2,22 @@
 /**
  * 源码重复检测（jscpd 包装）：同一段逻辑在几个文件里各写一份时才会暴露。
  *
- * 依赖外部工具 jscpd（用 npx 拉取，首次需联网），不进 dependencies——
- * 这个包对外承诺无运行时依赖，检查工具不该破坏它。
+ * 依赖外部工具 jscpd（用 npx 拉取，首次需联网）。
+ *
+ * 用法：node scripts/code-dup.mjs [--root <项目目录>] [--strict]
  *
  * 参考：https://github.com/kucherenko/jscpd
  */
 
 import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
+const { resolveRoot } = await import('./lib/scan-root.mjs')
 
 /** 默认扫描的源码目录。 */
 export const DEFAULT_PATHS = [
@@ -71,16 +74,21 @@ export function overThreshold(summary, threshold = DEFAULT_THRESHOLD) {
  * @returns {{ percentage: number; lines: number; duplicatedLines: number; clones: number; blocks: { from: string; to: string; lines: number; tokens: number }[] }} 摘要
  */
 export function runJscpd(options = {}) {
+  const workingDir = options.root ?? root
   const paths = options.paths ?? DEFAULT_PATHS
+  // 装了 devDependency 就用本地的（离线可复现）；没装才回落 npx。
+  const localBin = join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'jscpd.cmd' : 'jscpd')
+  const useLocal = existsSync(localBin)
   const minLines = options.minLines ?? 10
   const minTokens = options.minTokens ?? 70
   const output = mkdtempSync(join(tmpdir(), 'jscpd-'))
   try {
+    const command = useLocal ? localBin : process.platform === 'win32' ? 'npx.cmd' : 'npx'
+    const prefix = useLocal ? [] : ['--yes', 'jscpd@4']
     execFileSync(
-      process.platform === 'win32' ? 'npx.cmd' : 'npx',
+      command,
       [
-        '--yes',
-        'jscpd@4',
+        ...prefix,
         '--min-lines',
         String(minLines),
         '--min-tokens',
@@ -92,7 +100,7 @@ export function runJscpd(options = {}) {
         '--silent',
         ...paths,
       ],
-      { cwd: root, stdio: 'pipe', encoding: 'utf8', shell: process.platform === 'win32' },
+      { cwd: workingDir, stdio: 'pipe', encoding: 'utf8', shell: process.platform === 'win32' },
     )
     return parseJscpdReport(JSON.parse(readFileSync(join(output, 'jscpd-report.json'), 'utf8')))
   } finally {
@@ -108,7 +116,8 @@ export function runJscpd(options = {}) {
 export function main(argv) {
   const thresholdIndex = argv.indexOf('--threshold')
   const threshold = thresholdIndex === -1 ? DEFAULT_THRESHOLD : Number(argv[thresholdIndex + 1])
-  const summary = runJscpd()
+  const { root: scanRoot } = resolveRoot(argv, root)
+  const summary = runJscpd(scanRoot === root ? {} : { root: scanRoot, paths: ['.'] })
 
   process.stdout.write(
     `源码重复：${summary.duplicatedLines}/${summary.lines} 行（${summary.percentage}%），${summary.clones} 个重复块\n`,
