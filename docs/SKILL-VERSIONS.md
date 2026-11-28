@@ -6,7 +6,7 @@
 |---|---|---|
 | rd-ai | 1.0.0 | 40 |
 | rd-code-standards | 1.0.0 | 45 |
-| rd-copy | 1.1.0 | 94 |
+| rd-copy | 1.1.0 | 99 |
 | rd-data | 1.0.0 | 41 |
 | rd-ecosystem | 1.0.0 | 60 |
 | rd-retro | 1.0.0 | 54 |
