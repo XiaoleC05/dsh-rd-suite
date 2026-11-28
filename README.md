@@ -27,7 +27,7 @@
 | `github/` | `github_workflow` 工具与 Issue 优先提示词 |
 | `memory/` | 长期记忆：技术模板、踩坑、bug 修复方案、策略模式，存 `~/.dsh/rd-suite/memory.json`；工具 `memory_save` / `memory_list` / `memory_search` / `memory_read` / `memory_import` / `memory_export`；只读路由 `/dsh-rd-memory/api/{list,entry,stats,export}` 供侧栏面板使用；`/dsh-code-pipeline/api/status` 给概览提供版本与账本进度 |
 | `client-sources/hub-rd.js` | 研发工作台入口页（唯一侧栏图标 + 概览） |
-| `client-sources/code-pipeline.js` · `github.js` · `cards.js` | 代码修正面板、GitHub 设置行、模式卡片增强（`cards.js` 由 `scripts/vendor-cards.mjs` 生成） |
+| `client-sources/code-pipeline.js` · `github.js` · `cards.js` | 代码修正已无界面（只剩注入占位）、GitHub 设置行、模式卡片增强（`cards.js` 由 `scripts/vendor-cards.mjs` 生成） |
 | `client.js` | 合并后的浏览器模块（`node scripts/build-client.mjs` 生成，勿手改） |
 | `skills/` | 预设按包名解析到的 rd-* 技能目录（含 rd-copy：文案去 AI 味、AIGC 自检、降重） |
 | `test/` | 入口页、代码审计、技能规范与 AIGC 检查脚本的校验（`node --test`） |

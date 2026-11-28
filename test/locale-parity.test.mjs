@@ -84,7 +84,8 @@ function loadDictionaries(file) {
 }
 
 // cards.js 是宿主侧总览卡，apply 依赖真实客户端状态，不在本检查范围内。
-const MODULES = ['code-pipeline.js', 'memory.js', 'hub-rd.js']
+// 代码修正的界面已移除（第 123 轮），这个模块不再有字典。
+const MODULES = ['memory.js', 'hub-rd.js']
 
 /** 收集一个对象里的占位符，如 {total}。 */
 function placeholdersOf(value) {
