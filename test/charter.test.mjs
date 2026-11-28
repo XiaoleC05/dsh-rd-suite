@@ -114,7 +114,9 @@ test('交付前自检含 GitHub CI 一条', () => {
 })
 
 test('suffix 不计入宪章正文预算', () => {
-  // 正文预算只算 prefix；这条防的是把 suffix 一起算进去导致误报
-  assert.ok(text.length <= 5000, `正文 ${text.length} 字符`)
+  // 上限已取消（见「体积只记录、不设硬上限」）：这里只确认 prefix 与 suffix 都还在，
+  // 且 suffix 没有被误算进正文。
+  assert.ok(text.length > 2000, `正文只有 ${text.length} 字符`)
   assert.ok(suffix().length > 0)
+  assert.equal(text.includes('结束任务前在内部逐项核对'), false, 'suffix 的独有内容不该出现在 prefix 里')
 })

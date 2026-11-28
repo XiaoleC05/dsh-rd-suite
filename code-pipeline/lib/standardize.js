@@ -10,6 +10,7 @@
  * (panel HTTP or Agent tools) can no longer bypass scan-time rules such as
  * skipped dependency directories by naming a path explicitly.
  */
+import { shouldDeferToProjectToolchain } from './toolchain.js'
 import { getPreset } from './presets.js'
 import { createPolicyFor } from './policy.js'
 import { runEngine } from './engines/index.js'
@@ -40,6 +41,9 @@ async function mapLimit(items, limit, worker) {
  */
 export async function standardize({ root, paths, mode = 'report', limits = DEFAULT_LIMITS }) {
   const started = Date.now()
+  // 仓库自带的格式化器优先：它的规则才是项目 CI 认的，我们只报告。
+  const defer = shouldDeferToProjectToolchain(root)
+  const effectiveMode = defer.downgrade && mode === 'fix' ? 'report' : mode
   const selected = Array.isArray(paths) ? [...new Set(paths.filter((path) => typeof path === 'string' && path.length > 0))] : []
   const skipped = []
   const work = []
@@ -91,7 +95,7 @@ export async function standardize({ root, paths, mode = 'report', limits = DEFAU
     const after = prepared.bom ? `\uFEFF${first.content}` : first.content
     const changed = after !== before
 
-    if (mode === 'fix' && changed) {
+    if (effectiveMode === 'fix' && changed) {
       const written = await policy.writeTarget(prepared, first.content)
       if (!written.ok) {
         return { path: relPath, status: 'failed', reason: written.reason, language: info.language, preset: preset.id }
@@ -102,7 +106,7 @@ export async function standardize({ root, paths, mode = 'report', limits = DEFAU
       path: relPath,
       status: changed ? 'changed' : 'unchanged',
       changed,
-      written: mode === 'fix' && changed,
+      written: effectiveMode === 'fix' && changed,
       language: info.language,
       preset: preset.id,
       engine: first.engine,
@@ -140,7 +144,9 @@ export async function standardize({ root, paths, mode = 'report', limits = DEFAU
 
   return {
     runId: `run-${started.toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-    mode,
+    mode: effectiveMode,
+    // 项目自带格式化器时，fix 被降级成 report：调用方据此在报告里写明原因。
+    ...(defer.downgrade && mode === 'fix' ? { downgraded: { from: 'fix', to: 'report', tool: defer.tool, reason: defer.reason } } : {}),
     root,
     finishedAt: new Date().toISOString(),
     elapsedMs: Date.now() - started,
