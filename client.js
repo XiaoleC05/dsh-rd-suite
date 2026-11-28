@@ -1367,8 +1367,8 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'code-pipeline: dictionaries')
         t = ctx.locale.bind(NS)
 
-        // Tabs inside the hub: the page content, its locale and its label key.
-        pages.push({ id: PANEL_ID, labelKey: 'panel.name', locale: NS, component: PipelinePage })
+        // 代码修正已在流程里自动进行（写入即格式化、模块关闭即审计），不再占用工作台页签。
+        void PANEL_ID
       },
     }
   }}).factory(require, pageSources)) // source 2
@@ -1997,7 +1997,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         capTitle: '已装能力',
         caps: [
           'PTC 执行|run_code 把多次工具调用合并成一个程序：往返更少，上下文更短。',
-          '代码修正|写入即按项目规范格式化，模块关闭时再整体审计一次；面板只用来复查。',
+          '代码修正|写入即按项目规范格式化，模块关闭时再整体审计一次；全自动，不占页签。',
           '记忆库|侧栏「记忆库」页签查看与删除；模型用 memory_save 写入四类记忆，用 memory_search 开工前先查。',
           'context7|直接检索库的最新官方文档，版本敏感的参数不靠记忆。',
           'GitHub 流程|仓库有 GitHub 远程时按固定流程走：先建 Issue，再改代码，最后一个模块一次提交。',
@@ -2023,7 +2023,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         liveChangelog: '最新变更',
         liveAudit: '最近审计',
 
-        emptyTabs: '成员页面未加载：代码修正面板不可用，检查 bundle 是否完整启用。',
+        emptyTabs: '成员页面未加载：检查 bundle 是否完整启用。',
         paletteOpen: '搜索与跳转（Ctrl+K）',
         paletteTitle: '搜索与跳转',
         palettePlaceholder: '输入页签或能力名称',
@@ -2091,7 +2091,7 @@ L3 任务会先出规格卡，实现后调用独立验收子代理复核，再�
         capTitle: 'Installed capabilities',
         caps: [
           'PTC execution|run_code folds several tool calls into one program: fewer round trips, shorter context.',
-          'Code fixes|Files are formatted on write and audited once when a module closes; the panel is for reviewing, not for running fixes.',
+          'Code fixes|Files are formatted on write and audited once when a module closes; fully automatic, no tab needed.',
           'Memory|Read or delete entries in the sidebar Memory tab; the model writes with memory_save and checks with memory_search before starting.',
           'context7|Reads the latest official documentation for a library instead of relying on memory.',
           'GitHub workflow|With a GitHub remote the flow is fixed: issue first, then the edit, then one commit per module.',
