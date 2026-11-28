@@ -14,13 +14,13 @@
 - **GitHub 固定流程**：有 GitHub 远程仓库时，每个模块都要先建 Issue，再按 `strategy` 决定是否走分支与 Pull Request；提交用 Conventional Commits 并在正文写 `Closes #N`，合并用 squash 并删分支，发版走 SemVer。默认收起，点开才展开；它不是设置项，不能关。
 - **和其他模式的区别**：研发模式已包含 PTC 模式的能力，并在其上加了分级、关卡、独立验收、领域技能与固定的 GitHub 流程。
 
-「代码修正」是页内标签，不跳转，也不需要手动点：写入/修改代码后自动按项目规范格式化，模块关闭时再对本次改动整体审计并把 `checked/fixed/remaining` 写进工具结果（面板保留作复查）。
+「代码修正」不占页签、不需要手动点：写入/修改代码后自动按项目规范格式化，模块关闭时再对本次改动整体审计并把 `checked/fixed/remaining` 写进工具结果（面板保留作复查）。
 
 ## 包含
 
 - **研发模式**：唯一模式；侦察与验收是流程内的子代理角色（`subagent` / `review_agent` 复用同一个 rd 预设）。
 - **入口页**：状态带、三步开始、S1–S8 流水线、GitHub 固定流程 G0–G7、分级与关卡、已装能力、可折叠的模式差异。
-- **融合插件主体**：`code_list_files`、`code_standardize`、代码标准化面板、`github_workflow`（8 个动作）与固定流程提示词。
+- **融合插件主体**：`code_list_files`、`code_standardize`（无面板，全自动）、`github_workflow`（8 个动作）与固定流程提示词。
 - **context7 MCP**：文档检索工具。
 
 ## 维护
