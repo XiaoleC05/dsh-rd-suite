@@ -28,7 +28,7 @@ function charter() {
 
 const text = charter()
 
-test('九节标题齐全', () => {
+test('十节标题齐全', () => {
   for (const heading of [
     '# 1 优先级',
     '# 2 分级',
@@ -38,6 +38,7 @@ test('九节标题齐全', () => {
     '# 6 交付报告',
     '# 7 已装能力',
     '# 8 安全红线',
+    '# 9 降重',
   ]) {
     assert.ok(text.includes(heading), `宪章缺少 ${heading}`)
   }
@@ -76,4 +77,13 @@ test('占位符只允许 model，且不出现花括号残留', () => {
 
 test('体积在预算内', () => {
   assert.ok(text.length <= 5000, `宪章 ${text.length} 字符，超过 5000 预算`)
+})
+
+test('降重段写清四类重复与四条命令', () => {
+  for (const kind of ['文风', '术语', '段落雷同', '近似段落'])
+    assert.ok(text.includes(kind), `降重段缺少「${kind}」`)
+  for (const command of ['aigc-check', 'dup-check', 'near-dup', 'code-dup'])
+    assert.ok(text.includes(command), `降重段缺少命令 ${command}`)
+  assert.match(text, /深度同义改写工具判不出/u, '要写明工具的能力边界')
+  assert.match(text, /模式仓库 scripts\//u, '要写清脚本在模式仓库里')
 })
