@@ -166,6 +166,8 @@ node scripts/git-net-check.mjs --network
 | `curl 56 / Connection was reset` | git 不走系统代理 | `git config --global http.https://github.com.proxy http://127.0.0.1:7890` |
 | `schannel: failed to receive handshake` | schannel 后端在代理下握手失败 | `git config --global http.sslBackend openssl` |
 
+代理端口按本机实际改（本机用 FlClash，默认 HTTP 代理在 `127.0.0.1:7890`）。代理软件没运行时这一项会连不上，`git-net-check` 会点名「代理端口连不上」并给出两条修法：启动代理，或清掉该配置改直连。
+
 ## 超限行为
 
 五项体积上限与超限后的行为（截断 / 拒绝 / 分页）逐项写在 [docs/OVERFLOW.md](docs/OVERFLOW.md)，与 `lib/limits.js` 的 `OVERFLOW_POLICY` 由测试校验一致。

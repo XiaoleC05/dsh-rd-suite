@@ -87,3 +87,30 @@ test('降重段写清四类重复与四条命令', () => {
   assert.match(text, /深度同义改写工具判不出/u, '要写明工具的能力边界')
   assert.match(text, /模式仓库 scripts\//u, '要写清脚本在模式仓库里')
 })
+
+/**
+ * 取出 suffix 正文（交付前自检清单）。
+ * @returns {string} suffix 文本
+ */
+function suffix() {
+  const match = /suffix:\s*\|-\r?\n([\s\S]*?)(?=\n {0,12}(?:#|- id:)|$)/u.exec(patch)
+  assert.ok(match, 'cordis.patch.yml 里找不到 persona suffix')
+  return match[1]
+    .split(/\r?\n/u)
+    .map((line) => line.replace(/^\s{12,16}/u, ''))
+    .join('\n')
+}
+
+test('交付前自检含 GitHub CI 一条', () => {
+  const text = suffix()
+  assert.match(text, /GitHub CI/u, 'suffix 要提到 GitHub CI')
+  assert.match(text, /最新一次 run 已绿/u, '要写清判定标准')
+  assert.match(text, /无 CI/u, '没有 CI 的项目要写明怎么处理')
+  assert.match(text, /后台任务已收尾/u, '原有条目不能丢')
+})
+
+test('suffix 不计入宪章正文预算', () => {
+  // 正文预算只算 prefix；这条防的是把 suffix 一起算进去导致误报
+  assert.ok(text.length <= 5000, `正文 ${text.length} 字符`)
+  assert.ok(suffix().length > 0)
+})

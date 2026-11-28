@@ -38,6 +38,40 @@ export const EXPECTED = [
 ]
 
 /**
+ * 从代理配置里取出可连接的主机与端口。
+ * @param {string} proxy - 形如 http://127.0.0.1:7890
+ * @returns {{ host: string; port: number } | null} 结果；解析不出返回 null
+ */
+export function proxyEndpoint(proxy) {
+  const match = /^(?:https?:\/\/)?([^:/\s]+):(\d+)\/?$/u.exec(String(proxy ?? '').trim())
+  if (match === null) return null
+  const port = Number(match[2])
+  if (!Number.isInteger(port) || port <= 0) return null
+  return { host: match[1], port }
+}
+
+/**
+ * 探测 TCP 端口是否可连（毫秒级超时，失败即判不通）。
+ * @param {{ host: string; port: number }} endpoint - 端点
+ * @param {number} [timeoutMs] - 超时
+ * @returns {Promise<boolean>} 是否可连
+ */
+export async function portReachable(endpoint, timeoutMs = 1200) {
+  const net = await import('node:net')
+  return await new Promise((resolve) => {
+    const socket = net.connect({ host: endpoint.host, port: endpoint.port })
+    const done = (ok) => {
+      socket.destroy()
+      resolve(ok)
+    }
+    socket.setTimeout(timeoutMs)
+    socket.once('connect', () => done(true))
+    socket.once('timeout', () => done(false))
+    socket.once('error', () => done(false))
+  })
+}
+
+/**
  * 按期望值检查配置。
  * @param {Record<string, string | undefined>} values - 配置快照（键为完整配置名）
  * @returns {{ key: string; ok: boolean; actual: string; why: string; fix: string }[]} 结果
@@ -90,7 +124,7 @@ export function checkRemote(timeoutMs = 30_000) {
  * @param {string[]} argv - 参数
  * @returns {number} 退出码：0 全过、1 有问题
  */
-export function main(argv) {
+export async function main(argv) {
   const values = Object.fromEntries(EXPECTED.map((item) => [item.key, readConfig(item.key)]))
   const results = checkConfigValues(values)
   const problems = results.filter((item) => !item.ok)
@@ -102,6 +136,18 @@ export function main(argv) {
   }
   for (const item of problems) {
     process.stdout.write(`  为什么：${item.why}\n  修复：${item.fix}\n`)
+  }
+
+  // 配了代理但端口不通，是最常见的一种「看起来配好了」：单独探一次。
+  const endpoint = proxyEndpoint(values['http.https://github.com.proxy'])
+  let proxyOk = true
+  if (endpoint !== null) {
+    proxyOk = await portReachable(endpoint)
+    process.stdout.write(`${proxyOk ? '通过' : '需修'}  代理端口：${endpoint.host}:${endpoint.port} ${proxyOk ? '可连接' : '连不上'}\n`)
+    if (!proxyOk) {
+      process.stdout.write('  为什么：代理软件没运行、端口改了，或该端口不提供 HTTP 代理\n')
+      process.stdout.write('  修复：启动代理软件；端口变了就改 http.https://github.com.proxy；不用代理就清掉该键\n')
+    }
   }
 
   if (argv.includes('--network')) {
@@ -119,5 +165,5 @@ export function main(argv) {
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  process.exitCode = main(process.argv.slice(2))
+  process.exitCode = await main(process.argv.slice(2))
 }

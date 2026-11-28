@@ -109,6 +109,7 @@
                 3. 改动只在规格范围内；已对改动文件运行可用的格式化与 lint（没有可用工具时写明）。
                 4. L3 已经过 review_agent，或已说明未通过的项。
                 5. 后台任务已收尾；报告使用 §6 模板。
+                6. 本仓库有 GitHub CI 时，最新一次 run 已绿；无 CI 的项目写明“无 CI”。
           # [rd] 项目规则文件（AGENTS.md / CLAUDE.md），上限从 65536 降到 24576 字节/链，减少常驻上下文。
           - id: agent-instructions
             name: '@deepseek-ai/dsh-agent-instructions'
