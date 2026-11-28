@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict'
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { test } from 'node:test'
 
 import { adaptiveBudget } from '../scripts/repo-map.mjs'
@@ -24,11 +24,16 @@ function project(files) {
 
 test('resolveRoot：不传时用默认根，传了就用指定目录并去掉该参数', () => {
   const plain = resolveRoot([])
-  assert.equal(plain.root.endsWith('dsh-rd-b4') || plain.root.includes('dsh-rd'), true)
-  const custom = resolveRoot(['--root', 'D:/tmp/x', 'extra.md'])
-  assert.equal(custom.root.replace(/\\/gu, '/'), 'D:/tmp/x')
+  // 默认根是仓库根：只要求它是存在的绝对路径，不假设目录名（CI 与本地不同）。
+  assert.equal(plain.root.length > 0, true)
+  assert.equal(plain.root.includes('..') === false, true)
+
+  const dir = mkdtempSync(join(tmpdir(), 'rd-root-'))
+  const custom = resolveRoot(['--root', dir, 'extra.md'])
+  assert.equal(custom.root, resolve(dir))
   assert.deepEqual(custom.rest, ['extra.md'])
   assert.throws(() => resolveRoot(['--root']), /要跟一个目录/u)
+  rmSync(dir, { recursive: true, force: true })
 })
 
 test('documentsUnder：README + docs/*.md + skills/*/SKILL.md', () => {
