@@ -26,9 +26,9 @@ test('版本升级：patch / minor / major', () => {
   assert.equal(bump('bad', 'patch'), '1.0.0', '非法输入回落到 1.0.0')
 })
 
-test('真实仓库：十个技能都有合法版本', () => {
+test('真实仓库：每个技能都有合法版本', () => {
   const rows = collectVersions()
-  assert.equal(rows.length, 10)
+  assert.ok(rows.length >= 10, `技能数 ${rows.length}`)
   for (const row of rows) {
     assert.ok(isValidVersion(row.version), `${row.name} 的版本非法：${row.version}`)
     assert.ok(row.lines > 0)

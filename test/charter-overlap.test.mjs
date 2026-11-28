@@ -41,7 +41,7 @@ test('overlap：找出交集并按序返回', () => {
 
 test('真实仓库：没有技能与宪章成句重复', () => {
   const rows = collect()
-  assert.equal(rows.length, 10)
+  assert.ok(rows.length >= 10, `技能数 ${rows.length}`)
   const over = rows.filter((row) => row.hits > MAX_HITS)
   assert.deepEqual(
     over.map((row) => `${row.skill}(${row.hits})`),

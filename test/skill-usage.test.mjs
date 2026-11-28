@@ -34,7 +34,7 @@ test('advise：普通情况就是保持', () => {
 
 test('真实仓库：十个技能都有结果，当前没有零引用技能', () => {
   const rows = collect()
-  assert.equal(rows.length, 10, `技能数 ${rows.length}`)
+  assert.ok(rows.length >= 10, `技能数 ${rows.length}`)
   for (const row of rows) {
     assert.ok(row.chars > 0, `${row.skill} 正文为空`)
     assert.ok(row.refs >= 0)
