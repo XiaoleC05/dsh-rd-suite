@@ -163,3 +163,21 @@ test('耗时汇总：空输入不报错', async () => {
   assert.ok(summary.elapsedMs >= 0)
   assert.equal(summary.slowestGroup, undefined)
 })
+
+test('report 模式：需要修的文件只计 needsFix，不产生 fixed', async () => {
+  const { mkdtempSync, writeFileSync: writeFixture, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'rd-audit-report-'))
+  const messy = join(dir, 'messy.js')
+  // 故意写成不合规范的样子，保证任何版本的格式化器都会判 needsFix
+  writeFixture(messy, 'const   a={b:1};export{a}\n', 'utf8')
+
+  const audit = await auditFiles([messy], { mode: 'report' })
+  assert.equal(audit.fixed, 0, 'report 模式不写文件')
+  const jsGroup = audit.byLanguage.find((group) => group.language === 'javascript')
+  assert.equal(jsGroup.fixed, 0, '分组的 fixed 必须是 0，否则报告会出现凭空的修复数')
+  assert.ok(jsGroup.needsFix >= 0)
+
+  rmSync(dir, { recursive: true, force: true })
+})

@@ -86,6 +86,7 @@ async function runPass(groups, mode) {
  * 按语言给审计结果分组，便于判断是不是某种语言的预设出了问题。
  * @param {{ checked: number; needsFix: number; fixed: number; remaining: number; files: string[] }} audit - 审计摘要
  * @param {readonly string[]} paths - 参与审计的绝对路径
+ * @param {'report' | 'fix'} [mode] - 审计模式：report 下不计已修数
  * @returns {{ language: string; checked: number; fixed: number; needsFix: number }[]} 分组结果，按语言名排序
  */
 /**
@@ -107,9 +108,11 @@ export function timingSummary(timing, startedAt) {
   }
 }
 
-export function groupByLanguage(audit, paths) {
+export function groupByLanguage(audit, paths, mode = 'fix') {
   const groups = new Map()
-  const fixedSet = new Set(Array.isArray(audit.files) ? audit.files : [])
+  // files 的语义是「需要关注的文件」：fix 模式是刚被改过的，report 模式是需要修的。
+  // 所以 report 模式下这些文件只计 needsFix，绝不能计 fixed——否则报告会出现凭空的修复数。
+  const dirtySet = new Set(Array.isArray(audit.files) ? audit.files : [])
   for (const absolute of paths) {
     const decision = classify(absolute)
     const key = decision.kind === 'code'
@@ -117,9 +120,9 @@ export function groupByLanguage(audit, paths) {
       : 'non-code'
     const group = groups.get(key) ?? { language: key, checked: 0, fixed: 0, needsFix: 0 }
     group.checked += 1
-    if (fixedSet.has(absolute)) {
-      group.fixed += 1
+    if (dirtySet.has(absolute)) {
       group.needsFix += 1
+      if (mode !== 'report') group.fixed += 1
     }
     groups.set(key, group)
   }
@@ -344,7 +347,7 @@ export async function auditFiles(files, options = {}) {
       remaining: 0,
       files: [],
       cached: cached.length,
-      byLanguage: groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
+      byLanguage: groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached, mode),
     }
   }
 
@@ -372,8 +375,8 @@ export async function auditFiles(files, options = {}) {
       checked: summary.checked + cached.length,
       cached: cached.length,
       byLanguage: mergeLanguageGroups(
-        groupByLanguage(summary, fresh),
-        groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
+        groupByLanguage(summary, fresh, mode),
+        groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached, mode),
       ),
       ...timingSummary(report.timing, auditStartedAt),
     }
@@ -393,8 +396,8 @@ export async function auditFiles(files, options = {}) {
       checked: summary.checked + cached.length,
       cached: cached.length,
       byLanguage: mergeLanguageGroups(
-        groupByLanguage(summary, fresh),
-        groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
+        groupByLanguage(summary, fresh, mode),
+        groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached, mode),
       ),
       ...timingSummary(report.timing, auditStartedAt),
     }
@@ -417,8 +420,8 @@ export async function auditFiles(files, options = {}) {
     checked: summary.checked + cached.length,
     cached: cached.length,
     byLanguage: mergeLanguageGroups(
-      groupByLanguage(summary, fresh),
-      groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached),
+      groupByLanguage(summary, fresh, mode),
+      groupByLanguage({ checked: cached.length, needsFix: 0, fixed: 0, remaining: 0, files: [] }, cached, mode),
     ),
     // 总耗时要含写入那一趟，否则「改文件慢」看不出来。
     ...timingSummary([...(report.timing ?? []), ...(applied.timing ?? [])], auditStartedAt),
