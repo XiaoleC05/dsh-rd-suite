@@ -21,9 +21,9 @@ test('measure：中文按一字一 token 估，英文按四字符一 token 估',
   assert.equal(latin.tokens, 1, '四个英文字符约一个 token')
 })
 
-test('真实仓库：十个技能都有度量，按正文从大到小排序', () => {
+test('真实仓库：每个技能都有度量，按正文从大到小排序', () => {
   const rows = collect()
-  assert.equal(rows.length, 10, `技能数 ${rows.length}`)
+  assert.ok(rows.length >= 10, `技能数 ${rows.length}`)
   for (const row of rows) {
     assert.ok(row.chars > 0, `${row.skill} 正文为空`)
     assert.equal(Number.isInteger(row.refFiles), true)

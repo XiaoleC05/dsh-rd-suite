@@ -78,6 +78,14 @@
 | `lib/doc-set.js` | 降重检查共用的默认文档集（README + docs + 技能正文） |
 | `scripts/code-dup.mjs` | 源码重复检测（jscpd 包装，重复行占比超 3% 报错） |
 | `scripts/near-dup.mjs` | 近似重复检测（SimHash 预筛 + bigram Jaccard，抓机械改写） |
+## 新增的三个流程技能
+
+| 技能 | 什么时候用 | 来源 |
+|---|---|---|
+| `rd-plan` | 动手前先给 2–3 个方案与取舍，再定稿计划（含风险与回滚点） | Superpowers 的 brainstorming / writing-plans |
+| `rd-worktree` | 多文件改动或需并行验证时用 git worktree 隔离，含五个实测坑 | Superpowers 的 using-git-worktrees |
+| `rd-debug` | 缺陷按四阶段走：稳定复现 → 定位到可改之处 → 最小修复 → 补回归测试 | Superpowers 的 systematic-debugging |
+
 ## 降重五层
 
 文本四层（文风 / 术语 / 段落重复 / 机械改写）+ 源码一层（jscpd）。命令与判定口径见 `skills/rd-copy/SKILL.md`；近似与源码两层带 `--strict`。
