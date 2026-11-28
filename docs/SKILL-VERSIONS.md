@@ -13,7 +13,7 @@
 | rd-plan | 1.0.0 | 66 |
 | rd-retro | 1.0.0 | 54 |
 | rd-selftest | 1.0.0 | 29 |
-| rd-spec | 1.0.0 | 49 |
+| rd-spec | 1.0.0 | 53 |
 | rd-testing | 1.0.0 | 52 |
 | rd-web | 1.0.0 | 40 |
 | rd-worktree | 1.0.0 | 58 |

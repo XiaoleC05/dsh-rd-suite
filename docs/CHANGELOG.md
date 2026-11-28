@@ -1,5 +1,13 @@
 # 变更日志
 
+## 1.4.1 — 2026-11-28
+
+- 三个脚本支持 `--root`：near-dup / link-check / code-dup 现在能指向任意项目，不再只扫自己仓库。
+- `code-dup` 改用本地 devDependency jscpd（不再走 npx），构建可复现、离线可用。
+- `dup-check` 跳过组件调用行（`:read-more{...}`）与短模板行，h3 的 2 处误报消除。
+- `repo-map` 预算自适应（4000–6000）并新增 `--focus <目录>`：h3 覆盖从 21 个文件升到 37 个，聚焦 src 时 32/90。
+- 宪章 S1 与 rd-spec 技能补：对开源项目贡献时规格卡写进 PR 描述，不在对方仓库新增文件。
+- 用例 589。
 ## 1.4.0 — 2026-11-28
 
 - 真实项目实测后修两处：`standardize` 在仓库自带格式化器（oxfmt/oxlint/prettier/eslint）时把 fix 降级为 report，

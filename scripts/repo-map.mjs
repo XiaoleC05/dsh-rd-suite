@@ -115,7 +115,7 @@ export function extractSymbols(source, extension = '.md') {
  * @param {number} maxDepth - 最大深度（0 只扫根目录）
  * @returns {string[]} 相对路径，按字典序
  */
-function collectFiles(root, maxDepth) {
+export function collectFiles(root, maxDepth) {
   const files = []
   const walk = (directory, depth) => {
     let entries
@@ -154,7 +154,10 @@ export function buildMap(options = {}) {
   const files = []
   let characters = 0
   let truncated = false
-  const candidates = collectFiles(root, depth)
+  const focus = typeof options.focus === 'string' && options.focus !== '' ? options.focus.replace(/\\/gu, '/') : null
+  const candidates = collectFiles(root, depth).filter((path) =>
+    focus === null ? true : path.replace(/\\/gu, '/').startsWith(focus.replace(/\/+$/u, '') + '/'),
+  )
 
   for (const relativePath of candidates) {
     const absolute = join(root, relativePath)
@@ -221,6 +224,19 @@ export function renderMap(map) {
  * @param {string[]} argv - 参数
  * @returns {number} 退出码
  */
+/**
+ * 按仓库规模给预算：小仓库不用放大，大仓库按文件数放大，封顶 12000。
+ * @param {number} fileCount - 待扫描文件数
+ * @param {number} [explicit] - 显式传入的预算
+ * @returns {number} 预算字符数
+ */
+export function adaptiveBudget(fileCount, explicit) {
+  if (Number.isFinite(explicit) && explicit > 0) return Math.floor(explicit)
+  const count = Number.isFinite(fileCount) && fileCount > 0 ? fileCount : 1
+  // 上限 6000：侦察是"第一屏"，不是全量清单；要更多用 --budget 或 --focus。
+  return Math.min(6_000, Math.max(4000, count * 40))
+}
+
 export function main(argv) {
   const json = argv.includes('--json')
   const readFlag = (name, fallback) => {
@@ -229,13 +245,21 @@ export function main(argv) {
     const value = Number(argv[index + 1])
     return Number.isFinite(value) ? value : fallback
   }
-  const budget = readFlag('--budget', 4000)
+  const explicitBudget = readFlag('--budget', Number.NaN)
+  const focusIndex = argv.indexOf('--focus')
+  const focus = focusIndex === -1 ? null : argv[focusIndex + 1] ?? null
   const depth = readFlag('--depth', 6)
   const positional = argv.filter(
     (argument, index) => !argument.startsWith('--') && !/^--/u.test(argv[index - 1] ?? ''),
   )
   const root = positional[0] ?? process.cwd()
-  const map = buildMap({ root, budget, depth })
+  // 预算自适应：先用粗数估文件量，再决定预算；--focus 把范围收窄到某个目录。
+  const focusPrefix = focus === null ? null : focus.replace(/\\/gu, '/').replace(/\/+$/u, '') + '/'
+  const total = collectFiles(root, depth).filter((path) =>
+    focusPrefix === null ? true : path.replace(/\\/gu, '/').startsWith(focusPrefix),
+  ).length
+  const budget = adaptiveBudget(total, explicitBudget)
+  const map = buildMap({ root, budget, depth, ...(focus === null ? {} : { focus }) })
   process.stdout.write(json ? `${JSON.stringify(map, null, 2)}\n` : `${renderMap(map)}\n`)
   return 0
 }

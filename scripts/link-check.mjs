@@ -3,6 +3,8 @@
  * 文档引用完整性：markdown 链接与正文里提到的仓库路径，目标必须存在。
  *
  * 现有 doc-cmd-check 只管「命令里的脚本存在」，管不到读者会点的链接。
+ *
+ * 用法：node scripts/link-check.mjs [--root <项目目录>] [--strict]
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
@@ -10,6 +12,7 @@ import { dirname, join, normalize } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
+const { documentsUnder, relativeTo, resolveRoot } = await import('./lib/scan-root.mjs')
 
 /**
  * 抽出 markdown 里的相对链接目标。
@@ -84,21 +87,23 @@ export function documents() {
  * @param {string[]} [files] - 待检查文件（默认全量）
  * @returns {{ file: string; target: string; kind: string }[]} 断链
  */
-export function checkLinks(files = documents()) {
+export function checkLinks(files = documents(), baseRoot = root) {
   const broken = []
   for (const file of files) {
-    const text = readFileSync(join(root, file), 'utf8')
+    const text = readFileSync(join(baseRoot, file), 'utf8')
     for (const target of extractLinks(text)) {
+      // 以 / 开头的是站点路由（文档站常见），不是仓库路径，跳过。
+      if (target.startsWith('/')) continue
       const resolved = resolveTarget(file, target)
-      if (!resolved.startsWith('..') && !existsSync(join(root, resolved))) {
+      if (!resolved.startsWith('..') && !existsSync(join(baseRoot, resolved))) {
         broken.push({ file, target, kind: '链接' })
       }
     }
     for (const target of extractCodePaths(text)) {
-      const atRoot = existsSync(join(root, target))
+      const atRoot = existsSync(join(baseRoot, target))
       // 技能正文里的 references/xxx.md 相对技能目录，先在技能目录找。
       const skillDir = /^skills\/([^/]+)\//u.exec(file)?.[1]
-      const atSkill = skillDir !== undefined && existsSync(join(root, 'skills', skillDir, target))
+      const atSkill = skillDir !== undefined && existsSync(join(baseRoot, 'skills', skillDir, target))
       if (!atRoot && !atSkill) broken.push({ file, target, kind: '路径' })
     }
   }
@@ -111,8 +116,10 @@ export function checkLinks(files = documents()) {
  * @returns {number} 退出码：0 无断链、1 有断链（--strict 时）
  */
 export function main(argv) {
-  const files = documents()
-  const broken = checkLinks(files)
+  const { root: scanRoot } = resolveRoot(argv, root)
+  const external = scanRoot !== root
+  const files = external ? documentsUnder(scanRoot).map((path) => relativeTo(scanRoot, path)) : documents()
+  const broken = checkLinks(files, scanRoot)
   process.stdout.write(`检查 ${files.length} 份文档\n`)
   if (broken.length === 0) {
     process.stdout.write('引用完整：没有断链\n')

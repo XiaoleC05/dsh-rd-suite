@@ -1,6 +1,6 @@
 {
   "name": "dsh-rd-suite",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -35,10 +35,10 @@
     "lib"
   ],
   "dependencies": {
-    "@deepseek-ai/dsh-tools": "0.2.2-rc.5",
-    "@deepseek-ai/schemastery": "~3.19.0",
     "@biomejs/js-api": "^6.1.0",
     "@biomejs/wasm-nodejs": "^2.6.8",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.5",
+    "@deepseek-ai/schemastery": "~3.19.0",
     "@wasm-fmt/clang-format": "^23.1.1",
     "@wasm-fmt/gofmt": "^0.7.3",
     "@wasm-fmt/ruff_fmt": "^0.15.20",
@@ -74,5 +74,8 @@
   "engines": {
     "dsh": ">=0.2.2-rc.5",
     "node": ">=22"
+  },
+  "devDependencies": {
+    "jscpd": "^4.3.0"
   }
 }
